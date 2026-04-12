@@ -1,0 +1,22 @@
+FROM python:3.12-slim
+
+WORKDIR /scanner
+
+# Install build tools for target projects
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential gcc g++ make cmake \
+    git curl wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python deps (scanner only needs minimal deps)
+COPY pyproject.toml .
+RUN pip install --no-cache-dir httpx zhipuai pydantic pydantic-settings rich
+
+# Copy scanner code
+COPY src/ src/
+
+# Scanner entry point: scan a project at /target/
+# Results written to /output/
+VOLUME ["/target", "/output"]
+
+ENTRYPOINT ["python", "-m", "cyberai.scanner.carlini"]
