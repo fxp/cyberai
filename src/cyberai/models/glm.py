@@ -125,27 +125,66 @@ class GLMAdapter(SecurityAgent):
         prices = GLM_PRICING.get(self.model_name, GLM_PRICING["glm-5.1"])
         return (input_tokens * prices["input"] + output_tokens * prices["output"]) / 1000
 
-    async def chat(self, messages: list[dict[str, str]]) -> tuple[str, ModelUsage]:
-        """Send chat completion to GLM."""
-        t0 = time.monotonic()
-        response = self.client.chat.completions.create(
-            model=self.model_name,
-            messages=messages,
-            temperature=0.1,
-        )
-        latency = int((time.monotonic() - t0) * 1000)
+    async def chat(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        max_retries: int = 3,
+        retry_base_delay: float = 15.0,
+    ) -> tuple[str, ModelUsage]:
+        """Send chat completion to GLM with retry and exponential backoff.
 
-        content = response.choices[0].message.content or ""
-        usage_data = response.usage
+        Args:
+            messages: Chat messages.
+            max_retries: Max retry attempts on rate-limit (429) or server errors (5xx).
+            retry_base_delay: Base delay in seconds between retries (doubles each attempt).
+        """
+        import asyncio
 
-        usage = ModelUsage(
-            model=self.model_name,
-            input_tokens=usage_data.prompt_tokens,
-            output_tokens=usage_data.completion_tokens,
-            cost_usd=self._calc_cost(usage_data.prompt_tokens, usage_data.completion_tokens),
-            latency_ms=latency,
-        )
-        return content, usage
+        last_err: Exception | None = None
+
+        for attempt in range(max_retries + 1):
+            t0 = time.monotonic()
+            try:
+
+                def _sync_call():
+                    return self.client.chat.completions.create(
+                        model=self.model_name,
+                        messages=messages,
+                        temperature=0.1,
+                        timeout=80,  # SDK-level socket timeout (httpx)
+                    )
+
+                response = await asyncio.to_thread(_sync_call)
+                latency = int((time.monotonic() - t0) * 1000)
+
+                content = response.choices[0].message.content or ""
+                usage_data = response.usage
+
+                usage = ModelUsage(
+                    model=self.model_name,
+                    input_tokens=usage_data.prompt_tokens,
+                    output_tokens=usage_data.completion_tokens,
+                    cost_usd=self._calc_cost(usage_data.prompt_tokens, usage_data.completion_tokens),
+                    latency_ms=latency,
+                )
+                return content, usage
+
+            except Exception as e:
+                last_err = e
+                err_str = str(e)
+                is_retryable = "429" in err_str or "1302" in err_str or "500" in err_str or "1234" in err_str
+                if is_retryable and attempt < max_retries:
+                    delay = retry_base_delay * (2 ** attempt)
+                    logger.warning(
+                        "GLM API error (attempt %d/%d): %s — retrying in %.0fs",
+                        attempt + 1, max_retries + 1, err_str[:80], delay,
+                    )
+                    await asyncio.sleep(delay)
+                else:
+                    raise
+
+        raise last_err  # type: ignore[misc]  # unreachable but satisfies type checker
 
     async def scan_file(
         self,
