@@ -172,14 +172,45 @@ class CarliniPipeline:
             )
 
     async def _verify_findings(self, result: PipelineResult) -> int:
-        """Run second-pass severity assessment on all findings."""
+        """Run second-pass severity assessment on all findings.
+
+        Passes ±50 lines of source code around each finding as context so the
+        verifier can detect existing sanitization / mitigations and reduce
+        false-positive CRITICAL/HIGH ratings.
+        """
         verified = 0
         for sr in result.scan_results:
             for finding in sr.findings:
                 try:
-                    updated = await self.agent.assess_severity(finding)
+                    context = self._extract_code_context(
+                        sr.target, finding.line_start, finding.line_end
+                    )
+                    updated = await self.agent.assess_severity(finding, context=context)
                     if updated.confidence > 0.0:  # not marked as false positive
                         verified += 1
                 except Exception as e:
                     logger.warning("Verification failed for %s: %s", finding.id, e)
         return verified
+
+    @staticmethod
+    def _extract_code_context(
+        file_path: str,
+        line_start: int,
+        line_end: int,
+        radius: int = 50,
+    ) -> str:
+        """Return ±radius lines around a finding as a formatted code snippet."""
+        try:
+            lines = Path(file_path).read_text(errors="ignore").splitlines()
+        except OSError:
+            return ""
+        total = len(lines)
+        lo = max(0, line_start - radius - 1)
+        hi = min(total, line_end + radius)
+        snippet = "\n".join(
+            f"{i+1:5d}: {lines[i]}" for i in range(lo, hi)
+        )
+        return (
+            f"Source context ({Path(file_path).name} "
+            f"lines {lo+1}-{hi}):\n```c\n{snippet}\n```"
+        )

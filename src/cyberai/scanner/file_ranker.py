@@ -258,10 +258,6 @@ def apply_project_boosters(
     files.sort(key=lambda f: f.score, reverse=True)
     return files
 
-    # Sort descending by score
-    files.sort(key=lambda f: f.score, reverse=True)
-    return files
-
 
 def get_scan_queue(
     root_dir: str | Path,

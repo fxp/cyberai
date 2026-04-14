@@ -91,7 +91,11 @@ SEVERITY_ASSESS_PROMPT = """You are a senior security analyst performing a secon
 
 Re-assess this finding:
 1. Is this a real vulnerability or a false positive?
-2. Is the severity rating accurate?
+   - **Critically**: check if the code has existing mitigations (input sanitization, bounds checks,
+     escaping functions, security policy guards) that would prevent exploitation.
+   - If a dangerous pattern (e.g. format string, injection sink) has sanitization applied to its
+     inputs BEFORE the sink, mark it as invalid (false positive).
+2. Is the severity rating accurate given any mitigations present?
 3. What is your confidence level (0.0 to 1.0)?
 
 Respond in JSON:
@@ -106,74 +110,118 @@ Respond in JSON:
 """
 
 
+_GLM_API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
+
+
 class GLMAdapter(SecurityAgent):
-    """GLM 5.1 adapter using zhipuai SDK."""
+    """GLM 5.1 adapter using httpx.AsyncClient for native async with proper timeouts."""
 
     def __init__(self, model_name: str = "glm-5.1", api_key: str = "", **kwargs):
         super().__init__(model_name=model_name, api_key=api_key, **kwargs)
-        self._client = None
-
-    @property
-    def client(self):
-        if self._client is None:
-            from zhipuai import ZhipuAI
-
-            self._client = ZhipuAI(api_key=self.api_key)
-        return self._client
 
     def _calc_cost(self, input_tokens: int, output_tokens: int) -> float:
         prices = GLM_PRICING.get(self.model_name, GLM_PRICING["glm-5.1"])
         return (input_tokens * prices["input"] + output_tokens * prices["output"]) / 1000
 
+    def _auth_header(self) -> str:
+        """Generate JWT auth header required by BigModel API."""
+        import base64
+        import hmac
+        import hashlib
+        import struct
+
+        # BigModel API key format: <id>.<secret>
+        parts = self.api_key.split(".", 1)
+        if len(parts) != 2:
+            return f"Bearer {self.api_key}"
+
+        api_id, api_secret = parts[0], parts[1]
+
+        # Build JWT: header.payload.signature
+        header = base64.urlsafe_b64encode(
+            json.dumps({"alg": "HS256", "sign_type": "SIGN"}).encode()
+        ).rstrip(b"=").decode()
+
+        now_ms = int(time.time() * 1000)
+        payload = base64.urlsafe_b64encode(
+            json.dumps({"api_key": api_id, "exp": now_ms + 3600_000, "timestamp": now_ms}).encode()
+        ).rstrip(b"=").decode()
+
+        sig_input = f"{header}.{payload}".encode()
+        sig = base64.urlsafe_b64encode(
+            hmac.new(api_secret.encode(), sig_input, hashlib.sha256).digest()
+        ).rstrip(b"=").decode()
+
+        return f"Bearer {header}.{payload}.{sig}"
+
     async def chat(
         self,
         messages: list[dict[str, str]],
         *,
+        timeout: float = 300.0,
         max_retries: int = 3,
         retry_base_delay: float = 15.0,
     ) -> tuple[str, ModelUsage]:
-        """Send chat completion to GLM with retry and exponential backoff.
+        """Send chat completion via native httpx async (true cancellable timeout).
 
-        Args:
-            messages: Chat messages.
-            max_retries: Max retry attempts on rate-limit (429) or server errors (5xx).
-            retry_base_delay: Base delay in seconds between retries (doubles each attempt).
+        Using httpx.AsyncClient directly ensures asyncio.wait_for() can truly
+        cancel the request — no lingering background threads left behind.
         """
         import asyncio
+        import httpx
 
         last_err: Exception | None = None
 
         for attempt in range(max_retries + 1):
             t0 = time.monotonic()
             try:
-
-                def _sync_call():
-                    return self.client.chat.completions.create(
-                        model=self.model_name,
-                        messages=messages,
-                        temperature=0.1,
-                        timeout=80,  # SDK-level socket timeout (httpx)
+                async with httpx.AsyncClient(timeout=httpx.Timeout(timeout)) as client:
+                    resp = await client.post(
+                        _GLM_API_URL,
+                        headers={
+                            "Authorization": self._auth_header(),
+                            "Content-Type": "application/json",
+                        },
+                        json={
+                            "model": self.model_name,
+                            "messages": messages,
+                            "temperature": 0.1,
+                        },
                     )
 
-                response = await asyncio.to_thread(_sync_call)
                 latency = int((time.monotonic() - t0) * 1000)
 
-                content = response.choices[0].message.content or ""
-                usage_data = response.usage
+                if resp.status_code == 429:
+                    raise Exception(f"429 rate limit: {resp.text[:120]}")
+                if resp.status_code >= 500:
+                    raise Exception(f"{resp.status_code} server error: {resp.text[:120]}")
+                resp.raise_for_status()
+
+                data = resp.json()
+                content = data["choices"][0]["message"]["content"] or ""
+                usage_data = data.get("usage", {})
+                input_tokens = usage_data.get("prompt_tokens", 0)
+                output_tokens = usage_data.get("completion_tokens", 0)
 
                 usage = ModelUsage(
                     model=self.model_name,
-                    input_tokens=usage_data.prompt_tokens,
-                    output_tokens=usage_data.completion_tokens,
-                    cost_usd=self._calc_cost(usage_data.prompt_tokens, usage_data.completion_tokens),
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                    cost_usd=self._calc_cost(input_tokens, output_tokens),
                     latency_ms=latency,
                 )
                 return content, usage
 
             except Exception as e:
+                import httpx as _httpx
+                # httpx timeout exceptions have empty str() — re-raise as clear TimeoutError
+                if isinstance(e, (_httpx.TimeoutException, _httpx.ConnectTimeout,
+                                  _httpx.ReadTimeout, _httpx.WriteTimeout)):
+                    raise TimeoutError(f"GLM API timeout after {timeout:.0f}s") from e
+
                 last_err = e
                 err_str = str(e)
-                is_retryable = "429" in err_str or "1302" in err_str or "500" in err_str or "1234" in err_str
+                is_retryable = "429" in err_str or "500" in err_str or "502" in err_str or "503" in err_str
                 if is_retryable and attempt < max_retries:
                     delay = retry_base_delay * (2 ** attempt)
                     logger.warning(
@@ -184,7 +232,7 @@ class GLMAdapter(SecurityAgent):
                 else:
                     raise
 
-        raise last_err  # type: ignore[misc]  # unreachable but satisfies type checker
+        raise last_err  # type: ignore[misc]
 
     async def scan_file(
         self,

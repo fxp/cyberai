@@ -69,21 +69,110 @@ KNOWN_CVES: dict[str, list[dict]] = {
 }
 
 
-async def scan_file_with_context(agent, filepath: Path, project_root: Path) -> dict:
+def smart_truncate(content: str, max_chars: int = 12_000) -> tuple[str, bool]:
+    """Intelligently truncate large C files to focus on vulnerability-prone code.
+
+    Strategy: skip large comment blocks at the top, extract code starting from
+    the first function definition, keep the most relevant portion.
+    For very large files, also sample from the middle where ReadXXXImage() tends to be.
+    """
+    if len(content) <= max_chars:
+        return content, False
+
+    lines = content.splitlines(keepends=True)
+    total_lines = len(lines)
+
+    # Find first real code line (skip license header / includes block)
+    code_start = 0
+    in_block_comment = False
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("/*"):
+            in_block_comment = True
+        if in_block_comment:
+            if "*/" in stripped:
+                in_block_comment = False
+            continue
+        # First non-comment, non-empty, non-include line that looks like code
+        if stripped and not stripped.startswith("//") and not stripped.startswith("#include"):
+            code_start = i
+            break
+
+    # Sample: beginning of real code + middle section + end
+    chunk = max_chars // 3
+    start_content = "".join(lines[code_start:code_start + 200])[:chunk]
+    mid = total_lines // 2
+    mid_content = "".join(lines[mid:mid + 200])[:chunk]
+    end_content = "".join(lines[-150:])[:chunk]
+
+    result = (
+        f"// === [FILE START (lines {code_start+1}-{code_start+200})] ===\n"
+        + start_content
+        + f"\n\n// === [MIDDLE SECTION (lines {mid+1}-{mid+200})] ===\n"
+        + mid_content
+        + f"\n\n// === [FILE END (last 150 lines)] ===\n"
+        + end_content
+    )
+    return result, True
+
+
+def _extract_code_context(filepath: Path, line_start: int, line_end: int, radius: int = 50) -> str:
+    """Return ±radius lines around a finding as a formatted code snippet."""
+    try:
+        lines = filepath.read_text(errors="ignore").splitlines()
+    except OSError:
+        return ""
+    total = len(lines)
+    lo = max(0, line_start - radius - 1)
+    hi = min(total, line_end + radius)
+    snippet = "\n".join(f"{i+1:5d}: {lines[i]}" for i in range(lo, hi))
+    return f"Source context ({filepath.name} lines {lo+1}-{hi}):\n```c\n{snippet}\n```"
+
+
+async def verify_finding(agent, finding, filepath: Path, delay: float = 15.0) -> dict:
+    """Second-pass verification for a single finding with source code context."""
+    import asyncio
+    from cyberai.models.base import VulnFinding
+
+    context = _extract_code_context(filepath, finding["line_start"], finding["line_end"])
+
+    # Reconstruct a VulnFinding-like object for assess_severity
+    from cyberai.models.base import VulnFinding, Severity
+    vf = VulnFinding(
+        file_path=finding.get("file", ""),
+        title=finding["title"],
+        vuln_type=finding["type"],
+        line_start=finding["line_start"],
+        line_end=finding["line_end"],
+        severity=Severity(finding["severity"]),
+        description=finding["description"],
+        proof_of_concept=finding.get("poc", ""),
+        cvss_score=finding.get("cvss", 0.0),
+        confidence=finding["confidence"],
+    )
+
+    try:
+        updated = await asyncio.wait_for(
+            agent.assess_severity(vf, context=context),
+            timeout=180,
+        )
+        return {
+            "verified": True,
+            "is_valid": updated.confidence > 0.0,
+            "severity": updated.severity.value,
+            "confidence": updated.confidence,
+        }
+    except Exception as e:
+        return {"verified": False, "error": str(e)}
+
+
+async def scan_file_with_context(agent, filepath: Path, project_root: Path, verify: bool = False, verify_delay: float = 15.0) -> dict:
     """Scan a single file and return structured research result."""
     rel_path = str(filepath.relative_to(project_root))
-    content = filepath.read_text(errors="ignore")
+    raw_content = filepath.read_text(errors="ignore")
+    content, truncated = smart_truncate(raw_content)
 
-    # Truncate very large files (keep first 8KB + last 2KB for context)
-    MAX_CHARS = 10_000
-    if len(content) > MAX_CHARS:
-        content = content[:8_000] + "\n\n// [...truncated...]\n\n" + content[-2_000:]
-        truncated = True
-    else:
-        truncated = False
-
-    console.print(f"  [dim]Scanning {rel_path} ({len(content):,} chars{'  truncated' if truncated else ''})...[/dim]",
-                  flush=True)
+    console.print(f"  [dim]Scanning {rel_path} ({len(content):,} chars{'  truncated' if truncated else ''})...[/dim]")
     start = time.time()
 
     try:
@@ -93,37 +182,80 @@ async def scan_file_with_context(agent, filepath: Path, project_root: Path) -> d
         )
         elapsed = time.time() - start
 
+        findings_list = [
+            {
+                "id": f.id,
+                "severity": f.severity.value,
+                "title": f.title,
+                "type": f.vuln_type,
+                "description": f.description,
+                "line_start": f.line_start,
+                "line_end": f.line_end,
+                "confidence": f.confidence,
+                "cvss": f.cvss_score,
+                "poc": f.proof_of_concept,
+                "file": rel_path,
+                "verified": False,
+            }
+            for f in result.findings
+        ]
+
+        # --- Optional Stage 4: second-pass verification with source context ---
+        if verify and findings_list:
+            console.print(f"  [dim]Verifying {len(findings_list)} findings...[/dim]")
+            for i, finding in enumerate(findings_list):
+                if i > 0:
+                    await asyncio.sleep(verify_delay)
+                vr = await verify_finding(agent, finding, filepath)
+                if vr.get("verified"):
+                    finding["verified"] = True
+                    finding["is_valid"] = vr["is_valid"]
+                    finding["severity_verified"] = vr["severity"]
+                    finding["confidence_verified"] = vr["confidence"]
+                    if not vr["is_valid"]:
+                        console.print(
+                            f"    [dim strikethrough]{finding['title']}[/] "
+                            f"[yellow]→ false positive[/yellow]"
+                        )
+                    else:
+                        old_sev = finding["severity"]
+                        new_sev = vr["severity"]
+                        if old_sev != new_sev:
+                            sev_color = {"critical": "red", "high": "yellow", "medium": "cyan"}.get(new_sev, "white")
+                            console.print(
+                                f"    [{sev_color}]{finding['title']}[/] "
+                                f"[dim]{old_sev} → {new_sev}[/dim]"
+                            )
+
+        # Recount severity after verification (exclude confirmed false positives)
         severity_counts = {}
-        for f in result.findings:
-            sev = f.severity.value
+        valid_count = 0
+        for f in findings_list:
+            if f.get("is_valid") is False:
+                continue  # confirmed false positive
+            sev = f.get("severity_verified", f["severity"])
             severity_counts[sev] = severity_counts.get(sev, 0) + 1
+            valid_count += 1
+
+        if not verify:
+            # pre-verification: use raw counts
+            severity_counts = {}
+            for f in findings_list:
+                sev = f["severity"]
+                severity_counts[sev] = severity_counts.get(sev, 0) + 1
+            valid_count = len(findings_list)
 
         return {
             "file": rel_path,
             "size_chars": len(content),
             "truncated": truncated,
             "scan_time_s": round(elapsed, 1),
-            "vuln_count": result.vuln_count,
+            "vuln_count": valid_count,
             "error": result.error,
             "cost_usd": result.usage.cost_usd,
             "tokens": result.usage.total_tokens,
             "severity_counts": severity_counts,
-            "findings": [
-                {
-                    "id": f.id,
-                    "severity": f.severity.value,
-                    "title": f.title,
-                    "type": f.vuln_type,
-                    "description": f.description,
-                    "line_start": f.line_start,
-                    "line_end": f.line_end,
-                    "confidence": f.confidence,
-                    "cvss": f.cvss_score,
-                    "cwe": f.cwe_id,
-                    "remediation": f.remediation,
-                }
-                for f in result.findings
-            ],
+            "findings": findings_list,
         }
 
     except asyncio.TimeoutError:
@@ -172,6 +304,8 @@ async def main():
     parser.add_argument("--batch", default=None, help="Batch name: T1, T2, T3 (T1 uses priority override)")
     parser.add_argument("--max", type=int, default=5, help="Max files to scan")
     parser.add_argument("--delay", type=int, default=15, help="Seconds to wait between scans (rate limit)")
+    parser.add_argument("--verify", action="store_true", help="Run second-pass verification with source code context")
+    parser.add_argument("--verify-delay", type=int, default=15, help="Seconds between verification API calls")
     parser.add_argument("--output-dir", default="/root/cyberai_research", help="Output directory for results")
     args = parser.parse_args()
 
@@ -225,11 +359,11 @@ async def main():
 
     for i, filepath in enumerate(target_files):
         if i > 0:
-            console.print(f"  [dim]Waiting {args.delay}s...[/dim]", flush=True)
+            console.print(f"  [dim]Waiting {args.delay}s...[/dim]")
             await asyncio.sleep(args.delay)
 
         console.print(f"\n[bold cyan][{i+1}/{len(target_files)}][/bold cyan]", end=" ")
-        result = await scan_file_with_context(agent, filepath, project_root)
+        result = await scan_file_with_context(agent, filepath, project_root, verify=args.verify, verify_delay=args.verify_delay)
         scan_results.append(result)
 
         total_cost += result["cost_usd"]
