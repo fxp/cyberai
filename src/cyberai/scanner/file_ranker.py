@@ -47,6 +47,55 @@ TEST_PATTERNS = {
     "mock_", "_mock.", "fixture", "conftest",
 }
 
+# ---------------------------------------------------------------------------
+# Project-specific boosters
+# Keyed by a substring that must appear anywhere in the project root path.
+# Value is a dict of path-substring → bonus score.
+# ---------------------------------------------------------------------------
+
+PROJECT_BOOSTERS: dict[str, dict[str, float]] = {
+    # ImageMagick: coders/ directory is the highest-CVE attack surface.
+    # Specific format codecs are ordered by historical CVE density.
+    "imagemagick": {
+        "coders/png":    60,   # ~80 historical CVEs
+        "coders/tiff":   55,
+        "coders/psd":    50,
+        "coders/svg":    50,   # ImageTragick origin
+        "coders/gif":    48,
+        "coders/pdf":    45,
+        "coders/jp2":    44,
+        "coders/bmp":    43,
+        "coders/webp":   40,
+        "coders/heic":   40,
+        "coders/mvg":    38,   # ImageTragick core
+        "coders/":       25,   # any other coder
+        "magickcore/pixel":    20,
+        "magickcore/memory":   20,
+        "magickcore/constitute": 18,
+        "magickcore/transform": 15,
+        "magickcore/resize":   15,
+    },
+    # LibTIFF: key parsing and codec files
+    "libtiff": {
+        "tif_dirread":   55,
+        "tif_read":      50,
+        "tif_pixarlog":  45,
+        "tif_luv":       44,
+        "tif_getimage":  43,
+        "tif_dirwrite":  40,
+        "tif_compress":  38,
+    },
+    # Mosquitto MQTT broker
+    "mosquitto": {
+        "read_handle":   55,
+        "packet_mosq":   50,
+        "mqtt_protocol": 50,
+        "handle_":       45,
+        "net_mosq":      40,
+        "src/":          20,
+    },
+}
+
 # Keywords that indicate security-sensitive code (higher priority)
 SECURITY_KEYWORDS = {
     # Network / protocol handling
@@ -174,6 +223,41 @@ def rank_files(files: list[RankedFile], *, sample_bytes: int = 4096) -> list[Ran
 
         f.score = score
 
+    return files
+
+
+def apply_project_boosters(
+    files: list[RankedFile],
+    root_dir: str | Path,
+) -> list[RankedFile]:
+    """Apply project-specific score bonuses based on known high-CVE paths.
+
+    Checks the root directory name against PROJECT_BOOSTERS and adds bonus
+    scores for files whose relative paths match known high-risk patterns.
+    """
+    root_lower = Path(root_dir).name.lower()
+
+    # Find matching project booster (substring match on root dir name)
+    booster: dict[str, float] = {}
+    for project_key, path_map in PROJECT_BOOSTERS.items():
+        if project_key in root_lower:
+            booster = path_map
+            break
+
+    if not booster:
+        return files
+
+    for f in files:
+        rel_lower = f.relative_path.lower()
+        best_bonus = 0.0
+        for path_substr, bonus in booster.items():
+            if path_substr in rel_lower:
+                best_bonus = max(best_bonus, bonus)
+        f.score += best_bonus
+
+    files.sort(key=lambda f: f.score, reverse=True)
+    return files
+
     # Sort descending by score
     files.sort(key=lambda f: f.score, reverse=True)
     return files
@@ -185,9 +269,10 @@ def get_scan_queue(
     max_files: int | None = None,
     min_score: float = 0.0,
 ) -> list[RankedFile]:
-    """Full Stage 1 pipeline: discover → rank → filter → return queue."""
+    """Full Stage 1 pipeline: discover → rank → project-boost → filter → queue."""
     files = discover_files(root_dir)
     ranked = rank_files(files)
+    ranked = apply_project_boosters(ranked, root_dir)
 
     # Filter by minimum score
     if min_score > 0:
