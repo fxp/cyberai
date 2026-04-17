@@ -1,0 +1,26 @@
+Scanning 14 segments (starting at 0), 30s delay
+
+[09:30:40] lib/urlapi.c [parseurl] (7,000 chars)...
+Scan failed for lib/urlapi.c [parseurl]: Server disconnected without sending a response.
+  Done 302s — 0 findings
+  Error: Server disconnected without sending a response.
+  [waiting 30s...]
+[09:36:12] lib/urlapi.c [parse_hostname_login+ipv6+hostname_check] (7,000 chars)...
+Scan failed for lib/urlapi.c [parse_hostname_login+ipv6+hostname_check]: Server disconnected without sending a response.
+  Done 301s — 0 findings
+  Error: Server disconnected without sending a response.
+  [waiting 30s...]
+[09:41:43] lib/urlapi.c [curl_url_set+curl_url_get] (7,000 chars)...
+  Done 223s — 3 findings
+  [MEDIUM] Off-by-one error in URL scheme character validation (L1770, conf=92%)
+  [LOW] Potential double URL-encoding via flag leakage in CURLUPART_URL relative resolution (L1848, conf=70%)
+  [LOW] Incomplete query append logic (truncated code may hide buffer overflow) (L2010, conf=35%)
+  [waiting 30s...]
+[09:45:56] lib/url.c [parseurlandfillconn+setup_range] (7,500 chars)...
+  Done 292s — 4 findings
+  [MEDIUM] In-place corruption of hostname buffer during IPv6 bracket stripping (L1795, conf=75%)
+  [MEDIUM] Credential precedence logic flaw allows URL username to override CURLOPT_USERNAME (L1855, conf=80%)
+  [LOW] Dangling pointer and potential double-free in setup_range after failed allocation (L1955, conf=50%)
+  [LOW] Missing URL validation when using CURLOPT_CURLU (use_set_uh path) (L1738, conf=60%)
+  [waiting 30s...]
+[09:51:18] lib/cookie.c [parse_cookie_header+sanitize+add] (7,500 chars)...
