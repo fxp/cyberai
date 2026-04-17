@@ -485,11 +485,11 @@ are now truly enforced and cancelled requests do not consume additional API quot
 | ✅ Done | libpng 1.6.45 manual analysis (14 functions) | Complete — 0 memory bugs, 2 INFO behavioral |
 | High | Disclose LibTIFF PixarLog ABGR finding to libtiff-security@lists.osgeo.org | Pending |
 | High | Run libpng GLM T1 scan after 08:00 BJT (use v3 extracts, 90s timeout) | Pending — API quota resets daily |
+| High | Run expat 2.6.4 T1 GLM scan (scan_expat_t1.py, 30 segments, 150s timeout) | Pending — API quota |
 | High | Run curl retry scan for segments 0,1,8,9,13 (scan_curl_t1_retry.py --segments 0,1,8,9,13) | Pending — API quota |
 | Medium | Manual verification of new BMP writer findings (integer overflow 32-bit paths) | Most appear 64-bit FP |
 | Medium | Stage 4 auto-filter: zlib adaptation pattern detector (avail_out truncation) | Pending |
 | Low | CVE cross-reference for all confirmed findings via NVD API | Pending |
-| Low | Advance to next target (OpenSSL / zlib / expat) after libpng GLM scan | Pending |
 
 ---
 
