@@ -31,6 +31,7 @@ TARGETS = {
     "openssl": RESEARCH / "openssl",
     "zlib":    RESEARCH / "zlib",
     "libxml2": RESEARCH / "libxml2",
+    "libssh2": RESEARCH / "libssh2",
 }
 
 # Confidence threshold for manual triage flagging

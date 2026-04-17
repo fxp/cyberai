@@ -10,10 +10,11 @@
 #   6. openssl 3.4.1  (t1 extracts, 150s timeout, 32 segments, ~88 min)
 #   7. zlib 1.3.1     (t1 extracts, 120s timeout, 25 segments, ~60 min)
 #   8. libxml2 2.13.5 (t1 extracts, 150s timeout, 32 segments, ~88 min)
+#   9. libssh2 1.11.1 (t1 extracts, 150s timeout, 40 segments, ~110 min)
 #
-# 总计: ~566 min; 预计完成时间 08:05 + 9:26 = 17:31 BJT
+# 总计: ~676 min; 预计完成时间 08:05 + 11:16 = 19:21 BJT
 #
-# Usage: bash scripts/run_daily_scans.sh [--libpng] [--expat] [--curl] [--nginx] [--sqlite] [--openssl] [--zlib] [--libxml2] [--all]
+# Usage: bash scripts/run_daily_scans.sh [--libpng] [--expat] [--curl] [--nginx] [--sqlite] [--openssl] [--zlib] [--libxml2] [--libssh2] [--all]
 #        (no args = --all)
 
 set -euo pipefail
@@ -27,10 +28,10 @@ LOG="$LOG_DIR/daily_${TIMESTAMP}.log"
 
 log() { echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG"; }
 
-RUN_LIBPNG=0; RUN_EXPAT=0; RUN_CURL=0; RUN_NGINX=0; RUN_SQLITE=0; RUN_OPENSSL=0; RUN_ZLIB=0; RUN_LIBXML2=0
+RUN_LIBPNG=0; RUN_EXPAT=0; RUN_CURL=0; RUN_NGINX=0; RUN_SQLITE=0; RUN_OPENSSL=0; RUN_ZLIB=0; RUN_LIBXML2=0; RUN_LIBSSH2=0
 
 if [[ $# -eq 0 || " $* " == *" --all "* ]]; then
-  RUN_LIBPNG=1; RUN_EXPAT=1; RUN_CURL=1; RUN_NGINX=1; RUN_SQLITE=1; RUN_OPENSSL=1; RUN_ZLIB=1; RUN_LIBXML2=1
+  RUN_LIBPNG=1; RUN_EXPAT=1; RUN_CURL=1; RUN_NGINX=1; RUN_SQLITE=1; RUN_OPENSSL=1; RUN_ZLIB=1; RUN_LIBXML2=1; RUN_LIBSSH2=1
 fi
 for arg in "$@"; do
   case $arg in
@@ -42,12 +43,13 @@ for arg in "$@"; do
     --openssl) RUN_OPENSSL=1 ;;
     --zlib)    RUN_ZLIB=1    ;;
     --libxml2) RUN_LIBXML2=1 ;;
+    --libssh2) RUN_LIBSSH2=1 ;;
   esac
 done
 
 log "=== CyberAI Daily Scan Batch ==="
 log "Date: $(date '+%Y-%m-%d %H:%M:%S %Z')"
-log "Tasks: libpng=$RUN_LIBPNG expat=$RUN_EXPAT curl=$RUN_CURL nginx=$RUN_NGINX sqlite=$RUN_SQLITE openssl=$RUN_OPENSSL zlib=$RUN_ZLIB libxml2=$RUN_LIBXML2"
+log "Tasks: libpng=$RUN_LIBPNG expat=$RUN_EXPAT curl=$RUN_CURL nginx=$RUN_NGINX sqlite=$RUN_SQLITE openssl=$RUN_OPENSSL zlib=$RUN_ZLIB libxml2=$RUN_LIBXML2 libssh2=$RUN_LIBSSH2"
 
 # ── 1. libpng ──
 if [[ $RUN_LIBPNG -eq 1 ]]; then
@@ -115,10 +117,19 @@ fi
 
 # ── 8. libxml2 ──
 if [[ $RUN_LIBXML2 -eq 1 ]]; then
-  log "--- [8/8] libxml2 2.13.5 GLM scan (t1, 32 segments, 150s timeout) ---"
+  log "--- [8/9] libxml2 2.13.5 GLM scan (t1, 32 segments, 150s timeout) ---"
   python scripts/scan_libxml2_t1.py --timeout 150 --delay 30 2>&1 | tee -a "$LOG" || \
     log "WARNING: libxml2 scan exited non-zero"
   log "--- libxml2 scan done ---"
+  sleep 60
+fi
+
+# ── 9. libssh2 ──
+if [[ $RUN_LIBSSH2 -eq 1 ]]; then
+  log "--- [9/9] libssh2 1.11.1 GLM scan (t1, 40 segments, 150s timeout) ---"
+  python scripts/scan_libssh2_t1.py --timeout 150 --delay 30 2>&1 | tee -a "$LOG" || \
+    log "WARNING: libssh2 scan exited non-zero"
+  log "--- libssh2 scan done ---"
 fi
 
 log "=== All scans complete. Log: $LOG ==="
