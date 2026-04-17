@@ -5,10 +5,11 @@
 #   1. libpng 1.6.45  (v3 extracts, 90s timeout, 14 segments, ~30 min)
 #   2. expat 2.6.4    (t1 extracts, 150s timeout, 30 segments, ~90 min)
 #   3. curl retry     (segments 0,1,8,9,13, 240s timeout, ~40 min)
+#   4. nginx 1.27.4   (t1 extracts, 150s timeout, 33 segments, ~90 min)
 #
-# 总计: ~160 min; 预计完成时间 08:05 + 2:40 = 10:45 BJT
+# 总计: ~250 min; 预计完成时间 08:05 + 4:10 = 12:15 BJT
 #
-# Usage: bash scripts/run_daily_scans.sh [--libpng] [--expat] [--curl] [--all]
+# Usage: bash scripts/run_daily_scans.sh [--libpng] [--expat] [--curl] [--nginx] [--all]
 #        (no args = --all)
 
 set -euo pipefail
@@ -22,22 +23,27 @@ LOG="$LOG_DIR/daily_${TIMESTAMP}.log"
 
 log() { echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG"; }
 
-RUN_LIBPNG=0; RUN_EXPAT=0; RUN_CURL=0
+RUN_LIBPNG=0; RUN_EXPAT=0; RUN_CURL=0; RUN_NGINX=0
 
 if [[ $# -eq 0 || " $* " == *" --all "* ]]; then
-  RUN_LIBPNG=1; RUN_EXPAT=1; RUN_CURL=1
+  RUN_LIBPNG=1; RUN_EXPAT=1; RUN_CURL=1; RUN_NGINX=1
 fi
 for arg in "$@"; do
-  case $arg in --libpng) RUN_LIBPNG=1 ;; --expat) RUN_EXPAT=1 ;; --curl) RUN_CURL=1 ;; esac
+  case $arg in
+    --libpng) RUN_LIBPNG=1 ;;
+    --expat)  RUN_EXPAT=1  ;;
+    --curl)   RUN_CURL=1   ;;
+    --nginx)  RUN_NGINX=1  ;;
+  esac
 done
 
 log "=== CyberAI Daily Scan Batch ==="
 log "Date: $(date '+%Y-%m-%d %H:%M:%S %Z')"
-log "Tasks: libpng=$RUN_LIBPNG expat=$RUN_EXPAT curl=$RUN_CURL"
+log "Tasks: libpng=$RUN_LIBPNG expat=$RUN_EXPAT curl=$RUN_CURL nginx=$RUN_NGINX"
 
 # ── 1. libpng ──
 if [[ $RUN_LIBPNG -eq 1 ]]; then
-  log "--- [1/3] libpng 1.6.45 GLM scan (v3, 14 segments, 90s timeout) ---"
+  log "--- [1/4] libpng 1.6.45 GLM scan (v3, 14 segments, 90s timeout) ---"
   python scripts/scan_libpng_v3.py --timeout 90 --delay 20 2>&1 | tee -a "$LOG" || \
     log "WARNING: libpng scan exited non-zero"
   log "--- libpng scan done ---"
@@ -46,7 +52,7 @@ fi
 
 # ── 2. expat ──
 if [[ $RUN_EXPAT -eq 1 ]]; then
-  log "--- [2/3] expat 2.6.4 GLM scan (30 segments, 150s timeout) ---"
+  log "--- [2/4] expat 2.6.4 GLM scan (30 segments, 150s timeout) ---"
   python scripts/scan_expat_t1.py --timeout 150 --delay 30 2>&1 | tee -a "$LOG" || \
     log "WARNING: expat scan exited non-zero"
   log "--- expat scan done ---"
@@ -55,11 +61,20 @@ fi
 
 # ── 3. curl retry ──
 if [[ $RUN_CURL -eq 1 ]]; then
-  log "--- [3/3] curl T1 retry (segments 0,1,8,9,13, 240s timeout) ---"
+  log "--- [3/4] curl T1 retry (segments 0,1,8,9,13, 240s timeout) ---"
   python scripts/scan_curl_t1_retry.py \
     --segments 0,1,8,9,13 --timeout 240 --delay 60 2>&1 | tee -a "$LOG" || \
     log "WARNING: curl retry exited non-zero"
   log "--- curl retry done ---"
+  sleep 60
+fi
+
+# ── 4. nginx ──
+if [[ $RUN_NGINX -eq 1 ]]; then
+  log "--- [4/4] nginx 1.27.4 GLM scan (t1, 33 segments, 150s timeout) ---"
+  python scripts/scan_nginx_t1.py --timeout 150 --delay 30 2>&1 | tee -a "$LOG" || \
+    log "WARNING: nginx scan exited non-zero"
+  log "--- nginx scan done ---"
 fi
 
 log "=== All scans complete. Log: $LOG ==="
