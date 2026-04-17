@@ -13,6 +13,7 @@ Usage:
   python scripts/process_scan_results.py --target expat
   python scripts/process_scan_results.py --target curl
   python scripts/process_scan_results.py --target nginx
+  python scripts/process_scan_results.py --target sqlite
   python scripts/process_scan_results.py --all
 """
 from __future__ import annotations
@@ -25,6 +26,7 @@ TARGETS = {
     "expat":  RESEARCH / "expat",
     "curl":   RESEARCH / "curl",
     "nginx":  RESEARCH / "nginx",
+    "sqlite": RESEARCH / "sqlite",
 }
 
 # Confidence threshold for manual triage flagging
