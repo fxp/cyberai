@@ -14,6 +14,7 @@ Usage:
   python scripts/process_scan_results.py --target curl
   python scripts/process_scan_results.py --target nginx
   python scripts/process_scan_results.py --target sqlite
+  python scripts/process_scan_results.py --target libxml2
   python scripts/process_scan_results.py --all
 """
 from __future__ import annotations
@@ -29,6 +30,7 @@ TARGETS = {
     "sqlite":  RESEARCH / "sqlite",
     "openssl": RESEARCH / "openssl",
     "zlib":    RESEARCH / "zlib",
+    "libxml2": RESEARCH / "libxml2",
 }
 
 # Confidence threshold for manual triage flagging
