@@ -15,6 +15,7 @@ Usage:
   python scripts/process_scan_results.py --target nginx
   python scripts/process_scan_results.py --target sqlite
   python scripts/process_scan_results.py --target libxml2
+  python scripts/process_scan_results.py --target freetype
   python scripts/process_scan_results.py --all
 """
 from __future__ import annotations
@@ -23,15 +24,16 @@ from datetime import datetime
 
 RESEARCH = pathlib.Path("research")
 TARGETS = {
-    "libpng":  RESEARCH / "libpng",
-    "expat":   RESEARCH / "expat",
-    "curl":    RESEARCH / "curl",
-    "nginx":   RESEARCH / "nginx",
-    "sqlite":  RESEARCH / "sqlite",
-    "openssl": RESEARCH / "openssl",
-    "zlib":    RESEARCH / "zlib",
-    "libxml2": RESEARCH / "libxml2",
-    "libssh2": RESEARCH / "libssh2",
+    "libpng":    RESEARCH / "libpng",
+    "expat":     RESEARCH / "expat",
+    "curl":      RESEARCH / "curl",
+    "nginx":     RESEARCH / "nginx",
+    "sqlite":    RESEARCH / "sqlite",
+    "openssl":   RESEARCH / "openssl",
+    "zlib":      RESEARCH / "zlib",
+    "libxml2":   RESEARCH / "libxml2",
+    "libssh2":   RESEARCH / "libssh2",
+    "freetype":  RESEARCH / "freetype",
 }
 
 # Confidence threshold for manual triage flagging

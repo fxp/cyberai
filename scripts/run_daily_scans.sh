@@ -2,19 +2,20 @@
 # run_daily_scans.sh — 每日 GLM 扫描批次 (08:05 BJT 触发)
 #
 # 运行顺序:
-#   1. libpng 1.6.45  (v3 extracts, 90s timeout, 14 segments, ~30 min)
-#   2. expat 2.6.4    (t1 extracts, 150s timeout, 30 segments, ~90 min)
-#   3. curl retry     (segments 0,1,8,9,13, 240s timeout, ~40 min)
-#   4. nginx 1.27.4   (t1 extracts, 150s timeout, 33 segments, ~90 min)
-#   5. sqlite 3.49.1  (t1 extracts, 150s timeout, 29 segments, ~80 min)
-#   6. openssl 3.4.1  (t1 extracts, 150s timeout, 32 segments, ~88 min)
-#   7. zlib 1.3.1     (t1 extracts, 120s timeout, 25 segments, ~60 min)
-#   8. libxml2 2.13.5 (t1 extracts, 150s timeout, 32 segments, ~88 min)
-#   9. libssh2 1.11.1 (t1 extracts, 150s timeout, 40 segments, ~110 min)
+#   1.  libpng 1.6.45   (v3 extracts, 90s timeout,  14 segments, ~30 min)
+#   2.  expat 2.6.4     (t1 extracts, 150s timeout, 30 segments, ~90 min)
+#   3.  curl retry      (segments 0,1,8,9,13, 240s timeout,       ~40 min)
+#   4.  nginx 1.27.4    (t1 extracts, 150s timeout, 33 segments, ~90 min)
+#   5.  sqlite 3.49.1   (t1 extracts, 150s timeout, 29 segments, ~80 min)
+#   6.  openssl 3.4.1   (t1 extracts, 150s timeout, 32 segments, ~88 min)
+#   7.  zlib 1.3.1      (t1 extracts, 120s timeout, 25 segments, ~60 min)
+#   8.  libxml2 2.13.5  (t1 extracts, 150s timeout, 32 segments, ~88 min)
+#   9.  libssh2 1.11.1  (t1 extracts, 150s timeout, 40 segments, ~110 min)
+#   10. freetype 2.13.3 (t1 extracts, 150s timeout, 49 segments, ~135 min)
 #
-# 总计: ~676 min; 预计完成时间 08:05 + 11:16 = 19:21 BJT
+# 总计: ~811 min; 预计完成时间 08:05 + 13:31 = 21:36 BJT
 #
-# Usage: bash scripts/run_daily_scans.sh [--libpng] [--expat] [--curl] [--nginx] [--sqlite] [--openssl] [--zlib] [--libxml2] [--libssh2] [--all]
+# Usage: bash scripts/run_daily_scans.sh [--libpng] [--expat] [--curl] [--nginx] [--sqlite] [--openssl] [--zlib] [--libxml2] [--libssh2] [--freetype] [--all]
 #        (no args = --all)
 
 set -euo pipefail
@@ -28,32 +29,33 @@ LOG="$LOG_DIR/daily_${TIMESTAMP}.log"
 
 log() { echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG"; }
 
-RUN_LIBPNG=0; RUN_EXPAT=0; RUN_CURL=0; RUN_NGINX=0; RUN_SQLITE=0; RUN_OPENSSL=0; RUN_ZLIB=0; RUN_LIBXML2=0; RUN_LIBSSH2=0
+RUN_LIBPNG=0; RUN_EXPAT=0; RUN_CURL=0; RUN_NGINX=0; RUN_SQLITE=0; RUN_OPENSSL=0; RUN_ZLIB=0; RUN_LIBXML2=0; RUN_LIBSSH2=0; RUN_FREETYPE=0
 
 if [[ $# -eq 0 || " $* " == *" --all "* ]]; then
-  RUN_LIBPNG=1; RUN_EXPAT=1; RUN_CURL=1; RUN_NGINX=1; RUN_SQLITE=1; RUN_OPENSSL=1; RUN_ZLIB=1; RUN_LIBXML2=1; RUN_LIBSSH2=1
+  RUN_LIBPNG=1; RUN_EXPAT=1; RUN_CURL=1; RUN_NGINX=1; RUN_SQLITE=1; RUN_OPENSSL=1; RUN_ZLIB=1; RUN_LIBXML2=1; RUN_LIBSSH2=1; RUN_FREETYPE=1
 fi
 for arg in "$@"; do
   case $arg in
-    --libpng)  RUN_LIBPNG=1  ;;
-    --expat)   RUN_EXPAT=1   ;;
-    --curl)    RUN_CURL=1    ;;
-    --nginx)   RUN_NGINX=1   ;;
-    --sqlite)  RUN_SQLITE=1  ;;
-    --openssl) RUN_OPENSSL=1 ;;
-    --zlib)    RUN_ZLIB=1    ;;
-    --libxml2) RUN_LIBXML2=1 ;;
-    --libssh2) RUN_LIBSSH2=1 ;;
+    --libpng)   RUN_LIBPNG=1   ;;
+    --expat)    RUN_EXPAT=1    ;;
+    --curl)     RUN_CURL=1     ;;
+    --nginx)    RUN_NGINX=1    ;;
+    --sqlite)   RUN_SQLITE=1   ;;
+    --openssl)  RUN_OPENSSL=1  ;;
+    --zlib)     RUN_ZLIB=1     ;;
+    --libxml2)  RUN_LIBXML2=1  ;;
+    --libssh2)  RUN_LIBSSH2=1  ;;
+    --freetype) RUN_FREETYPE=1 ;;
   esac
 done
 
 log "=== CyberAI Daily Scan Batch ==="
 log "Date: $(date '+%Y-%m-%d %H:%M:%S %Z')"
-log "Tasks: libpng=$RUN_LIBPNG expat=$RUN_EXPAT curl=$RUN_CURL nginx=$RUN_NGINX sqlite=$RUN_SQLITE openssl=$RUN_OPENSSL zlib=$RUN_ZLIB libxml2=$RUN_LIBXML2 libssh2=$RUN_LIBSSH2"
+log "Tasks: libpng=$RUN_LIBPNG expat=$RUN_EXPAT curl=$RUN_CURL nginx=$RUN_NGINX sqlite=$RUN_SQLITE openssl=$RUN_OPENSSL zlib=$RUN_ZLIB libxml2=$RUN_LIBXML2 libssh2=$RUN_LIBSSH2 freetype=$RUN_FREETYPE"
 
 # ── 1. libpng ──
 if [[ $RUN_LIBPNG -eq 1 ]]; then
-  log "--- [1/4] libpng 1.6.45 GLM scan (v3, 14 segments, 90s timeout) ---"
+  log "--- [1/10] libpng 1.6.45 GLM scan (v3, 14 segments, 90s timeout) ---"
   python scripts/scan_libpng_v3.py --timeout 90 --delay 20 2>&1 | tee -a "$LOG" || \
     log "WARNING: libpng scan exited non-zero"
   log "--- libpng scan done ---"
@@ -62,7 +64,7 @@ fi
 
 # ── 2. expat ──
 if [[ $RUN_EXPAT -eq 1 ]]; then
-  log "--- [2/4] expat 2.6.4 GLM scan (30 segments, 150s timeout) ---"
+  log "--- [2/10] expat 2.6.4 GLM scan (30 segments, 150s timeout) ---"
   python scripts/scan_expat_t1.py --timeout 150 --delay 30 2>&1 | tee -a "$LOG" || \
     log "WARNING: expat scan exited non-zero"
   log "--- expat scan done ---"
@@ -71,7 +73,7 @@ fi
 
 # ── 3. curl retry ──
 if [[ $RUN_CURL -eq 1 ]]; then
-  log "--- [3/4] curl T1 retry (segments 0,1,8,9,13, 240s timeout) ---"
+  log "--- [3/10] curl T1 retry (segments 0,1,8,9,13, 240s timeout) ---"
   python scripts/scan_curl_t1_retry.py \
     --segments 0,1,8,9,13 --timeout 240 --delay 60 2>&1 | tee -a "$LOG" || \
     log "WARNING: curl retry exited non-zero"
@@ -81,7 +83,7 @@ fi
 
 # ── 4. nginx ──
 if [[ $RUN_NGINX -eq 1 ]]; then
-  log "--- [4/5] nginx 1.27.4 GLM scan (t1, 33 segments, 150s timeout) ---"
+  log "--- [4/10] nginx 1.27.4 GLM scan (t1, 33 segments, 150s timeout) ---"
   python scripts/scan_nginx_t1.py --timeout 150 --delay 30 2>&1 | tee -a "$LOG" || \
     log "WARNING: nginx scan exited non-zero"
   log "--- nginx scan done ---"
@@ -90,7 +92,7 @@ fi
 
 # ── 5. sqlite ──
 if [[ $RUN_SQLITE -eq 1 ]]; then
-  log "--- [5/6] sqlite 3.49.1 GLM scan (t1, 29 segments, 150s timeout) ---"
+  log "--- [5/10] sqlite 3.49.1 GLM scan (t1, 29 segments, 150s timeout) ---"
   python scripts/scan_sqlite_t1.py --timeout 150 --delay 30 2>&1 | tee -a "$LOG" || \
     log "WARNING: sqlite scan exited non-zero"
   log "--- sqlite scan done ---"
@@ -99,7 +101,7 @@ fi
 
 # ── 6. openssl ──
 if [[ $RUN_OPENSSL -eq 1 ]]; then
-  log "--- [6/7] openssl 3.4.1 GLM scan (t1, 32 segments, 150s timeout) ---"
+  log "--- [6/10] openssl 3.4.1 GLM scan (t1, 32 segments, 150s timeout) ---"
   python scripts/scan_openssl_t1.py --timeout 150 --delay 30 2>&1 | tee -a "$LOG" || \
     log "WARNING: openssl scan exited non-zero"
   log "--- openssl scan done ---"
@@ -108,7 +110,7 @@ fi
 
 # ── 7. zlib ──
 if [[ $RUN_ZLIB -eq 1 ]]; then
-  log "--- [7/8] zlib 1.3.1 GLM scan (t1, 25 segments, 120s timeout) ---"
+  log "--- [7/10] zlib 1.3.1 GLM scan (t1, 25 segments, 120s timeout) ---"
   python scripts/scan_zlib_t1.py --timeout 120 --delay 25 2>&1 | tee -a "$LOG" || \
     log "WARNING: zlib scan exited non-zero"
   log "--- zlib scan done ---"
@@ -117,7 +119,7 @@ fi
 
 # ── 8. libxml2 ──
 if [[ $RUN_LIBXML2 -eq 1 ]]; then
-  log "--- [8/9] libxml2 2.13.5 GLM scan (t1, 32 segments, 150s timeout) ---"
+  log "--- [8/10] libxml2 2.13.5 GLM scan (t1, 32 segments, 150s timeout) ---"
   python scripts/scan_libxml2_t1.py --timeout 150 --delay 30 2>&1 | tee -a "$LOG" || \
     log "WARNING: libxml2 scan exited non-zero"
   log "--- libxml2 scan done ---"
@@ -126,10 +128,19 @@ fi
 
 # ── 9. libssh2 ──
 if [[ $RUN_LIBSSH2 -eq 1 ]]; then
-  log "--- [9/9] libssh2 1.11.1 GLM scan (t1, 40 segments, 150s timeout) ---"
+  log "--- [9/10] libssh2 1.11.1 GLM scan (t1, 40 segments, 150s timeout) ---"
   python scripts/scan_libssh2_t1.py --timeout 150 --delay 30 2>&1 | tee -a "$LOG" || \
     log "WARNING: libssh2 scan exited non-zero"
   log "--- libssh2 scan done ---"
+  sleep 60
+fi
+
+# ── 10. freetype ──
+if [[ $RUN_FREETYPE -eq 1 ]]; then
+  log "--- [10/10] freetype 2.13.3 GLM scan (t1, 49 segments, 150s timeout) ---"
+  python scripts/scan_freetype_t1.py --timeout 150 --delay 30 2>&1 | tee -a "$LOG" || \
+    log "WARNING: freetype scan exited non-zero"
+  log "--- freetype scan done ---"
 fi
 
 log "=== All scans complete. Log: $LOG ==="
