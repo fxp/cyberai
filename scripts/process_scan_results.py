@@ -22,11 +22,12 @@ from datetime import datetime
 
 RESEARCH = pathlib.Path("research")
 TARGETS = {
-    "libpng": RESEARCH / "libpng",
-    "expat":  RESEARCH / "expat",
-    "curl":   RESEARCH / "curl",
-    "nginx":  RESEARCH / "nginx",
-    "sqlite": RESEARCH / "sqlite",
+    "libpng":  RESEARCH / "libpng",
+    "expat":   RESEARCH / "expat",
+    "curl":    RESEARCH / "curl",
+    "nginx":   RESEARCH / "nginx",
+    "sqlite":  RESEARCH / "sqlite",
+    "openssl": RESEARCH / "openssl",
 }
 
 # Confidence threshold for manual triage flagging
