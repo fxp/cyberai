@@ -1,0 +1,48 @@
+LibTIFF T2 scan: 8 segments (idx 4–11), 25s delay
+
+  Loaded 8 existing results
+
+[21:49:33] libtiff/tif_pixarlog.c [PixarLogDecode-A] (4,095 chars)...
+  Done 213s — 4 findings
+  [CRITICAL] Integer overflow in llen calculation leading to infinite loop and buffer underflow (L859, conf=92%)
+  [CRITICAL] Integer overflow in nsamples*sizeof(uint16_t) bypassing buffer size checks on 32-bit (L876, conf=85%)
+  [MEDIUM] Division by zero when llen equals zero (L859, conf=90%)
+  [LOW] Truncation of avail_in to uInt may lose data on 64-bit platforms (L871, conf=60%)
+  [waiting 25s...]
+[21:53:31] libtiff/tif_pixarlog.c [PixarLogDecode-B] (1,832 chars)...
+  Done 260s — 1 findings
+  [CRITICAL] Heap-based buffer overflow in PixarLogDecode via PIXARLOGDATAFMT_8BITABGR (L978, conf=95%)
+  [waiting 25s...]
+[21:58:17] libtiff/tif_pixarlog.c [PixarLogEncode] (3,730 chars)...
+  Done 326s — 3 findings
+  [HIGH] Heap buffer over-read when input size is not aligned with scanline size (L1339, conf=95%)
+  [HIGH] Integer overflow in llen calculation leading to incorrect bounds checking and buffer overflows (L1332, conf=85%)
+  [MEDIUM] Integer overflow in bp pointer advancement within encoding loop (L1345, conf=80%)
+  [waiting 25s...]
+[22:04:07] libtiff/tif_luv.c [LogLuvDecode24] (1,352 chars)...
+  Done 74s — 2 findings
+  [CRITICAL] Buffer overflow when SGILOGDATAFMT_RAW writes uint32_t into 3-byte-per-pixel output buffer (L275, conf=95%)
+  [HIGH] Insufficient bounds check on tbuf in non-RAW path (tbuflen checked against pixel count instead of byte count) (L277, conf=75%)
+  [waiting 25s...]
+[22:05:46] libtiff/tif_luv.c [LogLuvDecode32] (2,077 chars)...
+Scan failed for libtiff/tif_luv.c [LogLuvDecode32]: GLM API timeout after 600s
+  Done 600s — 0 findings
+  Error: GLM API timeout after 600s
+  [waiting 25s...]
+[22:16:12] libtiff/tif_luv.c [LogLuvEncode24] (1,436 chars)...
+  Done 229s — 3 findings
+  [HIGH] Heap buffer over-read in SGILOGDATAFMT_RAW path due to missing bounds check (L558, conf=85%)
+  [MEDIUM] Heap buffer overflow in output buffer when tif_rawdatasize < 3 (L571, conf=70%)
+  [MEDIUM] Division by zero if sp->pixel_size is 0 (L553, conf=60%)
+  [waiting 25s...]
+[22:20:26] libtiff/tif_luv.c [LogLuvEncode32] (3,386 chars)...
+Scan failed for libtiff/tif_luv.c [LogLuvEncode32]: GLM API timeout after 600s
+  Done 600s — 0 findings
+  Error: GLM API timeout after 600s
+  [waiting 25s...]
+[22:30:51] libtiff/tif_getimage.c [TIFFReadRGBAImage] (352 chars)...
+  Done 33s — 0 findings
+
+============================================================
+LibTIFF T2 complete: 16 segments, 23 raw findings, 14 high/critical ≥65%
+Results → research/libtiff/t2_glm5_results.json

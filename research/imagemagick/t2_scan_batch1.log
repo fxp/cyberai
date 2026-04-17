@@ -1,0 +1,56 @@
+ImageMagick T2 scan: 8 segments (idx 0–7), 25s delay
+
+[21:14:15] coders/gif.c [DecodeImage] (2,705 chars)...
+  Done 444s — 3 findings
+  [HIGH] Missing minimum LZW data_size validation allows decoder malfunction (L427, conf=75%)
+  [MEDIUM] No bounds check on interlace offset before QueueAuthenticPixels (L445, conf=55%)
+  [INFO] Potential out-of-bounds colormap read via unconstrained LZW output (L450, conf=45%)
+  [waiting 25s...]
+[21:22:04] coders/gif.c [ReadGIFImage-A] (4,373 chars)...
+  Done 261s — 4 findings
+  [HIGH] Stack buffer underflow via negative ReadBlobBlock return in comment extension (L1095, conf=75%)
+  [MEDIUM] Unchecked sub-block data size in graphics control extension leads to use of uninitialized/zeroed data (L1068, conf=85%)
+  [MEDIUM] Integer wraparound in offset accumulation via negative count in comment extension (L1090, conf=60%)
+  [LOW] Potential infinite loop in GCE handler if ReadBlobBlock returns negative values (L1068, conf=50%)
+  [waiting 25s...]
+[21:26:50] coders/gif.c [ReadGIFImage-B] (4,456 chars)...
+Scan failed for coders/gif.c [ReadGIFImage-B]: Server disconnected without sending a response.
+  Done 415s — 0 findings
+  Error: Server disconnected without sending a response.
+  [waiting 25s...]
+[21:34:10] coders/bmp.c [ReadBMPImage-A:header-parse] (4,592 chars)...
+  Done 127s — 4 findings
+  [MEDIUM] Unbounded BA header loop causes denial of service (L647, conf=85%)
+  [HIGH] Missing validation of OS/2 BMP image dimensions allows negative/zero values (L695, conf=90%)
+  [MEDIUM] Unvalidated offset_bits allows seeking beyond file boundaries (L667, conf=80%)
+  [LOW] File size validation bypassed when bmp_info.file_size is zero (L680, conf=75%)
+  [waiting 25s...]
+[21:36:42] coders/bmp.c [ReadBMPImage-B:color-table] (4,152 chars)...
+  Done 110s — 4 findings
+  [CRITICAL] Unvalidated number_colors field enables integer overflow and heap buffer overflow (L781, conf=85%)
+  [MEDIUM] Insufficient bmp_info.size validation allows unknown header sizes >= 64 (L756, conf=80%)
+  [HIGH] Unvalidated bits_per_pixel field enables downstream memory corruption (L774, conf=75%)
+  [MEDIUM] Unvalidated compression field with mask reading causes data misinterpretation (L775, conf=70%)
+  [waiting 25s...]
+[21:38:57] coders/bmp.c [ReadBMPImage-C:pixel-decode] (4,503 chars)...
+  Done 184s — 3 findings
+  [HIGH] Unvalidated profile offset and size leading to heap buffer overflow/over-read (L956, conf=85%)
+  [MEDIUM] Zero gamma value causing potential division by zero downstream (L920, conf=75%)
+  [LOW] No EOF validation on sequential ReadBlobLSBLong calls (L866, conf=70%)
+  [waiting 25s...]
+[21:42:26] coders/bmp.c [ReadBMPImage-D:rle-decode] (4,537 chars)...
+  Done 336s — 3 findings
+  [HIGH] Integer Overflow via MagickAbsoluteValue with INT_MIN Height (L969, conf=88%)
+  [LOW] Insufficient Colormap Data Size Validation (L1003, conf=72%)
+  [LOW] Missing BI_ALPHABITFIELDS Bits-Per-Pixel Validation (L1013, conf=65%)
+  [waiting 25s...]
+[21:48:26] coders/bmp.c [ReadBMPImage-E:row-read] (4,176 chars)...
+  Done 399s — 4 findings
+  [HIGH] Integer overflow in colormap read size leading to heap buffer over-read (L1091, conf=85%)
+  [CRITICAL] Integer overflow in DecodeImage size parameter leading to heap buffer overflow (L1149, conf=75%)
+  [HIGH] Integer overflow in bytes_per_line and length calculations (L1120, conf=70%)
+  [MEDIUM] Insufficient size validation allows disproportionate memory allocation (L1122, conf=90%)
+
+============================================================
+ImageMagick T2 complete: 8 segments, 25 raw findings, 10 high/critical ≥65%
+Results → research/imagemagick/t2_glm5_results.json

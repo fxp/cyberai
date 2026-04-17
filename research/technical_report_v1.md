@@ -481,12 +481,15 @@ are now truly enforced and cancelled requests do not consume additional API quot
 | ✅ Done | LibTIFF batch 2: tif_getimage.c, tif_read.c — all 9 batch-2 findings are FPs | 22/39 done |
 | ✅ Done | ImageMagick batch 3: TIFF, HEIC, WebP, PNG (15 segments) — 0 new confirmed | 41/41 complete |
 | ✅ Done | LibTIFF batch 3: TIFFReadEncodedStrip + tif_dirread (21 segments) — 0 new confirmed | 43/39 complete (with duplicates) |
+| ✅ Done | curl 8.11.0 T1 GLM scan + manual analysis (14 segments) | Complete — 0 memory bugs, 1 behavioral (CR-001) |
+| ✅ Done | libpng 1.6.45 manual analysis (14 functions) | Complete — 0 memory bugs, 2 INFO behavioral |
 | High | Disclose LibTIFF PixarLog ABGR finding to libtiff-security@lists.osgeo.org | Pending |
+| High | Run libpng GLM T1 scan after 08:00 BJT (use v3 extracts, 90s timeout) | Pending — API quota resets daily |
+| High | Run curl retry scan for segments 0,1,8,9,13 (scan_curl_t1_retry.py --segments 0,1,8,9,13) | Pending — API quota |
 | Medium | Manual verification of new BMP writer findings (integer overflow 32-bit paths) | Most appear 64-bit FP |
-| Medium | PixarLogEncode partial-scanline over-read (HIGH 95%) — needs deeper review | New finding from T2 encode |
 | Medium | Stage 4 auto-filter: zlib adaptation pattern detector (avail_out truncation) | Pending |
 | Low | CVE cross-reference for all confirmed findings via NVD API | Pending |
-| Low | Evaluate wider extract windows (8-10KB) for coders with long function bodies | Pending |
+| Low | Advance to next target (OpenSSL / zlib / expat) after libpng GLM scan | Pending |
 
 ---
 
@@ -588,7 +591,7 @@ functions in storage-backed daemons.
 
 ---
 
-## curl 8.11.0 分析 (进行中)
+## curl 8.11.0 分析 (完成)
 
 ### 目标信息
 
@@ -599,27 +602,36 @@ functions in storage-backed daemons.
 | 分析范围 | 14个安全敏感函数提取 |
 | 分析日期 | 2026-04-17 |
 
-### GLM T1 扫描状态
+### GLM T1 扫描结果
 
-| 段 | 文件 | 状态 | 发现数 |
-|----|------|------|--------|
-| 1 | urlapi_A.c [parseurl] | ❌ API超时 | 0 |
-| 2 | urlapi_B.c [hostname+ipv6+login] | ❌ API超时 | 0 |
-| 3 | urlapi_C.c [curl_url_set+get] | ✅ | 3 (1 confirmed) |
-| 4-14 | 其余 10 段 | 🔄 进行中 | - |
+| 段 | 文件 | 状态 | 发现数 | 确认数 |
+|----|------|------|--------|--------|
+| 1 | urlapi_A.c [parseurl] | ❌ API超时 | 0 | 0 (手动: 安全) |
+| 2 | urlapi_B.c [hostname+ipv6+login] | ❌ API超时 | 0 | 0 (手动: 安全) |
+| 3 | urlapi_C.c [curl_url_set+get] | ✅ 223s | 3 | **1 (CR-001)** |
+| 4 | url_A.c [parseurlandfillconn] | ✅ 292s | 4 | 0 (全 FP) |
+| 5 | cookie_A.c [parse_cookie_header] | ✅ 262s | 4 | 0 (全 FP) |
+| 6 | ftp_A.c [match_pasv_6nums+pasv_resp] | ✅ 161s | 3 | 0 (全 FP) |
+| 7 | ftp_B.c [ftp_state_use_port+use_pasv] | ✅ 174s | 3 | 0 (全 FP) |
+| 8 | socks_A.c [do_SOCKS4] | ✅ 106s | 4 | 0 (全 FP) |
+| 9 | socks_B.c [do_SOCKS5] | ❌ API超时 | 0 | 0 (手动: 安全) |
+| 10 | http_chunks_A.c [httpchunk_readwrite] | ❌ API超时 | 0 | 0 (手动: 安全) |
+| 11 | ftplist_A.c [ftp_pl_state_machine] | ✅ 74s | 5 | 0 (全 FP) |
+| 12 | mime_A.c [mime_read+boundary] | ✅ 91s | 4 | 0 (全 FP) |
+| 13 | http_digest_A.c [output_digest+decode] | ✅ 146s | 3 | 0 (全 FP) |
+| 14 | sasl_A.c [decode_mech+sasl_continue] | ❌ API超时 | 0 | 0 (手动: 安全) |
 
-*API服务器对 7000 字符代码块有 ~300s 超时，部分段已失败*
+**GLM 统计**: 9段成功, 5段超时 | 33个原始发现 | 1确认 (CR-001) | 32假阳性 (FP率 97%)
 
-### 手动代码分析结论
-
-经对全部 14 个提取段进行手动审计：
-
-**curl 防御机制**：
-- `CURL_MAX_INPUT_LENGTH = 8MB` — 所有用户输入全局上限  
-- `dynbuf` 动态缓冲区 — 无固定缓冲区溢出风险
+**curl 防御机制**:
+- `CURL_MAX_INPUT_LENGTH = 8MB` — 所有用户输入全局上限
+- `dynbuf` 动态缓冲区 — 消除固定缓冲区溢出风险
+- `junkscan()` — URL 解析入口拒绝所有 0x01-0x1F 控制字节 (含 CRLF)
 - `CURLcode` 链式错误检查 — 每步验证
 - 单线程事件循环 — 无竞态条件
 - 全面的数值范围验证 (`strtoul` + 边界检查)
+- `CHUNK_MAXNUM_LEN` — 限制 chunked transfer hex 位数
+- `curlx_strtoofft` — 安全整数转换
 
 ### 已确认发现
 
@@ -656,14 +668,50 @@ l = strtoul(c, &endp, 0);   // base-0 接受八进制/十六进制
 **分析**: curl 本身的设计行为；上游 SSRF 过滤器如果不做 URL 规范化可能被绕过。
 不是 curl 的漏洞。
 
-### 评估
+### curl 评估
 
 curl 8.11.0 的内存安全状况**极佳**。无法通过该库直接触发内存损坏漏洞。
 
 相比其他分析目标：
-- LibTIFF: 有 3 个可利用漏洞
+- LibTIFF: 有 2 个内存安全漏洞 (HIGH + MEDIUM)
 - Mosquitto: 有 10 个已确认漏洞
 - ImageMagick: 有 3 个已确认漏洞
-- **curl**: 0 个内存安全漏洞（仅 1 个行为安全问题）
+- **curl**: 0 个内存安全漏洞（仅 1 个行为安全问题 CR-001）
 
 **建议**: 无需 CVE 申请；CR-001 可提交为低优先级 bug 报告至 curl 项目。
+
+---
+
+## libpng 1.6.45 分析 (手动完成，GLM 扫描待执行)
+
+### 目标信息
+
+| 属性 | 值 |
+|------|-----|
+| 版本 | 1.6.45 |
+| 分析文件 | `pngrutil.c`, `pngrtran.c`, `pngpread.c` |
+| 分析函数 | 14 个核心 chunk 处理函数 |
+| 分析日期 | 2026-04-17 |
+
+### 手动分析结论
+
+经对 14 个函数的手动审计，libpng 1.6.45 **不含可利用漏洞**。
+
+**libpng 防御机制** (7层):
+- `png_get_uint_31()` — 所有 chunk 长度限制 < 2^31
+- `png_check_chunk_length()` — 每个 handler 入口前验证
+- `PNG_USER_WIDTH_MAX/HEIGHT_MAX = 1,000,000` — 像素尺寸上限
+- 两遍 inflate 策略 — 先测大小后分配，防超大内存消耗
+- `ZLIB_IO_MAX` — 防止 zlib uInt 截断
+- `png_icc_check_length/header()` — ICC profile 多重验证
+- `PNG_SIZE_MAX / sizeof(entry)` 守护 — 防乘法溢出
+
+### 分析结果摘要
+
+| 类别 | 数量 |
+|------|------|
+| 内存安全漏洞 | 0 |
+| 行为安全问题 (INFO) | 2 (sPLT depth 未验证, pCAL unknown type 不 abort) |
+| GLM 扫描 findings | 待执行 (API 配额 08:00 BJT 重置) |
+
+详见 `research/libpng/vulnerability_report.md` 和 `research/libpng/manual_analysis.md`

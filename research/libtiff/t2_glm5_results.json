@@ -1,0 +1,1088 @@
+{
+  "model": "glm-5.1",
+  "target": "LibTIFF 4.7.0",
+  "timestamp": "2026-04-17T00:24:26",
+  "results": [
+    {
+      "file": "libtiff/tif_zip.c [ZIPDecode-A]",
+      "chars": 4536,
+      "elapsed_s": 441.0,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "libtiff/tif_zip.c [ZIPDecode-B]",
+      "chars": 766,
+      "elapsed_s": 64.3,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Heap Buffer Overflow via memset with unvalidated avail_out on error paths",
+          "line_start": 293,
+          "confidence": 0.75,
+          "description": "When a ZLib decompression error occurs (state != Z_OK), the code calls memset(sp->stream.next_out, 0, sp->stream.avail_out) to zero-fill the remaining output buffer. However, sp->stream.avail_out may not accurately reflect the actual remaining buffer space if the zlib stream state has become inconsistent due to malformed compressed data. A crafted TIFF file with specially crafted ZIP-compressed tile/strip data could cause avail_out to be larger than the actual writable buffer remaining, resulting in a heap buffer overflow. The same pattern repeats on line 307 for the 'not enough data' error path.",
+          "poc": "Craft a TIFF file with ZIP compression where the compressed strip data is malformed such that: (1) the zlib inflate operation partially succeeds, advancing next_out and modifying avail_out, (2) then triggers an error (e.g., invalid compressed block), causing the error path memset to write beyond the allocated buffer. Specifically, manipulate the strip/tile byte counts and compressed data so that avail_out is inconsistent with the actual output buffer allocation size at the point of error."
+        },
+        {
+          "severity": "high",
+          "title": "Heap Buffer Overflow via memset on insufficient data error path",
+          "line_start": 307,
+          "confidence": 0.7,
+          "description": "When occ != 0 after the decompression loop (insufficient data decoded), the code calls memset(sp->stream.next_out, 0, sp->stream.avail_out). At this point, sp->stream.next_out and sp->stream.avail_out reflect the zlib stream state after the last inflate call. If a crafted TIFF file causes a mismatch between the expected output size (used to allocate the buffer) and the zlib stream's avail_out value, this memset can write beyond the heap-allocated buffer. This is particularly dangerous because the error path is reachable with carefully crafted truncated or malformed compressed data.",
+          "poc": "Create a TIFF with ZIP compression where the strip/tile size metadata claims a large output size (causing a large buffer allocation) but the compressed data is crafted so that inflate() consumes all input without producing enough output, leaving occ > 0. If avail_out has been manipulated through the decompression process to be larger than the actual remaining buffer space, the memset on line 307 overflows. A minimal trigger: set TIFF strip size to N, provide compressed data that decompresses to < N bytes, with zlib stream state having inflated avail_out beyond actual buffer bounds."
+        },
+        {
+          "severity": "low",
+          "title": "Information disclosure via memset on error paths",
+          "line_start": 293,
+          "confidence": 0.5,
+          "description": "The memset calls on lines 293 and 307 zero-fill the output buffer on error. While intended to prevent use of uninitialized data, this behavior could be detected by an attacker through timing side-channels or error message content differences, potentially revealing information about the decompression state or buffer contents. More importantly, if the memset itself causes a crash (due to the overflow described above), the error handling path leaks information about memory layout through crash behavior.",
+          "poc": "N/A - side-channel vulnerability requiring specific attack scenario"
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_zip.c [ZIPEncode-A]",
+      "chars": 4273,
+      "elapsed_s": 104.3,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Unsigned Integer Underflow in strip_height Calculation",
+          "line_start": 413,
+          "confidence": 0.85,
+          "description": "The calculation `uint32_t strip_height = td->td_imagelength - tif->tif_row` is performed on unsigned 32-bit integers. If `tif->tif_row` is greater than `td->td_imagelength` (possible with a malformed TIFF file or inconsistent state), the subtraction wraps around to a very large value (up to ~4 billion). This underflowed strip_height is then passed to TIFFVStripSize64(), which computes an incorrect and potentially enormous size. If this computed size happens to match `cc`, the code proceeds with libdeflate compression using incorrect size assumptions, potentially leading to out-of-bounds reads from the input buffer and out-of-bounds writes to the output buffer.",
+          "poc": "Craft a TIFF file where td_imagelength is small (e.g., 1) and tif_row is set to a value larger than td_imagelength (e.g., 2). The subtraction 1 - 2 in uint32_t arithmetic yields 0xFFFFFFFF. TIFFVStripSize64(tif, 0xFFFFFFFF) will compute a massive size. If cc is manipulated to match this size, libdeflate_zlib_compress will read far beyond the actual input buffer and write beyond the output buffer."
+        },
+        {
+          "severity": "high",
+          "title": "Security-Critical Checks Using assert() Instead of Runtime Validation",
+          "line_start": 378,
+          "confidence": 0.9,
+          "description": "The function uses `assert(sp != NULL)` and `assert(sp->state == ZSTATE_INIT_ENCODE)` for critical validation. In release/production builds, assertions are compiled out (NDEBUG), meaning these checks are completely absent. A NULL sp pointer would cause a null pointer dereference, and an incorrect state could lead to use of uninitialized or corrupted compression stream data. Both scenarios can lead to crashes or exploitable memory corruption.",
+          "poc": "Compile libtiff with -DNDEBUG (typical for production builds). Call ZIPEncode with a TIFF handle that causes ZIPEncoderState() to return NULL, or where the encoder state has not been properly initialized (state != ZSTATE_INIT_ENCODE). The assertions will be skipped, leading to null pointer dereference or use of uninitialized zlib stream."
+        },
+        {
+          "severity": "medium",
+          "title": "Insufficient Buffer Size Validation in Zlib Fallback Path",
+          "line_start": 487,
+          "confidence": 0.65,
+          "description": "When the libdeflate path determines the output buffer is insufficient (libdeflate_zlib_compress_bound check fails at line 453), the code breaks out and falls through to the zlib compression path. However, the zlib path does not perform an equivalent compress-bound check before calling deflate(). While zlib handles output buffer exhaustion incrementally (via avail_out == 0 checks), the initial call to deflate() with Z_NO_FLUSH could still attempt to write beyond the buffer if the buffer is critically undersized, especially for incompressible data that expands rather than compresses.",
+          "poc": "Create a TIFF image with highly incompressible data (e.g., encrypted/random bytes) where the raw data buffer size is only marginally larger than the input. The libdeflate compress_bound check will fail, falling through to zlib. If tif_rawdatasize is insufficient for the zlib overhead (header/trailer bytes plus expanded data), deflate() may write beyond the allocated buffer before the avail_out==0 check triggers."
+        },
+        {
+          "severity": "medium",
+          "title": "Truncation of Input Size in Zlib Path for Large Buffers",
+          "line_start": 489,
+          "confidence": 0.7,
+          "description": "The code truncates `cc` (tmsize_t, potentially 64-bit) to fit in `uInt` (32-bit): `(uint64_t)cc <= 0xFFFFFFFFU ? (uInt)cc : 0xFFFFFFFFU`. When cc exceeds 4GB, only the first 4GB is set in avail_in. The stream.next_in pointer is set to bp before the loop but is never updated to account for the remaining data beyond 4GB. If the do-while loop is a single-iteration construct (do{...}while(0)), data beyond the first 4GB is silently dropped, causing data loss. If it's a real loop, the pointer arithmetic would be incorrect since next_in advancement by zlib would not account for the full cc value.",
+          "poc": "Provide input data larger than 4GB (cc > 0xFFFFFFFF) to ZIPEncode. The avail_in will be capped at 0xFFFFFFFF. Only the first ~4GB of data will be compressed, and the remaining data will either be silently lost (single-iteration loop) or cause incorrect memory access (multi-iteration loop with stale next_in)."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_zip.c [ZIPEncode-B]",
+      "chars": 518,
+      "elapsed_s": 95.0,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Heap Buffer Overflow via Negative tif_rawdatasize",
+          "line_start": 499,
+          "confidence": 0.95,
+          "description": "The variable `tif->tif_rawdatasize` is of the signed type `tmsize_t`. If it becomes negative (e.g., due to an integer overflow during buffer allocation or calculation), casting it to `uint64_t` produces a very large positive value (e.g., `0xFFFFFFFFFFFFFFFF` for -1). This large value exceeds `0xFFFFFFFFU`, causing the ternary condition to fail and assigning `0xFFFFFFFFU` to `sp->stream.avail_out`. Zlib is then instructed that it has ~4GB of output buffer space available, leading to a massive out-of-bounds write when it compresses data into the significantly smaller or NULL `tif->tif_rawdata` buffer. Additionally, if `tif_rawdatasize` is 0, `avail_out` becomes 0, which can cause an infinite loop.",
+          "poc": "Craft a TIFF image with a manipulated strip/tile size that triggers an integer overflow in memory allocation routines (e.g., in TIFFWriteBufferSetup), resulting in `tif->tif_rawdatasize` being set to a negative value. When the image is saved and ZIPEncode is invoked, the signed-to-unsigned cast will trick zlib into writing far beyond the heap buffer boundaries."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_pixarlog.c [PixarLogDecode-A]",
+      "chars": 0,
+      "status": "skip",
+      "findings": []
+    },
+    {
+      "file": "libtiff/tif_pixarlog.c [PixarLogDecode-B]",
+      "chars": 0,
+      "status": "skip",
+      "findings": []
+    },
+    {
+      "file": "libtiff/tif_pixarlog.c [PixarLogEncode]",
+      "chars": 0,
+      "status": "skip",
+      "findings": []
+    },
+    {
+      "file": "libtiff/tif_luv.c [LogLuvDecode24]",
+      "chars": 1352,
+      "elapsed_s": 109.9,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Heap buffer overflow in LogLuvDecode24 when SGILOGDATAFMT_RAW is set",
+          "line_start": 275,
+          "confidence": 0.92,
+          "description": "When sp->user_datafmt == SGILOGDATAFMT_RAW, the output buffer `op` (sized `occ` bytes) is cast to `uint32_t*` and used directly as the write target. The loop writes `npixels` uint32_t values (4 bytes each), where `npixels = occ / sp->pixel_size`. For LogLuv24, pixel_size is 3 (24-bit pixels), so the total bytes written is `(occ / 3) * 4`, which exceeds the `occ`-byte output buffer by ~33%. Unlike the non-RAW path which validates the translation buffer size, the RAW path performs no bounds check on the output buffer against the expanded write size. This results in a heap buffer overflow that can corrupt adjacent heap metadata and data, potentially leading to arbitrary code execution.",
+          "poc": "Craft a TIFF image with SGILOG compression (Photometric=LOGLUV, SGILOGDataFmt=RAW, BitsPerSample=24). Set a strip with pixel data such that occ (output buffer size) is a multiple of 3. The decoder will compute npixels = occ/3 and write npixels*4 bytes into the occ-byte buffer, overflowing by (occ/3) bytes. For example, a strip with occ=300 would write 400 bytes into a 300-byte buffer, overflowing by 100 bytes."
+        },
+        {
+          "severity": "medium",
+          "title": "Insufficient translation buffer size check in non-RAW path",
+          "line_start": 279,
+          "confidence": 0.6,
+          "description": "The check `sp->tbuflen < npixels` compares the translation buffer length against the number of pixels. However, each pixel requires sizeof(uint32_t) = 4 bytes in the translation buffer. If tbuflen is measured in bytes (as is common for buffer sizes), the check should be `sp->tbuflen < npixels * sizeof(uint32_t)`. With the current check, a tbuflen of 300 bytes would pass for npixels=256 (since 300 >= 256), but the code would write 256*4=1024 bytes into the 300-byte buffer, causing a heap overflow on sp->tbuf. The severity depends on whether tbuflen is in bytes or pixel-count units in the specific libtiff version.",
+          "poc": "If tbuflen is in bytes: craft a TIFF where npixels is large enough that npixels <= tbuflen but npixels * 4 > tbuflen. For example, if tbuflen=1024 and npixels=512, the check passes (1024 >= 512) but 512*4=2048 bytes are written into the 1024-byte tbuf."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_pixarlog.c [PixarLogDecode-A]",
+      "chars": 4095,
+      "elapsed_s": 212.9,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Integer overflow in llen calculation leading to infinite loop and buffer underflow",
+          "line_start": 859,
+          "confidence": 0.92,
+          "description": "The calculation `llen = sp->stride * td->td_imagewidth` can overflow because `llen` is declared as `int` (32-bit) while both multiplicands are attacker-controlled (stride from samples-per-pixel, imagewidth from TIFF header). When the product exceeds INT_MAX, `llen` wraps to a negative value. A negative `llen` causes: (1) `nsamples % llen` produces unexpected results; (2) the loop `for (i = 0; i < nsamples; i += llen, up += llen)` becomes an infinite loop since `i` decrements from 0 (always < positive nsamples), and `up` traverses backwards before `sp->tbuf`, causing heap buffer underflow/overflow. This affects both 32-bit and 64-bit platforms since `int` is 32-bit on both.",
+          "poc": "Craft a TIFF file with PixarLog compression where td_samplesperpixel=3 and td_imagewidth=0x80000000 (2147483648). Then llen = 3 * 0x80000000 = 0x180000000, which truncates to 0x80000000 = -2147483648 as int. The loop becomes infinite with up pointer moving backwards, corrupting heap memory."
+        },
+        {
+          "severity": "critical",
+          "title": "Integer overflow in nsamples*sizeof(uint16_t) bypassing buffer size checks on 32-bit",
+          "line_start": 876,
+          "confidence": 0.85,
+          "description": "For PIXARLOGDATAFMT_8BIT/8BITABGR cases, nsamples=occ. The computation `nsamples * sizeof(uint16_t)` can overflow on 32-bit platforms where tmsize_t is 32-bit. When occ >= 0x40000000 (~1GB), the product wraps around. The overflow check `sp->stream.avail_out != nsamples * sizeof(uint16_t)` fails to detect this because: (1) the multiplication itself overflows in signed arithmetic (UB in C, but wraps in practice); (2) comparing uInt with the wrapped tmsize_t value, implicit conversion makes them equal. The subsequent check `(tmsize_t)sp->stream.avail_out > sp->tbuf_size` also passes because the cast produces a negative value which is always less than positive tbuf_size. Zlib then believes it has a huge output buffer and writes far beyond sp->tbuf, causing a heap buffer overflow.",
+          "poc": "On a 32-bit system, craft a TIFF with PixarLog compression and 8BIT format where the output strip size occ=0x40000001. Then nsamples=0x40000001, nsamples*sizeof(uint16_t)=0x80000002 which overflows to a small/wrapped value. The avail_out check passes, and inflate() writes beyond sp->tbuf allocation."
+        },
+        {
+          "severity": "medium",
+          "title": "Division by zero when llen equals zero",
+          "line_start": 859,
+          "confidence": 0.9,
+          "description": "If `sp->stride * td->td_imagewidth` overflows to exactly 0 (e.g., stride=65536, imagewidth=65536 on 32-bit: 65536*65536=0x100000000→0), or if td_imagewidth is 0, then llen=0. The expression `nsamples % llen` at line 920 triggers undefined behavior (division by zero), causing a program crash. This is a denial-of-service vulnerability triggered by a malformed TIFF file.",
+          "poc": "Craft a TIFF with PixarLog compression where td_imagewidth=0, or where stride*imagewidth overflows to 0 (e.g., stride=65536, imagewidth=65536 on platforms where int is 32-bit). The nsamples % llen operation causes SIGFPE/crash."
+        },
+        {
+          "severity": "low",
+          "title": "Truncation of avail_in to uInt may lose data on 64-bit platforms",
+          "line_start": 871,
+          "confidence": 0.6,
+          "description": "The assignment `sp->stream.avail_in = (uInt)tif->tif_rawcc` truncates the raw data count to 32 bits. On 64-bit platforms where tif_rawcc (tmsize_t) exceeds UINT_MAX, this silently truncates the available input size. Unlike avail_out, there is no overflow check for avail_in. This could cause incomplete decompression or incorrect error handling, though the subsequent inflate loop and avail_out check may partially mitigate this.",
+          "poc": "On a 64-bit system, provide a TIFF with raw compressed data exceeding 4GB. The truncation of tif_rawcc to uInt causes zlib to only see the lower 32 bits of the data size, potentially leading to premature Z_STREAM_END or data corruption."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_pixarlog.c [PixarLogDecode-B]",
+      "chars": 1832,
+      "elapsed_s": 260.3,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Heap-based buffer overflow in PixarLogDecode via PIXARLOGDATAFMT_8BITABGR",
+          "line_start": 978,
+          "confidence": 0.95,
+          "description": "In the PIXARLOGDATAFMT_8BITABGR case, the `horizontalAccumulate8abgr` function writes 4 bytes (Alpha, Blue, Green, Red) per sample to the output buffer `op`, totaling `4 * llen` bytes. However, the pointer `op` is only advanced by `llen * sizeof(unsigned char)`, which equals `llen` bytes. This 4x mismatch causes `op` to lag significantly behind the actual written data. In subsequent iterations of the decoding loop, this results in data being written past the end of the allocated output buffer, leading to a heap-based buffer overflow. An attacker can exploit this by crafting a TIFF image that uses PixarLog compression with the 8BITABGR data format.",
+          "poc": "Craft a TIFF file with PixarLog compression and SamplesPerPixel set to 4 (ABGR format) with a sufficiently large image width. When the image is decoded, `horizontalAccumulate8abgr` will write 4 bytes per sample, but the output pointer will only advance by 1 byte per sample. This causes subsequent scanlines to overwrite memory past the allocated buffer, triggering the heap overflow."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_pixarlog.c [PixarLogEncode]",
+      "chars": 3730,
+      "elapsed_s": 325.6,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Heap buffer over-read when input size is not aligned with scanline size",
+          "line_start": 1339,
+          "confidence": 0.95,
+          "description": "The loop at line 1339 iterates with step size `llen` (stride * imagewidth), processing `llen` elements per iteration via horizontalDifference functions. However, when `n` (total element count derived from input size `cc`) is not a multiple of `llen`, the last iteration processes a full `llen` elements even though fewer than `llen` valid elements remain in the input buffer `bp`. This causes the horizontalDifference functions to read beyond the allocated input buffer. For example, with FLOAT format, if n=500 and llen=300, the second iteration reads 300 floats but only 200 are valid, causing a 400-byte heap over-read. The bounds check on line 1333 only validates total count against buffer capacity, not alignment.",
+          "poc": "Craft a TIFF with PixarLog compression where: stride=3, imagewidth=100 (llen=300), rowsperstrip=2, and provide input data of 500 floats (cc=2000, n=500). The second loop iteration will call horizontalDifferenceF requesting 300 floats from bp, but only 200 remain valid, reading 100*4=400 bytes beyond the input buffer."
+        },
+        {
+          "severity": "high",
+          "title": "Integer overflow in llen calculation leading to incorrect bounds checking and buffer overflows",
+          "line_start": 1332,
+          "confidence": 0.85,
+          "description": "The calculation `llen = sp->stride * td->td_imagewidth` is performed in `int` arithmetic (llen is declared as `int`). When stride and imagewidth are large values, their product can overflow a 32-bit integer. For example, stride=65537 and imagewidth=65536 produces a true product of 0x100010000, which truncates to 0x10000 (65536) when stored in a 32-bit int. This overflowed llen is then used in the bounds check `n > ((tmsize_t)td->td_rowsperstrip * llen)`, which may pass with the incorrect small llen value, and in the loop and horizontalDifference calls. On 32-bit systems where tmsize_t is also 32-bit, the bounds check multiplication can overflow again, completely bypassing the safety check. The overflowed llen also causes incorrect pointer advancement (e.g., `bp += llen * sizeof(float)` at line 1345 can further overflow), leading to out-of-bounds reads and writes.",
+          "poc": "On a 32-bit system, set stride=65537, imagewidth=65536 (overflowed llen=65536), rowsperstrip=1. The bounds check computes (tmsize_t)1 * 65536 = 65536. If n <= 65536, the check passes. But the actual scanline should be 4295032832 elements, meaning sp->tbuf was likely allocated for the overflowed size. The horizontalDifference functions then operate with the incorrect llen, potentially writing beyond allocated buffer boundaries."
+        },
+        {
+          "severity": "medium",
+          "title": "Integer overflow in bp pointer advancement within encoding loop",
+          "line_start": 1345,
+          "confidence": 0.8,
+          "description": "The pointer advancement expressions `bp += llen * sizeof(float)` and `bp += llen * sizeof(uint16_t)` perform integer multiplication in `int` arithmetic before adding to the pointer. When `llen` is large (even without overflowing itself), the product `llen * sizeof(float)` (or `llen * sizeof(uint16_t)`) can overflow a 32-bit int. For instance, if llen=536870913 (just over INT_MAX/4), then llen*4 = 2147483732 overflows to a negative value, causing `bp` to move backwards to an invalid memory location. Subsequent iterations then read from and write to corrupted pointer locations, leading to heap buffer over-reads and over-writes.",
+          "poc": "Set stride and imagewidth such that llen=536870913 (0x20000001). With FLOAT format, bp += 536870913 * 4 overflows int, resulting in bp being decremented by ~2GB, pointing to unmapped/invalid memory. The next horizontalDifferenceF call reads from this invalid pointer."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_luv.c [LogLuvDecode24]",
+      "chars": 1352,
+      "elapsed_s": 74.3,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Buffer overflow when SGILOGDATAFMT_RAW writes uint32_t into 3-byte-per-pixel output buffer",
+          "line_start": 275,
+          "confidence": 0.95,
+          "description": "When sp->user_datafmt == SGILOGDATAFMT_RAW, tp is set to point directly at the output buffer 'op' which has 'occ' bytes. npixels is computed as occ / sp->pixel_size. For LogLuv24 raw format, pixel_size is 3, so npixels = occ / 3. The loop then writes npixels uint32_t (4-byte) values into tp, requiring npixels * 4 = (occ/3)*4 bytes. Since (occ/3)*4 > occ for any occ > 0, this overflows the output buffer by approximately 33%. Unlike the non-RAW path which validates sp->tbuflen, the RAW path has no bounds check on the output buffer.",
+          "poc": "Craft a TIFF file with SGILOG compression and SGILOGDATAFMT_RAW data format. Set the strip/tile size so that occ is a multiple of 3 (e.g., occ=300). The decoder will compute npixels=100 and write 100*4=400 bytes into a 300-byte output buffer, overflowing by 100 bytes. This can corrupt heap metadata and lead to arbitrary code execution."
+        },
+        {
+          "severity": "high",
+          "title": "Insufficient bounds check on tbuf in non-RAW path (tbuflen checked against pixel count instead of byte count)",
+          "line_start": 277,
+          "confidence": 0.75,
+          "description": "In the non-RAW path, the check 'sp->tbuflen < npixels' compares the buffer size (typically in bytes) against the number of pixels. However, the loop writes npixels uint32_t values, requiring npixels * sizeof(uint32_t) = npixels * 4 bytes. If tbuflen is in bytes (as is conventional), the check should be 'sp->tbuflen < npixels * sizeof(uint32_t)'. The current check allows npixels up to tbuflen, but only tbuflen/4 pixels can safely be written as uint32_t, resulting in a potential 4x overflow of the translation buffer.",
+          "poc": "Craft a TIFF with SGILOG compression and a non-RAW data format (e.g., SGILOGDATAFMT_FLOAT). Set sp->tbuflen to a value N where N/3 < N < N*4 (e.g., tbuflen=400). If npixels=300 (which passes the check 400 < 300 == false), the loop writes 300*4=1200 bytes into a 400-byte tbuf, overflowing by 800 bytes."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_luv.c [LogLuvDecode32]",
+      "chars": 2077,
+      "elapsed_s": 600.1,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "libtiff/tif_luv.c [LogLuvEncode24]",
+      "chars": 1436,
+      "elapsed_s": 229.3,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Heap buffer over-read in SGILOGDATAFMT_RAW path due to missing bounds check",
+          "line_start": 558,
+          "confidence": 0.85,
+          "description": "When `sp->user_datafmt == SGILOGDATAFMT_RAW`, the code sets `tp = (uint32_t *)bp` and subsequently reads `npixels` uint32_t values from `bp` in the encoding loop. However, `npixels` is calculated as `cc / sp->pixel_size`, and there is no validation that `bp` actually contains `npixels * sizeof(uint32_t)` bytes. The non-RAW path includes a bounds check (`sp->tbuflen < npixels`), but the RAW path has no equivalent check. If `sp->pixel_size` is less than `sizeof(uint32_t)` (4 bytes) — for example, if state is inconsistent or corrupted — then `npixels` would be larger than `cc / 4`, causing the loop to read beyond the `bp` buffer. This results in a heap buffer over-read, potentially leaking sensitive information or causing a crash.",
+          "poc": "Craft a TIFF image with SGILog compression where the LogLuvState has user_datafmt set to SGILOGDATAFMT_RAW but pixel_size is set to a value less than 4 (e.g., 3, which is the pixel_size for non-RAW LogLuv24). This can be achieved by manipulating the TIFF state through memory corruption or by exploiting a bug in the setup code that leaves pixel_size inconsistent with user_datafmt. When LogLuvEncode24 is called, npixels = cc / 3, but the loop reads npixels uint32_t values (4 bytes each), reading cc*4/3 bytes from a cc-byte buffer — an over-read of approximately cc/3 bytes."
+        },
+        {
+          "severity": "medium",
+          "title": "Heap buffer overflow in output buffer when tif_rawdatasize < 3",
+          "line_start": 571,
+          "confidence": 0.7,
+          "description": "In the encoding loop, when `occ < 3`, the code flushes the output buffer and then recalculates `occ`. However, after the flush, the code does NOT re-check whether `occ >= 3` before writing 3 bytes to the output buffer. If `tif->tif_rawdatasize` is less than 3 bytes (e.g., due to a malformed TIFF or memory corruption), the flush will not provide sufficient space, and the subsequent writes (`*op++ = ...`) will overflow the output buffer `tif->tif_rawdata`. This is a heap buffer write overflow.",
+          "poc": "Craft a TIFF file that causes tif_rawdatasize to be allocated with a size less than 3 bytes (e.g., 0, 1, or 2). When LogLuvEncode24 is called with at least one pixel to encode, the loop will attempt to flush and then write 3 bytes into a buffer that cannot hold them, causing a heap buffer overflow."
+        },
+        {
+          "severity": "medium",
+          "title": "Division by zero if sp->pixel_size is 0",
+          "line_start": 553,
+          "confidence": 0.6,
+          "description": "The calculation `npixels = cc / sp->pixel_size` on line 553 will cause a division by zero if `sp->pixel_size` is 0. While `pixel_size` is normally set to a positive value during state initialization, there is no validation in this function to ensure it is non-zero. If the state is corrupted or improperly initialized (e.g., through a crafted TIFF file that triggers an unusual code path), this would cause a crash (denial of service).",
+          "poc": "Craft a TIFF file that triggers LogLuvEncode24 with sp->pixel_size set to 0. This could potentially be achieved by manipulating the TIFF directory entries to cause improper state initialization. The division by zero will crash the application."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_luv.c [LogLuvEncode24]",
+      "chars": 1436,
+      "elapsed_s": 106.2,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "libtiff/tif_luv.c [LogLuvEncode32]",
+      "chars": 3386,
+      "status": "timeout",
+      "findings": []
+    },
+    {
+      "file": "libtiff/tif_getimage.c [TIFFReadRGBAImage]",
+      "chars": 352,
+      "elapsed_s": 26.7,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "libtiff/tif_getimage.c [gtTileSeparate-A]",
+      "chars": 4269,
+      "elapsed_s": 356.9,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Integer overflow in flipped-case tile width check bypasses bounds validation",
+          "line_start": 890,
+          "confidence": 0.85,
+          "description": "In the vertically-flipped branch, the overflow check `if ((tw + w) > INT_MAX)` is performed using uint32_t arithmetic. When both `tw` (tile width from TIFF header) and `w` (image width) are large enough that their sum exceeds UINT32_MAX (e.g., tw=0x80000001, w=0x80000001), the addition wraps around to a small value (0x2) that is <= INT_MAX, bypassing the check. This causes `toskew = -(int32_t)(tw + w)` to compute an incorrect, small value (e.g., -2) instead of the intended large negative skew. The incorrect `toskew` propagates into `leftmost_toskew` and `this_toskew`, which control raster pointer advancement in the tile rendering loop. A wrong skew causes out-of-bounds writes to the raster heap buffer, enabling heap corruption, code execution, or denial of service.",
+          "poc": "Craft a TIFF file with: TILEWIDTH=0x80000001, vertical orientation (ORIENTATION_BOTLEFT or similar causing FLIP_VERTICALLY), and imagewidth=0x80000001. The check `(0x80000001 + 0x80000001) > INT_MAX` evaluates as `(0x00000002) > 0x7FFFFFFF` which is false, bypassing the guard. toskew becomes -(int32_t)0x00000002 = -2 instead of the correct large negative value, causing the raster pointer to go out of bounds during tile rendering."
+        },
+        {
+          "severity": "medium",
+          "title": "Integer overflow in non-flipped-case check via INT_MAX + w wraparound",
+          "line_start": 900,
+          "confidence": 0.7,
+          "description": "In the non-flipped branch, the check `if (tw > (INT_MAX + w))` is intended to verify that `tw - w` fits in int32_t. However, `INT_MAX + w` is computed in unsigned 32-bit arithmetic due to implicit conversion (w is uint32_t). When w >= 0x80000001, the expression `INT_MAX + w` wraps around (e.g., INT_MAX + 0x80000001 = 0x00000000), causing the check to become `tw > 0`, which is always true for valid tiles — a false positive that incorrectly rejects valid images. Conversely, when w = 0x80000000, `INT_MAX + w = 0xFFFFFFFF`, and the check `tw > 0xFFFFFFFF` is always false, potentially allowing tw values where `tw - w` would produce INT_MIN (0x80000000), whose negation is undefined behavior in C. While harder to exploit than the flipped-case overflow, this represents an incomplete bounds check.",
+          "poc": "Craft a TIFF with TILEWIDTH=0x80000000, imagewidth=0x80000000, non-flipped orientation. INT_MAX + w = 0x7FFFFFFF + 0x80000000 = 0xFFFFFFFF. Check: 0x80000000 > 0xFFFFFFFF is false, so the guard is bypassed. tw - w = 0, toskew = 0 (happens to be correct here). But with TILEWIDTH=0x80000001, w=0x80000000: tw-w=1, toskew=-1 (also correct). The real danger is edge cases near INT_MIN after subtraction where negation is UB."
+        },
+        {
+          "severity": "medium",
+          "title": "Integer truncation in leftmost_fromskew when tile width exceeds INT_MAX",
+          "line_start": 929,
+          "confidence": 0.65,
+          "description": "The variable `leftmost_fromskew` is declared as `int32_t` but is assigned `img->col_offset % tw` where both operands are unsigned. If `tw > INT_MAX` (which can occur if the overflow checks above are bypassed), the modulo result can exceed INT_MAX. The implicit conversion to int32_t then produces a negative value. This negative `leftmost_fromskew` causes `leftmost_tw = tw - leftmost_fromskew` to compute a value larger than `tw` (subtracting a negative adds), and `leftmost_toskew = toskew + leftmost_fromskew` to be miscalculated. An oversized `leftmost_tw` / `this_tw` causes the `put` callback to read beyond the tile buffer boundaries, resulting in a heap buffer over-read or over-write.",
+          "poc": "Craft a TIFF where the overflow checks are bypassed (see finding 1), with tw > INT_MAX and col_offset set such that col_offset % tw > INT_MAX. For example, tw=0x80000001, col_offset=0x80000000: leftmost_fromskew = 0x80000000 % 0x80000001 = 0x80000000, which becomes INT_MIN (-2147483648) as int32_t. Then leftmost_tw = 0x80000001 - (-2147483648) = 0x80000001 + 2147483648 = 0x100000001, truncated to 1 as uint32_t — but the signed arithmetic in fromskew causes incorrect pointer offsets in the put routine."
+        },
+        {
+          "severity": "critical",
+          "title": "Heap buffer overflow via TIFFTileSize integer overflow leading to undersized allocation",
+          "line_start": 876,
+          "confidence": 0.8,
+          "description": "The buffer allocation size `bufsize` is derived from `TIFFTileSize(tif)` multiplied by 3 or 4. If `TIFFTileSize()` internally suffers an integer overflow (e.g., CVE-2022-3970), it can return a value much smaller than the actual decompressed tile size. The subsequent `_TIFFMultiplySSize` check only validates its own multiplication, not the correctness of `tilesize` itself. When `TIFFReadTile()` decompresses tile data into p0, p1, p2, or pa, it writes the full decompressed size into the undersized buffer, causing a heap buffer overflow. This is especially dangerous because the separate-plane pointers (p1=p0+tilesize, p2=p1+tilesize, pa=p2+tilesize) all fall within the undersized allocation, so all plane reads overflow.",
+          "poc": "Craft a TIFF with tile dimensions and bits-per-sample values that cause TIFFTileSize() to integer-overflow internally. For example, TILEWIDTH=65536, TILELENGTH=65536, BITSPERSAMPLE=16, SAMPLESPERPIXEL=1: the expected tile size is 65536*65536*2 = 8GB, but if TIFFTileSize computes this in a 32-bit integer, it overflows to a small value. The buffer is allocated with the small size, but TIFFReadTile decompresses up to the true tile size, overflowing the heap buffer."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_getimage.c [gtTileSeparate-B]",
+      "chars": 1909,
+      "elapsed_s": 347.2,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Heap buffer over-read via incorrect pos calculation in gtTileSeparate",
+          "line_start": 1004,
+          "confidence": 0.88,
+          "description": "In gtTileSeparate (PlanarConfiguration=Separate mode), the 'pos' offset into per-channel tile buffers is calculated as `fromskew * img->samplesperpixel`. However, for separate planes, each buffer (p0, p1, p2, pa) contains only ONE sample per pixel, so the correct byte offset for skipping `fromskew` pixels should be `fromskew * bps/8` (e.g., just `fromskew` for 8-bit samples). The multiplication by `samplesperpixel` is only correct for contiguous (packed) planar configuration. For separate planes with samplesperpixel=4 (RGBA) and 8-bit samples, pos overshoots by `fromskew * 3` bytes, causing a heap buffer over-read when accessing p0+pos, p1+pos, p2+pos, pa+pos. This over-read data is then written into the output raster, potentially leaking heap data. The over-read is most severe at the last row of a tile where pos is largest, and can exceed the tile buffer boundary by up to `(fromskew) * (samplesperpixel - 1)` bytes.",
+          "poc": "Craft a TIFF file with: PlanarConfiguration=2 (Separate), SamplesPerPixel=4, BitsPerSample=8, TileWidth=64, TileHeight=64, ImageWidth=100, and set col_offset (via TIFFRGBAImageGet or sub-region decode) to a non-zero value not divisible by TileWidth (e.g., 10). This produces fromskew=10 for the first tile. The pos calculation yields `row_in_tile * 64 + 10*4 = row_in_tile*64 + 40` instead of the correct `row_in_tile*64 + 10`. At row 63: pos=4112 > buffer size 4096, causing a 16-byte heap over-read. With larger fromskew or samplesperpixel values, the over-read grows proportionally."
+        },
+        {
+          "severity": "medium",
+          "title": "Integer overflow in raster offset calculation on 32-bit systems",
+          "line_start": 1014,
+          "confidence": 0.72,
+          "description": "The raster offset `roffset = (tmsize_t)y * w + tocol` can overflow on 32-bit platforms where tmsize_t is 32 bits. If y and w are large (e.g., y=50000, w=50000), the product y*w = 2,500,000,000 exceeds INT32_MAX (2,147,483,647), causing signed integer overflow. The resulting negative roffset would cause `raster + roffset` to point before the raster buffer, leading to a heap buffer under-write when the put function writes decoded tile data. This is exploitable via a crafted TIFF with large image dimensions on 32-bit builds of libtiff.",
+          "poc": "Craft a TIFF with ImageWidth=50000, ImageHeight=50000, tiled organization. On a 32-bit system, when y reaches ~43000, (tmsize_t)y * w overflows, producing a negative roffset. The subsequent write via the put function corrupts heap memory before the raster allocation."
+        },
+        {
+          "severity": "medium",
+          "title": "Potential use of uninitialized alpha buffer when TIFFReadTile fails and stoponerr is false",
+          "line_start": 994,
+          "confidence": 0.65,
+          "description": "When alpha is enabled and TIFFReadTile for the alpha plane fails (returns -1), the code only breaks if img->stoponerr is true. If stoponerr is false, execution continues and the pa buffer may contain stale or uninitialized data from a previous tile read or allocation. This stale data is then passed to the put function via `pa + pos`, which may use it to write uninitialized heap values into the output raster, potentially leaking sensitive heap contents to the caller.",
+          "poc": "Craft a TIFF with PlanarConfiguration=Separate, ExtraSamples indicating alpha, but with a corrupted or truncated alpha tile plane. Set stoponerr=false (the default in many applications). When TIFFReadTile fails for the alpha plane, the pa buffer retains previous contents, which are then used as alpha values in the output image."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_getimage.c [gtStripSeparate-A]",
+      "chars": 4587,
+      "elapsed_s": 505.7,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "libtiff/tif_getimage.c [gtStripSeparate-B]",
+      "chars": 599,
+      "elapsed_s": 68.6,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Integer Overflow in Horizontal Flip Leading to Heap Buffer Overflow",
+          "line_start": 1329,
+          "confidence": 0.85,
+          "description": "The expression `raster + (line * w)` on line 1329 computes an offset into the raster buffer using uint32_t multiplication without overflow checking. If the TIFF image dimensions w and h are crafted such that w * h exceeds UINT32_MAX (0xFFFFFFFF), the multiplication `line * w` wraps around for large line values, causing `left` and `right` pointers to reference memory outside the allocated raster buffer. The subsequent swap loop (lines 1333-1340) then reads from and writes to these out-of-bounds locations, resulting in a heap buffer overflow. An attacker can exploit this by crafting a TIFF image with large width/height values and the FLIP_HORIZONTALLY flag set, potentially achieving arbitrary code execution through heap corruption.",
+          "poc": "Craft a TIFF image with width=65536 (0x10000) and height=65536 (0x10000). The product w*h = 0x100000000 overflows uint32_t to 0, so the raster buffer may be allocated with a tiny size. When the flip loop executes, line=1 gives offset 0x10000, line=2 gives 0x20000, etc., all far beyond the allocated buffer. The swap operations corrupt heap memory. Set the TIFF orientation tag to trigger FLIP_HORIZONTALLY."
+        },
+        {
+          "severity": "high",
+          "title": "Potential Out-of-Bounds Access with Unvalidated w and h in Flip Operation",
+          "line_start": 1326,
+          "confidence": 0.75,
+          "description": "The flip loop iterates from line=0 to line=h-1 and accesses raster positions from (line*w) to (line*w + w - 1) without validating that these indices fall within the allocated raster buffer. If the raster buffer was allocated based on a different (possibly overflowed) computation of w*h, or if w/h were modified between allocation and this flip operation, the accesses on lines 1329-1330 and the swap on lines 1336-1337 will read/write out of bounds. This is a classic size-validation gap that is especially dangerous when the allocation size and the loop bounds are computed independently.",
+          "poc": "Provide a TIFF file where the image dimensions cause the raster allocation to use a truncated (overflowed) w*h value, but the flip loop uses the original untruncated h value. For example, w=0x40000, h=0x1000: allocation uses 0x40000*0x1000 = 0x400000000 truncated to 0x00000000 in uint32, allocating a zero-size or minimal buffer, while the loop still iterates 0x1000 times accessing far beyond the buffer."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_read.c [TIFFReadScanline]",
+      "chars": 790,
+      "elapsed_s": 110.0,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Heap buffer overflow via unvalidated scanline size in decode path",
+          "line_start": 459,
+          "confidence": 0.85,
+          "description": "The function passes `tif->tif_scanlinesize` to `tif_decoderow` as the amount of data to decompress into the caller-provided buffer `buf`, but never validates that `buf` is actually large enough to hold that many bytes. A crafted TIFF file can manipulate image parameters (width, bits per sample, samples per pixel) to set `tif_scanlinesize` to a value larger than the buffer the caller allocated (typically via `TIFFScanlineSize()`). This causes the decoder to write past the end of the buffer, resulting in a heap buffer overflow. This is exploitable for arbitrary code execution when processing untrusted TIFF files.",
+          "poc": "Craft a TIFF file with manipulated IFD tags: set ImageWidth to a very large value (e.g., 0xFFFFFFFF) and BitsPerSample/SamplesPerPixel to values that cause tif_scanlinesize to exceed the buffer allocated by the caller. When TIFFReadScanline is called, the decoder will write beyond the buffer boundary. For example, a TIFF with ImageWidth=65535, BitsPerSample=16, SamplesPerPixel=4 yields a scanline size of 524280 bytes, but if the caller allocated based on a smaller computed size or a stale scanlinesize, overflow occurs."
+        },
+        {
+          "severity": "high",
+          "title": "Heap buffer overflow via unvalidated scanline size in error path (memset)",
+          "line_start": 468,
+          "confidence": 0.8,
+          "description": "When `TIFFSeek` fails (returns 0), the function falls into the else branch and calls `memset(buf, 0, (size_t)tif->tif_scanlinesize)`. This uses `tif->tif_scanlinesize` without verifying that `buf` is large enough to hold that many bytes. A crafted TIFF can set `tif_scanlinesize` to an arbitrarily large value, causing `memset` to write far beyond the allocated buffer. This is triggerable even when the seek fails, making it easier to exploit since no successful decode is required.",
+          "poc": "Craft a TIFF where TIFFSeek will fail (e.g., invalid row offset, corrupted strip/tile offsets) but tif_scanlinesize has been set to a large value via manipulated IFD tags. The memset on line 468 will overflow the heap buffer. For instance, set ImageWidth to a large value and StripOffsets to an invalid value so TIFFSeek returns 0, triggering the memset overflow."
+        },
+        {
+          "severity": "medium",
+          "title": "Integer overflow in row increment",
+          "line_start": 463,
+          "confidence": 0.7,
+          "description": "The assignment `tif->tif_row = row + 1` can overflow when `row` is `UINT32_MAX` (0xFFFFFFFF). The addition wraps to 0, causing `tif_row` to be set to an incorrect value. This corrupts the internal state tracking which row is current, potentially leading to incorrect data being returned on subsequent reads, or enabling further attacks by confusing row-based seek logic in later operations.",
+          "poc": "Call TIFFReadScanline with row=0xFFFFFFFF. If TIFFSeek succeeds (or doesn't properly validate the row value), tif->tif_row wraps to 0, corrupting internal state. Subsequent reads may operate on wrong rows or trigger additional vulnerabilities in seek logic."
+        },
+        {
+          "severity": "low",
+          "title": "Missing NULL pointer check on user-provided buffer",
+          "line_start": 459,
+          "confidence": 0.6,
+          "description": "The function does not validate that `buf` is non-NULL before passing it to `tif_decoderow`, `tif_postdecode`, and `memset`. If a caller passes NULL (e.g., due to a failed malloc that wasn't checked), the function will dereference a NULL pointer, causing a denial of service (crash).",
+          "poc": "Allocate buffer with malloc that returns NULL (e.g., due to memory exhaustion), pass NULL as buf parameter. The decoder or memset will crash with SIGSEGV."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_read.c [TIFFReadEncodedStrip]",
+      "chars": 1455,
+      "elapsed_s": 421.8,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Insufficient validation of stripsize allows negative value to cause buffer overflow",
+          "line_start": 531,
+          "confidence": 0.85,
+          "description": "The function only checks if `stripsize == (tmsize_t)(-1)` (the error sentinel) but does not validate that stripsize is non-negative. If `TIFFReadEncodedStripGetStripSize` returns a negative value other than -1 — for example due to an integer overflow when computing the strip size from crafted TIFF metadata with extremely large image dimensions — the function proceeds with the negative value. This has catastrophic consequences: (1) In the shortcut path (line 536), `size >= stripsize` evaluates to true for any positive `size` since a signed comparison of positive >= negative is true, allowing `TIFFReadRawStrip1` to be called with a negative size that becomes a massive unsigned value. (2) In the normal path (line 550), `size < stripsize` evaluates to false (positive < negative is false in signed arithmetic), so stripsize is NOT clamped, and `memset(buf, 0, (size_t)stripsize)` on line 552 casts the negative stripsize to a huge size_t, causing a massive heap buffer overflow. (3) The `tif_decodestrip` call on line 554 receives the negative stripsize, which decoders may interpret as a huge positive value, also causing buffer overflow. This is consistent with CVE-2022-3597 (integer overflow in TIFFReadEncodedStrip).",
+          "poc": "Craft a TIFF file with extremely large ImageWidth, RowsPerStrip, and BitsPerSample values such that their product overflows tmsize_t (int64_t or int32_t depending on platform). For example, on a 32-bit build: ImageWidth=65535, RowsPerStrip=65535, BitsPerSample=8, SamplesPerPixel=4 yields 65535*65535*4 = 17,179,607,040 which overflows int32_t to a negative value. When TIFFReadEncodedStripGetStripSize computes this and returns the negative result, TIFFReadEncodedStrip only checks for -1 and proceeds. The memset on line 552 then writes ~(size_t)0 bytes, crashing or enabling code execution."
+        },
+        {
+          "severity": "high",
+          "title": "Dangerous signed-to-unsigned cast in memset on error path enables overflow",
+          "line_start": 552,
+          "confidence": 0.8,
+          "description": "The `memset(buf, 0, (size_t)stripsize)` call on line 552 blindly casts the signed `tmsize_t stripsize` to unsigned `size_t` without checking that stripsize is non-negative. If stripsize is negative (due to the integer overflow vulnerability above, or any other miscalculation), this cast produces an extremely large size_t value (close to SIZE_MAX), causing memset to write far beyond the bounds of `buf`. Even without the integer overflow in stripsize computation, this represents a dangerous pattern — the cast should be guarded by an explicit sign check. The same dangerous cast pattern applies to any downstream consumer of stripsize that implicitly or explicitly converts to an unsigned type.",
+          "poc": "Same as above — any crafted TIFF that causes TIFFReadEncodedStripGetStripSize to return a negative value (not -1) will trigger this. The memset will attempt to zero approximately SIZE_MAX bytes starting at buf, resulting in a segfault or heap corruption. On systems without ASLR/DEP, this could be leveraged for arbitrary code execution."
+        },
+        {
+          "severity": "medium",
+          "title": "Missing validation of caller-provided size parameter allows negative clamp",
+          "line_start": 549,
+          "confidence": 0.65,
+          "description": "On line 549-550, the condition `(size != (tmsize_t)(-1)) && (size < stripsize)` clamps stripsize to the caller-provided `size`. However, `size` is only checked against the sentinel -1, not for other negative values. If a caller passes a negative `size` value (e.g., due to an integer overflow in their own buffer size calculation), then `size < stripsize` evaluates to true (negative < positive in signed comparison), and `stripsize = size` assigns the negative value. This negative stripsize then propagates to memset (line 552) and tif_decodestrip (line 554), causing buffer overflows as described in the primary finding. While this requires a buggy caller, the function should defensively validate its inputs.",
+          "poc": "A caller computes buffer size as width * height * bpp, which overflows to negative. They pass this negative size to TIFFReadEncodedStrip. The function clamps stripsize to this negative value and then calls memset(buf, 0, (size_t)negative_stripsize), overflowing the heap buffer."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_dirread.c [TIFFReadDirectory-A]",
+      "chars": 3405,
+      "elapsed_s": 108.1,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Missing NULL check after _TIFFmallocExt allocation",
+          "line_start": 4320,
+          "confidence": 0.85,
+          "description": "The result of _TIFFmallocExt() is assigned directly to tif->tif_dir.td_dirdatasize_offsets without checking for NULL. If the allocation fails (e.g., due to a crafted TIFF with dircount=65535 causing a large allocation request, or system memory exhaustion), subsequent code that dereferences td_dirdatasize_offsets will cause a NULL pointer dereference, leading to a denial of service (crash). This is a common vulnerability pattern in libtiff.",
+          "poc": "Craft a TIFF file with a directory containing 65535 entries (maximum uint16_t value). The allocation of 65535 * sizeof(TIFFEntryOffsetAndLength) bytes may fail on memory-constrained systems, causing _TIFFmallocExt to return NULL. Subsequent access to td_dirdatasize_offsets triggers a segfault."
+        },
+        {
+          "severity": "medium",
+          "title": "O(n²) algorithmic complexity in duplicate tag detection",
+          "line_start": 4280,
+          "confidence": 0.9,
+          "description": "The nested loop for marking duplicate tags has O(n²) complexity where n=dircount (up to 65535). A crafted TIFF file with the maximum number of directory entries forces approximately 65535²/2 ≈ 2.1 billion iterations of the inner comparison. This causes excessive CPU consumption and can freeze the application for an extended period, enabling denial of service.",
+          "poc": "Craft a TIFF file with an IFD containing 65535 directory entries with unique tags. The duplicate detection loop will iterate ~2.1 billion times, consuming significant CPU time before the file can be processed."
+        },
+        {
+          "severity": "medium",
+          "title": "Potential integer overflow in allocation size calculation",
+          "line_start": 4324,
+          "confidence": 0.5,
+          "description": "The expression 'dircount * sizeof(TIFFEntryOffsetAndLength)' is used as the allocation size. While dircount is uint16_t (max 65535), if sizeof(TIFFEntryOffsetAndLength) is sufficiently large or on platforms with smaller size_t, this multiplication could theoretically overflow, resulting in a small allocation. The subsequent code would then write beyond the allocated buffer. On typical 64-bit systems this is not exploitable, but on 32-bit or embedded systems with large struct sizes it could be.",
+          "poc": "On a 32-bit system where sizeof(TIFFEntryOffsetAndLength) is large (e.g., if it contains embedded arrays), a dircount of 65535 could cause the multiplication to wrap around, allocating a small buffer while the code expects a large one."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_dirread.c [TIFFReadDirectory-B]",
+      "chars": 4376,
+      "elapsed_s": 79.6,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Out-of-bounds array access via assert bypass on FAILED_FII",
+          "line_start": 4425,
+          "confidence": 0.7,
+          "description": "At line 4425, an `assert(fii != FAILED_FII)` guards against an invalid field index after re-looking up a merged anonymous field. In release builds (where NDEBUG is defined), this assert is compiled out. If `_TIFFMergeFields` succeeds but the subsequent `TIFFReadDirectoryFindFieldInfo` still returns FAILED_FII (e.g., due to a hash collision edge case or merge inconsistency), execution continues with `fii == FAILED_FII`. At line 4430, `fip = tif->tif_fields[fii]` then performs an out-of-bounds array read since FAILED_FII is typically ~(uint32_t)0 (0xFFFFFFFF), leading to a crash or potential memory corruption/information disclosure.",
+          "poc": "Craft a TIFF file with a tag that triggers _TIFFCreateAnonField and _TIFFMergeFields to succeed, but where TIFFReadDirectoryFindFieldInfo subsequently fails to locate the merged field. In a release build (NDEBUG defined), the assert is removed and the out-of-bounds access at tif->tif_fields[FAILED_FII] occurs."
+        },
+        {
+          "severity": "info",
+          "title": "Type confusion via unchecked tdir_type cast in anonymous field creation",
+          "line_start": 4413,
+          "confidence": 0.85,
+          "description": "When creating an anonymous field for an unknown tag, `dp->tdir_type` is cast directly to `TIFFDataType` without validation: `(TIFFDataType)dp->tdir_type`. If a malicious TIFF file provides an out-of-range or invalid type value (e.g., 0 or a value exceeding the maximum valid TIFFDataType enum), the anonymous field is created with an incorrect type. When this field is later processed in the second pass, incorrect size calculations and buffer operations based on the invalid type can lead to heap buffer overflows, out-of-bounds reads, or other memory corruption.",
+          "poc": "Create a TIFF file with an unknown tag (not in the standard field table) and set its tdir_type to an invalid value (e.g., 0 or 255). The _TIFFCreateAnonField call will create a field with the bogus type. When TIFFFetchNormalTag later processes this field, it will use the wrong size/interpretation for the data, potentially causing a heap buffer overflow."
+        },
+        {
+          "severity": "info",
+          "title": "Memory leak in anonymous field handling enabling DoS",
+          "line_start": 4408,
+          "confidence": 0.9,
+          "description": "The code explicitly acknowledges (comment at lines 4408-4409) that the anonymous field structure leaks memory. If `_TIFFMergeFields` fails (line 4416), the field created by `_TIFFCreateAnonField` is never freed. A malicious TIFF file with many unknown tags that fail to merge can cause unbounded memory leakage. Each call to _TIFFCreateAnonField allocates memory that is never reclaimed, enabling a denial-of-service attack through memory exhaustion.",
+          "poc": "Craft a TIFF file with thousands of unique unknown tags. Each tag triggers _TIFFCreateAnonField allocation. If _TIFFMergeFields fails for each (e.g., by exceeding internal field limits), all allocated memory leaks. Repeated processing of such files exhausts available memory."
+        },
+        {
+          "severity": "info",
+          "title": "Compression tag count mismatch may enable inconsistent state",
+          "line_start": 4370,
+          "confidence": 0.6,
+          "description": "The Compression tag handling first tries `TIFFReadDirEntryShort` (expecting count=1), and on count mismatch falls back to `TIFFReadDirEntryPersampleShort`. The fallback reads one short per sample and takes only the first value. However, if SamplesPerPixel was not yet properly established (the SamplesPerPixel tag fetch at line 4359 could have failed silently or set an unexpected value), `TIFFReadDirEntryPersampleShort` may use an incorrect sample count, potentially reading beyond the tag's data buffer or producing an incorrect compression value that leads to later codec misconfiguration.",
+          "poc": "Craft a TIFF where SamplesPerPixel is absent or has an extreme value, and the Compression tag has a count matching SamplesPerPixel but pointing to minimal data. The TIFFReadDirEntryPersampleShort fallback may read past the tag data boundary, or the wrong compression value may be selected, leading to codec confusion and potential memory corruption during decompression."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_dirread.c [TIFFReadDirectory-C]",
+      "chars": 4598,
+      "elapsed_s": 178.1,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Stack Buffer Overflow via TIFFReadDirEntryPersampleShort with Undersized Destination",
+          "line_start": 4520,
+          "confidence": 0.92,
+          "description": "When processing TIFF tags such as BITSPERSAMPLE, SAMPLEFORMAT, MINSAMPLEVALUE, MAXSAMPLEVALUE, or DATATYPE, the code first attempts to read a single uint16_t value via TIFFReadDirEntryShort into a stack-allocated `uint16_t value` (2 bytes). If that call returns TIFFReadDirEntryErrCount (indicating the tag contains more values than expected for a single entry), the code falls back to TIFFReadDirEntryPersampleShort, passing `&value` as the destination buffer. However, TIFFReadDirEntryPersampleShort writes `td_samplesperpixel` number of uint16_t values to the destination. Since `value` is only a single uint16_t on the stack, any `td_samplesperpixel > 1` causes a stack buffer overflow, corrupting adjacent stack frames. An attacker can craft a TIFF file with SamplesPerPixel set to a large value (up to 65535) and a BitsPerSample/SampleFormat tag with a count mismatch, triggering the overflow and potentially achieving arbitrary code execution.",
+          "poc": "Craft a TIFF file with: 1) SamplesPerPixel = 64 (or any value > 1), 2) BitsPerSample tag with count != 1 (e.g., count = 64 matching SamplesPerPixel, or count = 2 to trigger ErrCount). When TIFFReadDirEntryShort fails with ErrCount due to count mismatch, TIFFReadDirEntryPersampleShort writes 64 uint16_t values (128 bytes) to a 2-byte stack variable, overflowing the stack. The overflow size is (td_samplesperpixel - 1) * 2 bytes."
+        },
+        {
+          "severity": "medium",
+          "title": "OJPEG Planarconfig Override Leading to Incorrect Strip Data Interpretation",
+          "line_start": 4475,
+          "confidence": 0.65,
+          "description": "The OJPEG compatibility hack unconditionally overrides td_planarconfig from PLANARCONFIG_SEPARATE to PLANARCONFIG_CONTIG when certain conditions are met (single strip offset and bytecount). This changes how strip data is interpreted downstream: with SEPARATE, each sample plane has its own strips (expected strip count = strips_per_image * samples_per_pixel), while CONTIG interleaves all samples in each strip. If the actual data layout is SEPARATE but the code now treats it as CONTIG, subsequent strip access calculations (e.g., in TIFFReadEncodedStrip/TIFFReadRawStrip) may compute incorrect offsets or sizes, potentially leading to out-of-bounds reads or heap buffer overflows when processing strip data. The condition of count==1 partially mitigates this, but does not account for all edge cases in multi-strip OJPEG images where the override may be incorrect.",
+          "poc": "Create a TIFF with COMPRESSION_OJPEG, PLANARCONFIG_SEPARATE, a single strip offset entry (count=1), and a single strip bytecount entry (count=1), but with actual image data organized in separate planes. After the override to CONTIG, any code that calculates strip sizes based on planarconfig will underestimate buffer requirements for per-plane data, potentially causing heap buffer overflows during decompression."
+        },
+        {
+          "severity": "high",
+          "title": "Missing Validation of td_samplesperpixel Before PersampleShort Fallback",
+          "line_start": 4530,
+          "confidence": 0.85,
+          "description": "Before calling TIFFReadDirEntryPersampleShort as a fallback, the code does not validate that td_samplesperpixel has been properly set and is within reasonable bounds. An attacker could craft a TIFF where SamplesPerPixel is set to an extremely large value (e.g., 65535) before the BitsPerSample/SampleFormat tags are processed. When the PersampleShort fallback is triggered, it would attempt to write 65535 * 2 = 131070 bytes to a 2-byte stack buffer. Even if td_samplesperpixel is validated elsewhere, the ordering of tag processing may allow a large value to be set before this code path is reached, since SamplesPerPixel is processed in an earlier pass.",
+          "poc": "Craft a TIFF with SamplesPerPixel=65535 appearing early in the IFD, followed by a BitsPerSample tag with count != 1. The first pass processes SamplesPerPixel setting td_samplesperpixel=65535. In the second pass, when BitsPerSample is processed, TIFFReadDirEntryShort fails with ErrCount, and TIFFReadDirEntryPersampleShort writes 65535 uint16_t values (131KB) to a 2-byte stack variable, causing a massive stack overflow likely resulting in a crash or code execution."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_dirread.c [TIFFReadDirectory-D]",
+      "chars": 4380,
+      "elapsed_s": 106.5,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Type confusion: invalid data types accepted for strip/tile offset and bytecount entries",
+          "line_start": 4584,
+          "confidence": 0.85,
+          "description": "When processing TIFFTAG_STRIPOFFSETS, TIFFTAG_TILEOFFSETS, TIFFTAG_STRIPBYTECOUNTS, or TIFFTAG_TILEBYTECOUNTS, if the directory entry type is not TIFF_SHORT, TIFF_LONG, or TIFF_LONG8, the code only issues a warning but does NOT reject the entry. The invalid-type entry is then stored via _TIFFmemcpy into td_stripoffset_entry or td_stripbytecount_entry. Later code that reads strip offsets or byte counts will interpret the stored data according to the invalid type, leading to type confusion. For example, if the type claims LONG8 but the actual data is SHORT, the reader will read 8 bytes per element instead of 2, causing heap buffer over-reads. Conversely, if the type claims BYTE but data is LONG8, offsets will be truncated, potentially leading to out-of-bounds file access. This is a well-known class of libtiff vulnerability that has resulted in multiple CVEs.",
+          "poc": "Craft a TIFF file where the STRIPOFFSETS or TILEOFFSETS tag has tdir_type set to TIFF_BYTE (1) or TIFF_UNDEFINED (7) instead of a valid type (SHORT/LONG/LONG8). Set tdir_count to a value > 0 and provide offset data. When libtiff reads the file, it will store the entry with the invalid type. Later, when strip data is accessed, the code will misinterpret the offset values based on the wrong type, potentially reading out-of-bounds memory or computing incorrect file offsets."
+        },
+        {
+          "severity": "high",
+          "title": "Type confusion: invalid data types accepted for strip/tile bytecount entries",
+          "line_start": 4611,
+          "confidence": 0.85,
+          "description": "Same type confusion vulnerability as strip/tile offsets, but for STRIPBYTECOUNTS/TILEBYTECOUNTS. Invalid types are warned but not rejected, and the entry is stored via _TIFFmemcpy into td_stripbytecount_entry. When byte counts are later interpreted using the wrong type, it can cause the library to believe strips are much larger or smaller than they actually are, leading to heap buffer overflows during strip data reading (allocating too small a buffer and reading too much data into it).",
+          "poc": "Craft a TIFF file where the STRIPBYTECOUNTS tag has tdir_type set to an invalid type (e.g., TIFF_RATIONAL or TIFF_BYTE). Set tdir_count and provide data. When the image data is later read, the byte count values will be misinterpreted, potentially causing a heap buffer overflow when the code allocates a buffer based on the misinterpreted byte count and reads strip data into it."
+        },
+        {
+          "severity": "medium",
+          "title": "Directory entry stored before data size validation",
+          "line_start": 4605,
+          "confidence": 0.7,
+          "description": "For STRIPOFFSETS/TILEOFFSETS entries, _TIFFmemcpy copies the raw directory entry into td_stripoffset_entry BEFORE EvaluateIFDdatasizeReading is called. If EvaluateIFDdatasizeReading fails and the code jumps to 'bad', the malicious directory entry data has already been stored in the TIFF directory structure. If the 'bad' error path does not properly reset or clear td_stripoffset_entry, subsequent code may operate on the unvalidated, potentially malicious entry data. The same issue exists for STRIPBYTECOUNTS/TILEBYTECOUNTS and td_stripbytecount_entry.",
+          "poc": "Craft a TIFF file with a STRIPOFFSETS entry that has an excessively large tdir_count value that passes the type check but fails EvaluateIFDdatasizeReading. The entry will be stored in td_stripoffset_entry before the validation failure. If error handling at the 'bad' label does not clear td_stripoffset_entry, later operations on the TIFF handle may use the stored malicious entry."
+        },
+        {
+          "severity": "low",
+          "title": "Memory leak on error path for SMINSAMPLEVALUE/SMAXSAMPLEVALUE",
+          "line_start": 4556,
+          "confidence": 0.8,
+          "description": "When processing TIFFTAG_SMINSAMPLEVALUE or TIFFTAG_SMAXSAMPLEVALUE, if TIFFReadDirEntryDoubleArray succeeds (allocating the 'data' buffer) but EvaluateIFDdatasizeReading subsequently fails, the code jumps to 'bad' without freeing the allocated 'data' buffer. This results in a memory leak. While not directly exploitable for code execution, repeated processing of crafted TIFF files could exhaust available memory (DoS).",
+          "poc": "Craft a TIFF file with a SMINSAMPLEVALUE tag where tdir_count matches td_samplesperpixel (so TIFFReadDirEntryDoubleArray succeeds and allocates 'data'), but the overall IFD data size is crafted to cause EvaluateIFDdatasizeReading to return false. The allocated 'data' buffer will be leaked."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_dirread.c [TIFFReadDirectory-E]",
+      "chars": 4515,
+      "elapsed_s": 370.2,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "medium",
+          "title": "Memory Leak in COLORMAP/TRANSFERFUNCTION Error Path",
+          "line_start": 4690,
+          "confidence": 0.85,
+          "description": "When processing TIFFTAG_COLORMAP or TIFFTAG_TRANSFERFUNCTION tags, if TIFFReadDirEntryShortArray successfully allocates and reads data into the heap buffer pointed to by 'value', but EvaluateIFDdatasizeReading subsequently returns false, the code executes 'goto bad' without freeing 'value'. Since 'value' is a local variable scoped within the case block's curly braces, the cleanup code at the 'bad' label cannot access it, resulting in a heap memory leak. An attacker can craft a TIFF file that triggers this condition — for example, by including enough IFD data to cause EvaluateIFDdatasizeReading to fail just after a large colormap is read. With BitsPerSample=24, a single COLORMAP tag can cause allocation of up to ~96MB (3 * 2^24 * 2 bytes), all of which is leaked. Repeated processing of such files or multiple triggering entries can exhaust memory, leading to denial of service.",
+          "poc": "Craft a TIFF file with: (1) BitsPerSample set to 24 (so bitspersample_read=true and the >24 check passes), (2) a COLORMAP tag with tdir_count = 3 * (1 << 24) = 50331648 matching countrequired, (3) additional IFD entries whose cumulative data size causes EvaluateIFDdatasizeReading to return false after the COLORMAP data is read. This causes TIFFReadDirEntryShortArray to allocate ~96MB for 'value', then the goto bad path leaks it."
+        },
+        {
+          "severity": "low",
+          "title": "Potential Integer Overflow in countrequired Computation",
+          "line_start": 4684,
+          "confidence": 0.6,
+          "description": "The computation 'countrequired = 3 * countpersample' on uint32_t could theoretically overflow if td_bitspersample were allowed to exceed ~30 (since 3 * (1<<30) = 3,221,225,472 which fits, but 3 * (1<<31) = 6,442,450,944 which overflows uint32_t). The current guard 'td_bitspersample > 24' prevents this, limiting countpersample to 16,777,216 and countrequired to 50,331,648. However, this boundary check is the sole defense against the overflow. If the check were ever relaxed, removed, or bypassed (e.g., through a separate code path that modifies td_bitspersample after the check), the integer overflow in '3 * countpersample' would cause countrequired to wrap to a small value, potentially passing the tdir_count validation and leading to a heap buffer overflow when TIFFSetField accesses value + incrementpersample and value + 2*incrementpersample beyond the actually-allocated buffer.",
+          "poc": "Not currently exploitable due to the >24 guard. To demonstrate the risk: if td_bitspersample were 31, countpersample = 1U<<31 = 2,147,483,648, and 3 * countpersample overflows uint32_t to 644,245,094 (0x26666666). If tdir_count matched this wrapped value, TIFFReadDirEntryShortArray would allocate a buffer of only ~1.3GB worth of shorts, but TIFFSetField would attempt to access value + 2,147,483,648, causing a massive out-of-bounds read."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_dirread.c [TIFFReadDirectory-F]",
+      "chars": 4451,
+      "elapsed_s": 106.0,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "libtiff/tif_dirread.c [TIFFReadDirectory-G]",
+      "chars": 4405,
+      "elapsed_s": 108.3,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Division by zero in td_stripsperimage calculation when SamplesPerPixel is zero",
+          "line_start": 4895,
+          "confidence": 0.85,
+          "description": "When PLANARCONFIG_SEPARATE is set and td_samplesperpixel is 0, the division `td_stripsperimage /= td_samplesperpixel` causes a division by zero (SIGFPE), crashing the application. td_samplesperpixel can be 0 if a crafted TIFF explicitly sets the SamplesPerPixel tag to 0, or if the tag is missing and the photometric interpretation falls outside the handled cases (RGB, YCBCR, MINISWHITE, MINISBLACK). There is no validation that td_samplesperpixel is non-zero before the division.",
+          "poc": "Craft a TIFF file with: PLANARCONFIG=2 (PLANARCONFIG_SEPARATE), SamplesPerPixel=0, valid StripOffsets/StripByteCounts, and any photometric interpretation. When TIFFReadDirectory processes this file, it will execute the division by zero at line 4896, causing a crash."
+        },
+        {
+          "severity": "medium",
+          "title": "Incomplete default SamplesPerPixel handling for unhandled photometric interpretations",
+          "line_start": 4834,
+          "confidence": 0.75,
+          "description": "The if/else-if chain for setting a default SamplesPerPixel when the tag is missing only handles PHOTOMETRIC_RGB, PHOTOMETRIC_YCBCR, PHOTOMETRIC_MINISWHITE, and PHOTOMETRIC_MINISBLACK. Other photometric types (e.g., PHOTOMETRIC_PALETTE, PHOTOMETRIC_SEPARATED/CMYK, PHOTOMETRIC_LOGL, PHOTOMETRIC_LOGLUV) are not handled. For PHOTOMETRIC_SEPARATED (CMYK), SamplesPerPixel should be 4 but will remain at its default (1), leading to incorrect strip/tile calculations and potential buffer overflows when pixel data is read with insufficient allocation for the expected number of channels.",
+          "poc": "Craft a TIFF file with: PhotometricInterpretation=5 (PHOTOMETRIC_SEPARATED), no SamplesPerPixel tag, PLANARCONFIG_SEPARATE. The SamplesPerPixel will default to 1 instead of 4, causing td_stripsperimage to be calculated incorrectly and subsequent memory operations to use wrong sizes."
+        },
+        {
+          "severity": "low",
+          "title": "Misleading if/else-if structure for SamplesPerPixel defaults",
+          "line_start": 4841,
+          "confidence": 0.9,
+          "description": "The else-if clause for MINISWHITE/MINISBLACK is associated with the YCBCR if-statement, not the RGB if-statement. While this produces correct results for the three intended photometric types, it creates a confusing code structure where the RGB and YCBCR blocks are independent if-statements rather than a unified if/else-if chain. This makes the code error-prone for future modifications and obscures the intent that all three cases should be mutually exclusive alternatives for setting SamplesPerPixel defaults.",
+          "poc": "N/A - this is a code quality/logic clarity issue rather than an directly exploitable vulnerability."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_dirread.c [TIFFReadDirectory-H]",
+      "chars": 4241,
+      "elapsed_s": 435.2,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Heap Buffer Overflow in ExtraSamples Handling via Unsigned Arithmetic Underflow",
+          "line_start": 4968,
+          "confidence": 0.75,
+          "description": "When processing a crafted TIFF file where td_extrasamples >= td_samplesperpixel, the condition `td_samplesperpixel - td_extrasamples > color_channels` can evaluate to true due to unsigned integer arithmetic underflow (if the subtraction result is promoted to an unsigned type for comparison). This causes the code to enter the block and allocate a new buffer of size `(uint16_t)(td_samplesperpixel - color_channels)` elements, but then memcpy `old_extrasamples` elements from the old td_sampleinfo buffer. Since old_extrasamples can exceed the newly allocated buffer size, this results in a heap buffer overflow. A crafted TIFF with EXTRASAMPLES count larger than SAMPLESPERPIXEL triggers this. This corresponds to CVE-2023-26965.",
+          "poc": "Craft a TIFF file with: SAMPLESPERPIXEL=3, EXTRASAMPLES=5 (count exceeding samplesperpixel), PHOTOMETRIC=MINISBLACK (color_channels=1). The subtraction 3-5 underflows in unsigned context to a large value > 1, entering the block. New td_extrasamples = (uint16_t)(3-1) = 2, allocating 4 bytes. But memcpy copies old_extrasamples=5 elements (10 bytes) into the 4-byte buffer, overflowing by 6 bytes."
+        },
+        {
+          "severity": "high",
+          "title": "Heap Buffer Over-Read from td_sampleinfo in memcpy",
+          "line_start": 4984,
+          "confidence": 0.6,
+          "description": "The memcpy reads `old_extrasamples * sizeof(uint16_t)` bytes from `td_sampleinfo`. If the original EXTRASAMPLES tag parsing allocated td_sampleinfo with fewer elements than td_extrasamples indicates (e.g., due to a malformed TIFF where the tag count field is larger than the actual data provided), the memcpy will read beyond the allocated td_sampleinfo buffer. This heap over-read can leak sensitive heap metadata or adjacent data. Combined with the overflow above, this forms a read-then-write corruption chain.",
+          "poc": "Craft a TIFF with EXTRASAMPLES tag count=10 but only provide 2 uint16 values in the tag data. td_extrasamples is set to 10 but td_sampleinfo may only have 2 elements allocated. When the extrasamples adjustment code runs, memcpy reads 10 elements from a 2-element buffer."
+        },
+        {
+          "severity": "high",
+          "title": "Missing Validation of td_extrasamples vs td_samplesperpixel Before Arithmetic",
+          "line_start": 4960,
+          "confidence": 0.7,
+          "description": "The code performs arithmetic `td_samplesperpixel - td_extrasamples` and `td_samplesperpixel - color_channels` without first validating that td_extrasamples <= td_samplesperpixel. A malicious TIFF can set EXTRASAMPLES to any uint16_t value regardless of SAMPLESPERPIXEL. The cast `(uint16_t)(td_samplesperpixel - color_channels)` can produce a wrapped value if td_samplesperpixel < color_channels, leading to an enormous allocation request or a small allocation followed by a large memcpy. The fix for CVE-2023-26965 adds an explicit check `td_extrasamples >= td_samplesperpixel` before this code block.",
+          "poc": "Set SAMPLESPERPIXEL=1, PHOTOMETRIC=RGB (color_channels=3), EXTRASAMPLES=0. The condition 1-0=1 > 3 is false with signed math, but if types promote to unsigned, 1 > 3 is still false. However, with SAMPLESPERPIXEL=2, EXTRASAMPLES=5, PHOTOMETRIC=MINISBLACK: unsigned underflow makes 2-5 wrap to a huge value > 1, entering the block and causing overflow."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_dirread.c [TIFFReadDirectory-I]",
+      "chars": 4065,
+      "elapsed_s": 173.6,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Integer overflow in ChopUpSingleUncompressedStrip leading to heap buffer overflow",
+          "line_start": 5130,
+          "confidence": 0.75,
+          "description": "When a crafted TIFF file has a single uncompressed strip with a very large StripByteCount value (e.g., close to or exceeding UINT32_MAX), the ChopUpSingleUncompressedStrip function is invoked to split it into smaller virtual strips. Integer overflow can occur in the internal calculation of rows-per-strip or the number of resulting strips. This can cause an undersized allocation followed by an out-of-bounds write when the image data is later read, leading to heap buffer overflow. This is a well-known vulnerability pattern in libtiff (cf. CVE-2022-3597, CVE-2022-3598). An attacker can craft a TIFF with td_nstrips=1, COMPRESSION_NONE, PLANARCONFIG_CONTIG, and a massive StripByteCount to trigger this path.",
+          "poc": "Craft a TIFF file with: BitsPerSample=8, ImageWidth=1, ImageLength=0x7FFFFFFF, Compression=1 (None), PlanarConfiguration=1 (Contig), RowsPerStrip=0x7FFFFFFF, StripByteCounts=[0x7FFFFFFF]. This creates a single-strip uncompressed image that triggers ChopUpSingleUncompressedStrip. The function computes rowsperstrip = (uint64)stripbytecount / (scanline_size ? scanline_size : 1), but subsequent 32-bit arithmetic on the computed strip parameters can overflow, leading to incorrect strip table entries and heap corruption on read."
+        },
+        {
+          "severity": "info",
+          "title": "Potential division-by-zero or incorrect bounds from td_maxsamplevalue when td_bitspersample=0",
+          "line_start": 5068,
+          "confidence": 0.6,
+          "description": "When FIELD_MAXSAMPLEVALUE is not set and td_bitspersample is 0, the calculation (1L << 0) - 1 yields td_maxsamplevalue = 0. While the shift itself is well-defined, a zero maxsamplevalue can cause division-by-zero or incorrect normalization in downstream code that divides by (td_maxsamplevalue + 1) or uses td_maxsamplevalue as a scaling denominator. A crafted TIFF with BitsPerSample=0 triggers this path. The >= 16 guard only handles the upper bound; no lower-bound validation exists for td_bitspersample before the shift.",
+          "poc": "Craft a TIFF file with BitsPerSample=0 and no MaxSampleValue tag set. This causes td_maxsamplevalue = (1 << 0) - 1 = 0. Any downstream code performing sample normalization (e.g., value * 255 / td_maxsamplevalue) will trigger a division-by-zero crash or produce incorrect results that may bypass bounds checks."
+        },
+        {
+          "severity": "medium",
+          "title": "Attacker-controlled path to EstimateStripByteCounts with unvalidated strip metadata",
+          "line_start": 5054,
+          "confidence": 0.55,
+          "description": "The second else-if block calls EstimateStripByteCounts when td_nstrips > 2, compression is NONE, and the first two strip byte counts differ and are non-zero. An attacker can craft a TIFF file that satisfies these conditions with extremely large image dimensions or strip counts, causing EstimateStripByteCounts to perform integer-overflowing arithmetic when computing estimated byte counts from imagelength * scanline_size. The resulting incorrect byte counts can lead to undersized buffer allocations and heap buffer overflows during subsequent strip reads.",
+          "poc": "Craft a TIFF with: Compression=1 (None), PlanarConfiguration=1, nstrips=4, StripByteCounts=[1, 2, 3, 4] (first two differ and are non-zero), ImageWidth=0xFFFF, ImageLength=0xFFFF, BitsPerSample=8, SamplesPerPixel=3. The mismatch triggers EstimateStripByteCounts, which computes byte counts from dimensions. If the multiplication ImageWidth * SamplesPerPixel overflows a 32-bit integer, the estimated strip sizes will be wrong, leading to heap corruption on read."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_dirread.c [TIFFFetchNormalTag-A]",
+      "chars": 4563,
+      "elapsed_s": 376.7,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Integer Overflow in ASCII Tag Allocation Leading to Heap Buffer Overflow",
+          "line_start": 6345,
+          "confidence": 0.85,
+          "description": "When processing a TIFF ASCII tag whose value does not end with a null byte, the code allocates a buffer of size `(uint32_t)dp->tdir_count + 1` to append a null terminator. If `dp->tdir_count` is 0xFFFFFFFF, this addition overflows to 0, causing `_TIFFmallocExt` to allocate a zero-byte (or minimally-sized) buffer. The subsequent `_TIFFmemcpy(o, data, (uint32_t)dp->tdir_count)` then copies 0xFFFFFFFF bytes into this tiny buffer, and `o[(uint32_t)dp->tdir_count] = 0` writes far beyond the allocation — both resulting in a critical heap buffer overflow. The assert on line 6345 (`assert((uint32_t)dp->tdir_count + 1 == dp->tdir_count + 1)`) is intended to catch this overflow but is completely ineffective: (1) asserts are disabled in release builds, and (2) if `tdir_count` is `uint32_t`, both sides of the comparison overflow identically (0 == 0), so the assert always passes. This vulnerability can be triggered by a crafted TIFF file and leads to arbitrary code execution or denial of service.",
+          "poc": "Craft a TIFF file with an ASCII tag where tdir_count = 0xFFFFFFFF and the tag data does not end with a null byte. When libtiff processes this tag: 1) TIFFReadDirEntryByteArray reads the data (if the allocation for the read succeeds or if data is inline/specially handled), 2) The strlen/loop finds mb >= 0xFFFFFFFF - 1, 3) The condition `mb + 1 > (uint32_t)dp->tdir_count` evaluates to true, 4) `(uint32_t)0xFFFFFFFF + 1` overflows to 0, allocating a 0-byte buffer, 5) _TIFFmemcpy copies 0xFFFFFFFF bytes into the 0-byte buffer — heap buffer overflow. Note: practical exploitation depends on whether TIFFReadDirEntryArrayWithLimit or EvaluateIFDdatasizeReading bounds-checks tdir_count before reaching this code; if those checks can be bypassed or are insufficient, the bug is directly exploitable."
+        },
+        {
+          "severity": "medium",
+          "title": "Ineffective Assert Fails to Guard Integer Overflow",
+          "line_start": 6345,
+          "confidence": 0.95,
+          "description": "The assert `assert((uint32_t)dp->tdir_count + 1 == dp->tdir_count + 1)` is meant to verify that the addition does not overflow, but it is fundamentally broken. When `dp->tdir_count` is of type `uint32_t`, both sides of the equality perform the same `uint32_t` addition and overflow identically — making the assert always true regardless of overflow. When `dp->tdir_count` is `uint64_t` (BigTIFF), the right side would not overflow while the left side truncates, making the assert potentially useful — but only in debug builds since asserts are compiled out in release. This leaves the integer overflow on line 6347 completely unguarded in production builds.",
+          "poc": "With dp->tdir_count = 0xFFFFFFFF (uint32_t): LHS = (uint32_t)0xFFFFFFFF + 1 = 0 (overflow), RHS = 0xFFFFFFFF + 1 = 0 (same overflow). Assert checks 0 == 0, which passes. The overflow goes undetected."
+        },
+        {
+          "severity": "medium",
+          "title": "Integer Truncation in Loop Bound and Comparisons for BigTIFF",
+          "line_start": 6315,
+          "confidence": 0.7,
+          "description": "If `dp->tdir_count` is `uint64_t` (as in BigTIFF support), the casts to `uint32_t` in the while-loop condition (`mb < (uint32_t)dp->tdir_count`) and the comparisons (`mb + 1 < (uint32_t)dp->tdir_count`, `mb + 1 > (uint32_t)dp->tdir_count`) truncate the upper 32 bits. This causes the string length scan to examine far fewer bytes than actually present, and the subsequent allocation and copy use the truncated count. While the truncated value is always <= the original (preventing direct overflow from truncation alone), this leads to incorrect processing of large ASCII tags — data is silently truncated. More critically, if the lower 32 bits of `dp->tdir_count` happen to be 0xFFFFFFFF, the integer overflow in the allocation (finding 1) is still triggered even though the actual count is much larger.",
+          "poc": "Craft a BigTIFF with an ASCII tag where tdir_count = 0x1FFFFFFFF. The (uint32_t) cast truncates this to 0xFFFFFFFF, triggering the same integer overflow as finding 1. Alternatively, tdir_count = 0x100000005 truncates to 5, causing only 5 bytes to be scanned/allocated/copied while the actual data is over 4GB — silent data corruption."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_dirread.c [TIFFFetchNormalTag-B]",
+      "chars": 4540,
+      "elapsed_s": 60.1,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Missing EvaluateIFDdatasizeReading validation for small integer types",
+          "line_start": 6372,
+          "confidence": 0.75,
+          "description": "The TIFF_SETGET_UINT8, SINT8, UINT16, SINT16, UINT32, and SINT32 code paths lack the EvaluateIFDdatasizeReading() validation check that is present in the UINT64, SINT64, FLOAT, and DOUBLE paths. This inconsistency means a crafted TIFF file with a malformed IFD entry (e.g., an inflated tdir_count or mismatched tdir_type) targeting one of the smaller integer types could bypass size/bounds validation that was deemed necessary for larger types. If EvaluateIFDdatasizeReading guards against out-of-bounds reads or denial-of-service via excessive allocation, its absence in these paths creates an exploitable gap. An attacker could craft a TIFF with a tag expecting a small integer type but providing an oversized or misaligned data payload, potentially leading to heap buffer over-read or other memory corruption downstream.",
+          "poc": "Craft a TIFF file with an IFD entry whose tdir_tag maps to a UINT8/SINT8/UINT16/SINT16/UINT32/SINT32 field, but set tdir_count to an abnormally large value and tdir_type to a wider type (e.g., LONG instead of BYTE). The TIFFReadDirEntry* function may perform a type-conversion read from an offset pointing near the end of the file or beyond allocated buffers. Since EvaluateIFDdatasizeReading is not called, the oversized/misaligned data reference is not caught, and TIFFSetField processes the (potentially corrupted) data. For example: set tag 256 (ImageWidth, typically UINT16/UINT32) with tdir_type=LONG (4) and tdir_count=0xFFFFFFFF, pointing to an offset near file end."
+        },
+        {
+          "severity": "medium",
+          "title": "Security-critical invariants guarded only by assert() in production builds",
+          "line_start": 6370,
+          "confidence": 0.7,
+          "description": "Each case uses assert() to verify fip->field_readcount == 1 and fip->field_passcount == 0. In production/release builds (NDEBUG defined), assert() is compiled out entirely, meaning these invariants are never checked. If a corrupted or maliciously crafted TIFF causes field definitions to have unexpected readcount or passcount values, the code will proceed with incorrect assumptions about the data layout. This could lead to stack/heap corruption because the variadic TIFFSetField() call expects a single value argument, but a different passcount/readcount would imply a different calling convention (e.g., pointer vs value). The result is undefined behavior including potential arbitrary code execution.",
+          "poc": "If libtiff is compiled with -DNDEBUG (standard for production), craft a TIFF that triggers a code path where fip->field_readcount != 1 for a tag handled by one of these cases. The assert is stripped, no error is raised, and TIFFSetField is called with mismatched argument expectations. For instance, if field_readcount were -1 (variable count) and field_passcount were 1, TIFFSetField would expect (tag, count, pointer) but receives (tag, value), reading garbage from the stack."
+        },
+        {
+          "severity": "low",
+          "title": "Silent error swallowing on TIFFReadDirEntry failures",
+          "line_start": 6372,
+          "confidence": 0.8,
+          "description": "When TIFFReadDirEntryByte/Short/Long/etc. returns an error (err != TIFFReadDirEntryErrOk), the code silently falls through without reporting the error or setting any failure state on the TIFF handle. The err variable is assigned but never checked for error reporting or propagation. This means a malformed tag that fails to read is simply skipped with no indication to the caller. In security contexts, silent failures can mask exploitation attempts and make it harder to detect malicious inputs. Additionally, if the tag was expected to be set (e.g., for subsequent security checks), its absence could lead to use of uninitialized or default values in security-sensitive decisions.",
+          "poc": "Provide a TIFF file with a tag entry whose tdir_type is incompatible with the expected type (e.g., tdir_type=RATIONAL for a UINT16 field). TIFFReadDirEntryShort returns an error code, the if-block is skipped, and execution continues as if the tag doesn't exist. Any downstream code that checks for the presence/value of this tag operates on stale or default data."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_dirread.c [TIFFFetchNormalTag-C]",
+      "chars": 4397,
+      "elapsed_s": 334.5,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Use-After-Free in TIFF_SETGET_C0_UINT8/C0_SINT8 via free-after-TIFFSetField pattern",
+          "line_start": 6570,
+          "confidence": 0.7,
+          "description": "In the TIFF_SETGET_C0_UINT8 and TIFF_SETGET_C0_SINT8 cases, a heap-allocated buffer ('data') is passed to TIFFSetField() and then immediately freed with _TIFFfreeExt(). If TIFFSetField() stores the pointer rather than copying the data into the TIFF directory structure (which can happen for certain field definitions or custom tags where the internal storage is a pointer rather than an inline array), the TIFF directory retains a dangling pointer. Subsequent access to this field (e.g., during TIFF write, copy, or re-read) triggers a use-after-free, potentially leading to arbitrary code execution. This exact pattern has been the root cause of multiple libtiff CVEs (e.g., CVE-2022-3597, CVE-2022-3626).",
+          "poc": "Craft a TIFF file with a tag that uses TIFF_SETGET_C0_UINT8 type where the internal field storage is pointer-based. The tag data is read into a heap buffer, passed to TIFFSetField (which stores the pointer), then freed. When the TIFF is later written or the field is accessed, the dangling pointer is dereferenced. A minimal PoC TIFF would contain a C0_UINT8 tag (e.g., InkNames or similar) with count matching field_readcount, triggering the allocate-set-free sequence."
+        },
+        {
+          "severity": "medium",
+          "title": "NULL pointer dereference via assert-only validation in TIFF_SETGET_UINT16_PAIR",
+          "line_start": 6537,
+          "confidence": 0.75,
+          "description": "In the TIFF_SETGET_UINT16_PAIR case, the NULL check for 'data' relies solely on assert(data), which is compiled out in release builds (NDEBUG). If TIFFReadDirEntryShortArray() returns TIFFReadDirEntryErrOk but sets data to NULL (e.g., due to an edge case in memory allocation for a malformed count), the subsequent data[0] and data[1] accesses cause a NULL pointer dereference crash. The comment 'avoid CLang static Analyzer false positive' acknowledges the analyzer's concern but the fix (assert) is insufficient for production builds.",
+          "poc": "Craft a TIFF file with a UINT16_PAIR tag where tdir_count=2 but the underlying data is malformed in a way that causes TIFFReadDirEntryShortArray to return OK with a NULL data pointer (e.g., zero-length inline data that bypasses allocation). In a release build, the assert is removed and data[0] is dereferenced, causing a segfault."
+        },
+        {
+          "severity": "medium",
+          "title": "Security-critical asserts disabled in production builds across all cases",
+          "line_start": 6507,
+          "confidence": 0.8,
+          "description": "Multiple assert() calls enforce critical invariants: fip->field_readcount values, fip->field_passcount==0, and data!=NULL. These asserts are removed in production builds (when NDEBUG is defined), meaning violations of these invariants go undetected. For example, if fip->field_passcount!=0 in the IFD8 case, TIFFSetField would be called with incorrect variadic argument interpretation, potentially causing type confusion. If fip->field_readcount is 0 in C0 cases, the count check dp->tdir_count!=(uint64_t)fip->field_readcount would pass for count=0, and TIFFReadDirEntryByteArray could return NULL or an empty buffer passed to TIFFSetField.",
+          "poc": "In a production build of libtiff, provide a TIFF with a tag whose field info has inconsistent field_readcount or field_passcount values (possible through custom tag definitions or memory corruption). The asserts that would catch this in debug builds are absent, leading to undefined behavior such as incorrect va_arg interpretation in TIFFSetField."
+        },
+        {
+          "severity": "low",
+          "title": "Missing EvaluateIFDdatasizeReading check in TIFF_SETGET_UINT16_PAIR",
+          "line_start": 6521,
+          "confidence": 0.65,
+          "description": "The TIFF_SETGET_UINT16_PAIR case does not call EvaluateIFDdatasizeReading() after successfully reading the data, unlike the TIFF_SETGET_IFD8, TIFF_SETGET_C0_UINT8, and TIFF_SETGET_C0_SINT8 cases which all perform this check. This inconsistency could allow a malformed TIFF to bypass IFD data size limits through a UINT16_PAIR tag, potentially contributing to excessive memory consumption or bypassing size-based security policies.",
+          "poc": "Craft a TIFF file where the cumulative IFD data size exceeds the allowed limit, but the excess is contributed through UINT16_PAIR tags. Since EvaluateIFDdatasizeReading is not called for this type, the size limit is not enforced, allowing the oversized IFD to be processed."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_dirread.c [TIFFFetchNormalTag-D]",
+      "chars": 4540,
+      "elapsed_s": 473.7,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Use-After-Free via TIFFSetField then _TIFFfreeExt",
+          "line_start": 6644,
+          "confidence": 0.7,
+          "description": "The code calls TIFFSetField(tif, dp->tdir_tag, data) and then immediately frees data with _TIFFfreeExt(tif, data). If TIFFSetField stores the pointer directly instead of copying the data for any code path or field type, the TIFF directory structure retains a dangling pointer. Subsequent access to that field triggers a use-after-free, potentially leading to arbitrary code execution. This pattern is repeated identically across all four TIFF_SETGET_C0_* cases (UINT16, SINT16, UINT32, SINT32). This is a known vulnerability pattern in libtiff (cf. CVE-2022-3597, CVE-2022-3626).",
+          "poc": "Craft a TIFF file with an IFD entry whose tag maps to a field definition where TIFFSetField stores the pointer directly (e.g., certain custom/extension fields). The tag count must match field_readcount to pass the count check. After TIFFSetField stores the pointer and the caller frees the buffer, any subsequent read of that field dereferences freed memory. A minimal PoC TIFF would contain a tag with type SHORT and count matching the expected field_readcount, targeting a field where the internal set handler does not copy."
+        },
+        {
+          "severity": "medium",
+          "title": "Missing error return on TIFFReadDirEntry*Array failure",
+          "line_start": 6638,
+          "confidence": 0.9,
+          "description": "When TIFFReadDirEntryShortArray (and the corresponding Sshort/Long/Slong variants) fails (err != TIFFReadDirEntryErrOk), the code does not return an error or set a failure flag. It simply falls through the 'if (err == TIFFReadDirEntryErrOk)' block and hits the break statement. The function then continues as if the tag was successfully processed, but the field value was never set. This leaves the field at its default/uninitialized value, which downstream code may trust. An attacker can craft a TIFF with a malformed IFD entry that causes the read to fail, leaving critical fields (e.g., dimensions, strip offsets) at default values, potentially leading to out-of-bounds access when those values are later used as sizes or indices.",
+          "poc": "Create a TIFF file where a critical tag (e.g., ImageWidth or RowsPerStrip) has a valid count but an invalid offset pointing beyond file bounds. TIFFReadDirEntryShortArray will fail, the error is silently ignored, and the field retains its default value (often 0). Subsequent image processing using 0 as a dimension can cause division-by-zero, zero-length allocations, or other undefined behavior."
+        },
+        {
+          "severity": "medium",
+          "title": "Security-critical assertions disabled in release builds",
+          "line_start": 6629,
+          "confidence": 0.6,
+          "description": "The code uses assert(fip->field_readcount >= 1) and assert(fip->field_passcount == 0) to validate field definition invariants. In release builds (NDEBUG defined), these assertions are compiled out entirely. If field_passcount is 1 instead of the expected 0, TIFFSetField expects variadic arguments in the format (tag, count, data) but the code calls TIFFSetField(tif, dp->tdir_tag, data) without a count argument. This causes TIFFSetField to interpret the data pointer as the count and read the actual count from the stack, leading to type confusion. A corrupted or large 'count' value from the stack could cause TIFFSetField to read far beyond the allocated data buffer, resulting in a heap buffer overflow.",
+          "poc": "If a field definition erroneously has field_passcount=1 with set_field_type=TIFF_SETGET_C0_UINT16, the assert is the only guard. In a release build, the code calls TIFFSetField(tif, tag, data_ptr) but TIFFSetField interprets data_ptr as uint16_t count and reads the actual data pointer from the next variadic stack slot (uninitialized/garbage). This type confusion can crash or corrupt memory. Triggering requires a library build with a buggy field definition compiled in."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_dirread.c [TIFFFetchNormalTag-E]",
+      "chars": 4357,
+      "elapsed_s": 297.9,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "medium",
+          "title": "Missing NULL pointer check before TIFFSetField call",
+          "line_start": 6786,
+          "confidence": 0.75,
+          "description": "After calling TIFFReadDirEntryLong8Array (and similar functions), the code checks if err == TIFFReadDirEntryErrOk but does not verify that 'data' is non-NULL before passing it to TIFFSetField. If the read function returns success but sets data to NULL (e.g., due to a zero-count edge case when asserts are disabled, or an allocation returning NULL for a small/zero size), TIFFSetField will dereference the NULL pointer, causing a denial-of-service crash. This pattern is repeated across all three C0 cases (UINT64, SINT64, FLOAT).",
+          "poc": "Craft a TIFF file with a tag mapped to TIFF_SETGET_C0_UINT64 where tdir_count matches field_readcount but the underlying data is malformed such that TIFFReadDirEntryLong8Array returns Ok with data=NULL. Alternatively, if field_readcount is 0 (assert disabled in release), set tdir_count=0 to pass the count check, causing a zero-size allocation that may return NULL."
+        },
+        {
+          "severity": "medium",
+          "title": "assert() used for security-critical validation (disabled in release builds)",
+          "line_start": 6771,
+          "confidence": 0.7,
+          "description": "The code uses assert() to validate that fip->field_readcount >= 1 and fip->field_passcount == 0. In release/production builds (NDEBUG defined), assert() is a no-op, removing these safety checks entirely. If field_readcount is 0 or negative, or field_passcount is non-zero, the code proceeds without validation. A zero field_readcount allows dp->tdir_count=0 to pass the count check, potentially leading to NULL data being passed to TIFFSetField. A negative field_readcount cast to uint64_t produces a huge value, but the count check would likely fail. This pattern appears in all three C0 cases (lines ~6771-6772, ~6803-6804, ~6835-6836).",
+          "poc": "In a release build of libtiff, provide a TIFF file referencing a tag definition where field_readcount=0 and field_setget=TIFF_SETGET_C0_UINT64. Set tdir_count=0 in the IFD entry. The count check (0 != 0) passes, TIFFReadDirEntryLong8Array is called with count 0, potentially returning NULL data with err=Ok, leading to NULL dereference in TIFFSetField."
+        },
+        {
+          "severity": "low",
+          "title": "Post-allocation size validation (check-after-allocate pattern)",
+          "line_start": 6780,
+          "confidence": 0.5,
+          "description": "EvaluateIFDdatasizeReading() is called AFTER TIFFReadDirEntryLong8Array (and similar read functions) have already allocated memory based on dp->tdir_count. If EvaluateIFDdatasizeReading is intended to enforce a maximum data size limit to prevent excessive memory consumption, calling it after the allocation defeats its purpose — the memory has already been allocated. An attacker can craft a TIFF file with an extremely large tdir_count for a C0 tag, causing a large allocation before the size check rejects it. While the data is freed if the check fails, the peak memory usage could still cause denial-of-service via OOM.",
+          "poc": "Craft a TIFF file with a tag of type TIFF_SETGET_C0_UINT64 where tdir_count equals field_readcount (a large fixed value, e.g., 1000000). The read function allocates ~8MB before EvaluateIFDdatasizeReading can reject it. With multiple such tags, cumulative allocation could exhaust memory."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_dirread.c [TIFFFetchNormalTag-F]",
+      "chars": 4509,
+      "elapsed_s": 87.2,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Integer truncation in TIFFSetField count argument after dp->tdir_count increment",
+          "line_start": 6920,
+          "confidence": 0.85,
+          "description": "In the TIFF_SETGET_C16_ASCII case, when the ASCII data does not end in a null byte and dp->tdir_count equals 0xFFFF (the maximum allowed value after the >0xFFFF check), the code increments dp->tdir_count to 0x10000. This incremented value is then cast to uint16_t when passed to TIFFSetField: `(uint16_t)(dp->tdir_count)`. Since 0x10000 exceeds the uint16_t range, it truncates to 0. This means TIFFSetField receives count=0 while data points to a 65536-byte buffer containing 65535 bytes of attacker-controlled data plus a null terminator. Downstream code that relies on the count to determine buffer size may perform a zero-length copy (logic bug) or may have other inconsistent behavior. Conversely, if other code paths use the original dp->tdir_count (now 0x10000) without truncation, there is a mismatch between the uint16_t count and the actual data size, potentially leading to heap buffer overread/overflow.",
+          "poc": "Craft a TIFF file with an ASCII tag whose tdir_count is exactly 65535 (0xFFFF) and whose data does NOT end in a null byte. This triggers the null-termination path: a 65536-byte buffer is allocated, 65535 bytes are copied, a null is appended, dp->tdir_count becomes 0x10000, and TIFFSetField is called with (uint16_t)0x10000 = 0 as the count. A minimal PoC TIFF would have an IFD entry with tag type ASCII, count=0xFFFF, and data without a trailing null byte."
+        },
+        {
+          "severity": "medium",
+          "title": "Modification of shared directory entry dp->tdir_count causing side effects",
+          "line_start": 6933,
+          "confidence": 0.75,
+          "description": "The line `dp->tdir_count++` modifies the directory entry's count field in place. Since `dp` is a pointer to the IFD directory entry structure, this mutation persists beyond this case block. If the same directory entry is reprocessed (e.g., during tag re-reading, chdir operations, or sub-IFD traversal), the incremented count will be used, causing incorrect count values. This can lead to out-of-bounds reads in subsequent operations that trust dp->tdir_count to reflect the original on-disk count.",
+          "poc": "Create a TIFF with an ASCII tag having count < 0xFFFF and no trailing null. The dp->tdir_count++ will increment it. If libtiff re-reads this entry (e.g., via TIFFSetDirectory or when processing sub-IFDs), the inflated count may cause reads beyond the allocated buffer."
+        },
+        {
+          "severity": "low",
+          "title": "Assert statements compiled out in release builds bypass safety checks",
+          "line_start": 6863,
+          "confidence": 0.65,
+          "description": "The TIFF_SETGET_C0_DOUBLE case uses `assert(fip->field_readcount >= 1)` and `assert(fip->field_passcount == 0)` to validate preconditions. In release/production builds, asserts are typically compiled out (NDEBUG). If these invariants are violated due to memory corruption or a malformed file mapping to an unexpected field info, the code proceeds without validation, potentially leading to undefined behavior such as passing a negative or zero count to TIFFSetField or misinterpreting the data.",
+          "poc": "This requires a corrupted or specially crafted TIFF where the field_info for a tag has field_readcount=0 or field_passcount=1 but the tag is dispatched to the TIFF_SETGET_C0_DOUBLE case. In a release build, the asserts would be absent and the invalid state would not be caught."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_dirread.c [TIFFFetchNormalTag-G]",
+      "chars": 4600,
+      "elapsed_s": 123.0,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Use-After-Free via TIFFSetField and subsequent free of data pointer",
+          "line_start": 6984,
+          "confidence": 0.75,
+          "description": "After calling TIFFSetField() with the 'data' pointer, the code unconditionally frees 'data' via _TIFFfreeExt(). If TIFFSetField() internally stores the raw pointer instead of copying the data (which can occur in certain code paths, error conditions, or due to type confusion within TIFFSetField), the subsequent free creates a dangling pointer in the TIFF directory structure. Later access to this tag's value (e.g., during image rendering or export) will reference freed heap memory. This is a well-known vulnerability pattern in libtiff that has been exploited via crafted TIFF files. The same pattern is repeated across all four case blocks shown (TIFF_SETGET_C16_SINT8, TIFF_SETGET_C16_UINT16, TIFF_SETGET_C16_SINT16, TIFF_SETGET_C16_UINT32).",
+          "poc": "Craft a TIFF file with a tag using TIFF_SETGET_C16_SINT8 (or similar C16 type) where: 1) tdir_count is within the 0xFFFF limit, 2) the tag data triggers a code path in TIFFSetField that stores the pointer directly rather than copying, 3) subsequent TIFF operations access the tag value, hitting freed memory. A minimal PoC would be a TIFF with a malformed tag that causes TIFFSetField to take an unusual internal path (e.g., a tag that maps to a custom field definition where the set_field handler stores the pointer). The freed heap can then be sprayed with attacker-controlled data to achieve code execution."
+        },
+        {
+          "severity": "medium",
+          "title": "Ineffective validation order - EvaluateIFDdatasizeReading after data allocation",
+          "line_start": 6980,
+          "confidence": 0.8,
+          "description": "The EvaluateIFDdatasizeReading() check is performed AFTER TIFFReadDirEntrySbyteArray (and similar functions) have already allocated memory and read data from the file. This means an attacker can craft a TIFF file with a large tdir_count (up to 0xFFFF = 65535 elements), causing a potentially large memory allocation (up to ~256KB for uint32 arrays) that succeeds before the validation check rejects it. While the count limit of 0xFFFF bounds the maximum allocation, this check-after-use pattern is a security anti-pattern that could be exploited for temporary memory exhaustion, especially if many such tags are present in a crafted TIFF file.",
+          "poc": "Craft a TIFF file with multiple IFD entries using C16 types, each with tdir_count near 0xFFFF, where the total IFD data size exceeds the limit checked by EvaluateIFDdatasizeReading. Each entry will cause a large allocation that is then freed, but the peak memory usage could be significant. For example, 100 tags each allocating 256KB would temporarily consume ~25MB before the validation rejects them."
+        },
+        {
+          "severity": "high",
+          "title": "Potential use-after-free when TIFFSetField returns failure",
+          "line_start": 6984,
+          "confidence": 0.65,
+          "description": "When TIFFSetField() returns 0 (failure), the code has already freed 'data'. If TIFFSetField partially succeeded before failing — for example, it stored the pointer in the TIFF directory structure but then encountered an error in a secondary operation — the pointer is freed while still referenced internally. The return-0 path does not clean up any partial state that TIFFSetField may have created. This is a more specific variant of the general use-after-free pattern, triggered specifically when TIFFSetField fails after partially processing the tag data.",
+          "poc": "Craft a TIFF file where a C16-type tag has valid count and data, but the tag number triggers a failure condition inside TIFFSetField (e.g., a tag that requires additional validation or resource allocation that fails). The partial state left by TIFFSetField combined with the freed data pointer creates a use-after-free condition when the tag is later accessed or when the TIFF structure is cleaned up."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_dirread.c [TIFFFetchNormalTag-H]",
+      "chars": 4601,
+      "elapsed_s": 273.1,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Use-After-Free risk in TIFFSetField + _TIFFfreeExt pattern",
+          "line_start": 7116,
+          "confidence": 0.7,
+          "description": "Across all C16 cases (SINT32, UINT64, SINT64, FLOAT, DOUBLE), the pattern calls TIFFSetField() passing the heap-allocated 'data' pointer, then immediately frees it with _TIFFfreeExt(). If TIFFSetField() stores the pointer reference instead of copying the data for any tag type, the subsequent free creates a dangling pointer. Later dereference of this stored pointer constitutes a use-after-free. Historical CVEs in libtiff (e.g., CVE-2016-10095) have demonstrated that TIFFSetField does not always copy data for all tag types, making this pattern inherently risky.",
+          "poc": "Craft a TIFF file with a tag that maps to TIFF_SETGET_C16_SINT32 (or another C16 type) where the corresponding TIFFSetField handler stores the pointer rather than copying. After TIFFFetchNormalTag frees the buffer, any subsequent access to the tag's data through the TIFF directory structure dereferences freed memory. For example, a TIFF with a specially crafted EXIF tag that triggers the C16 code path, followed by an operation that reads that tag value."
+        },
+        {
+          "severity": "medium",
+          "title": "Post-allocation size validation via EvaluateIFDdatasizeReading",
+          "line_start": 7109,
+          "confidence": 0.85,
+          "description": "The EvaluateIFDdatasizeReading() check is performed AFTER data has already been allocated and read from the file (by TIFFReadDirEntrySlongArray etc.), rather than before. This means memory is committed based on attacker-controlled dp->tdir_count before any cumulative size validation occurs. While individual allocations are bounded by the 0xFFFF count limit (max ~512KB per tag), an attacker can craft a TIFF with many tags each near the limit, causing significant memory allocation spikes before the cumulative check rejects them. The freed-but-already-allocated pattern can be exploited for memory exhaustion.",
+          "poc": "Craft a TIFF file with numerous IFD entries, each with tdir_count close to 0xFFFF and types mapping to C16 handlers (e.g., TIFF_SETGET_C16_UINT64). Each entry triggers allocation of ~512KB before EvaluateIFDdatasizeReading can reject the cumulative total. With enough entries, this causes temporary memory spikes even though each individual allocation is eventually freed."
+        },
+        {
+          "severity": "medium",
+          "title": "Potential NULL pointer dereference with zero tdir_count",
+          "line_start": 7101,
+          "confidence": 0.6,
+          "description": "When dp->tdir_count is 0, the check 'dp->tdir_count > 0xFFFF' passes (0 is not > 0xFFFF), and the read function (e.g., TIFFReadDirEntrySlongArray) may return data=NULL with err=TIFFReadDirEntryErrOk. The code then calls TIFFSetField(tif, dp->tdir_tag, 0, NULL), passing a NULL data pointer. If TIFFSetField does not handle a NULL data pointer with count=0 gracefully, this results in a NULL pointer dereference. The 'if (data != 0)' check only guards the free, not the TIFFSetField call.",
+          "poc": "Craft a TIFF file with an IFD entry where tdir_count=0 and the field type maps to a C16 handler (e.g., TIFF_SETGET_C16_SINT32). When processed, TIFFReadDirEntrySlongArray returns ok with data=NULL, and TIFFSetField is called with (tag, 0, NULL), potentially causing a crash."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_dirread.c [TIFFFetchNormalTag-I]",
+      "chars": 4528,
+      "elapsed_s": 182.9,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "libtiff/tif_dirread.c [TIFFFetchNormalTag-J]",
+      "chars": 4454,
+      "elapsed_s": 142.2,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Integer Overflow in count * 4 byte count conversion",
+          "line_start": 7350,
+          "confidence": 0.92,
+          "description": "The expression `count = (uint32_t)(count * 4)` converts an element count to a byte count for uint32_t arrays. When `count` is large (>= 0x40000000), the multiplication overflows in 32-bit arithmetic, wrapping to a small value. This overflowed count is then passed to TIFFSetField(), creating a mismatch between the actual allocated buffer size (original_count * 4 bytes) and the reported size. Downstream code that allocates based on the overflowed count and then copies or reads based on the actual data size could suffer heap buffer overflows or over-reads. No bounds check (e.g., `count > UINT32_MAX / 4`) is performed before the multiplication.",
+          "poc": "Craft a TIFF file with a tag whose tdir_count is 0x40000001 (1,073,741,825). The multiplication 0x40000001 * 4 = 0x100000004, which truncates to 4 in uint32_t. TIFFSetField receives count=4 but the actual buffer is ~4GB. If downstream code allocates 4 bytes and copies based on the original element count, a heap buffer overflow occurs. A minimal PoC: modify a TIFF IFD entry's count field to 0x40000001 for a LONG array tag (e.g., TIFFTAG_COLORMAP or similar TIFF_SETGET_C32_UINT32 tag)."
+        },
+        {
+          "severity": "medium",
+          "title": "Integer truncation of dp->tdir_count to uint32_t in C32 handlers (BigTIFF)",
+          "line_start": 7380,
+          "confidence": 0.75,
+          "description": "In multiple TIFF_SETGET_C32_* cases (SINT8, UINT16, SINT16, UINT32), the count passed to TIFFSetField is `(uint32_t)(dp->tdir_count)`. In BigTIFF format, tdir_count is a 64-bit value. Truncating to uint32_t discards the upper 32 bits, causing a size mismatch: the TIFFReadDirEntry*Array function may allocate and populate a buffer based on the full 64-bit count, but TIFFSetField receives only the lower 32 bits. If the lower 32 bits are smaller than the actual allocation, downstream code using the truncated count could read beyond intended bounds; if the read function also truncates, the buffer may be undersized for the count TIFFSetField assumes.",
+          "poc": "Create a BigTIFF file with an IFD entry where tdir_count = 0x100000001 (4,294,967,297). The cast to uint32_t produces 1. TIFFReadDirEntrySbyteArray may allocate for the full count (or fail), but TIFFSetField receives count=1. If the array function allocates a large buffer and reads many elements, but SetField only processes 1 element, subsequent accesses using the stored (truncated) count could be inconsistent. Conversely, if the read function truncates internally to 1 element but some path uses the original count, a heap over-read occurs."
+        },
+        {
+          "severity": "medium",
+          "title": "Potential use-after-free if TIFFSetField stores data pointer instead of copying",
+          "line_start": 7360,
+          "confidence": 0.55,
+          "description": "After calling TIFFSetField(tif, dp->tdir_tag, count, data), the code immediately frees data with _TIFFfreeExt(tif, data). If TIFFSetField internally stores the data pointer rather than copying the data into the tag structure (which depends on the tag type and set_field implementation), the stored pointer becomes dangling. Subsequent access to that tag's data would dereference freed memory. This pattern is repeated in every C32 case in this excerpt. Historically, certain tag types in libtiff have had this issue where the set operation stores a reference rather than a copy.",
+          "poc": "This depends on TIFFSetField's internal behavior for specific tags. If a C32-type tag's set handler stores the pointer: 1) Open a crafted TIFF with a C32 tag (e.g., TIFF_SETGET_C32_SINT8). 2) TIFFFetchNormalTag reads data, calls TIFFSetField (stores pointer), then frees data. 3) Any subsequent read of that tag (e.g., via TIFFGetField) accesses freed memory. Triggering requires identifying a tag where TIFFSetField does not copy but stores the pointer directly."
+        }
+      ]
+    },
+    {
+      "file": "libtiff/tif_dirread.c [TIFFFetchNormalTag-Z]",
+      "chars": 5428,
+      "elapsed_s": 112.8,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Integer truncation in count parameter passed to TIFFSetField for C32 tag types",
+          "line_start": 7482,
+          "confidence": 0.82,
+          "description": "In all C32 (count-32) tag handling cases (TIFF_SETGET_C32_SINT32, C32_UINT64, C32_SINT64, C32_FLOAT, C32_DOUBLE, C32_IFD8), the count value from `dp->tdir_count` (which is `uint64_t` in BigTIFF) is cast to `uint32_t` when passed to `TIFFSetField`: `m = TIFFSetField(tif, dp->tdir_tag, (uint32_t)(dp->tdir_count), data);`. However, the `TIFFReadDirEntry*Array` functions allocate and populate the `data` buffer using the full 64-bit `dp->tdir_count`. This creates a count mismatch: the data buffer contains `dp->tdir_count` elements, but `TIFFSetField` is told there are only `(uint32_t)dp->tdir_count` elements. For a crafted BigTIFF file where `tdir_count > UINT32_MAX`, the truncated count could cause `TIFFSetField` to allocate a buffer based on the smaller truncated count and then copy data based on the original larger count, leading to a heap buffer overflow. Even if the overflow doesn't occur in TIFFSetField itself, the stored truncated count creates a size mismatch that can cause out-of-bounds access in subsequent operations that trust the stored count.",
+          "poc": "Craft a BigTIFF file with a tag using a C32 type (e.g., TIFF_SETGET_C32_SINT32) where the IFD entry's tdir_count is set to a value like 0x100000004 (4 + 2^32). The TIFFReadDirEntrySlongArray function will attempt to allocate and read 0x100000004 int32_t elements. If allocation succeeds (or if the count is crafted to be just above a UINT32_MAX boundary where allocation is feasible), TIFFSetField receives count=4 (truncated) while the data buffer holds 0x100000004 elements. This mismatch can be exploited for heap corruption. A simpler trigger: set tdir_count=0x100000001 for a float tag, causing count truncation to 1 while the buffer is much larger."
+        },
+        {
+          "severity": "low",
+          "title": "Uninitialized pointer variables in multiple C32 tag handlers",
+          "line_start": 7494,
+          "confidence": 0.65,
+          "description": "In the TIFF_SETGET_C32_UINT64 (line ~7494), TIFF_SETGET_C32_FLOAT (line ~7546), TIFF_SETGET_C32_DOUBLE (line ~7570), and TIFF_SETGET_C32_IFD8 (line ~7594) cases, the `data` pointer is declared without initialization (e.g., `uint64_t *data;`, `float *data;`, `double *data;`), unlike the SINT32 and SINT64 cases which initialize to NULL (`int32_t *data = NULL;`, `int64_t *data = NULL;`). While the current code path only dereferences `data` inside the `if (err == TIFFReadDirEntryErrOk)` block where it should be set by the read function, if a future code change adds error-handling or cleanup paths that reference `data` outside this block, the uninitialized pointer could lead to undefined behavior including calling `_TIFFfreeExt` on a garbage pointer. This is a defensive coding defect.",
+          "poc": "Static analysis finding - no runtime trigger currently. However, if the error path at the bottom of the function were modified to free `data`, the uninitialized pointer would be passed to `_TIFFfreeExt`, causing potential heap corruption or crash."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+LibTIFF T2 scan: 8 segments (idx 0–7), 25s delay
+
+[21:26:37] libtiff/tif_zip.c [ZIPDecode-A] (4,536 chars)...
+Scan failed for libtiff/tif_zip.c [ZIPDecode-A]: Server disconnected without sending a response.
+  Done 441s — 0 findings
+  Error: Server disconnected without sending a response.
+  [waiting 25s...]
+[21:34:23] libtiff/tif_zip.c [ZIPDecode-B] (766 chars)...
+  Done 64s — 3 findings
+  [HIGH] Heap Buffer Overflow via memset with unvalidated avail_out on error paths (L293, conf=75%)
+  [HIGH] Heap Buffer Overflow via memset on insufficient data error path (L307, conf=70%)
+  [LOW] Information disclosure via memset on error paths (L293, conf=50%)
+  [waiting 25s...]
+[21:35:52] libtiff/tif_zip.c [ZIPEncode-A] (4,273 chars)...
+  Done 104s — 4 findings
+  [CRITICAL] Unsigned Integer Underflow in strip_height Calculation (L413, conf=85%)
+  [HIGH] Security-Critical Checks Using assert() Instead of Runtime Validation (L378, conf=90%)
+  [MEDIUM] Insufficient Buffer Size Validation in Zlib Fallback Path (L487, conf=65%)
+  [MEDIUM] Truncation of Input Size in Zlib Path for Large Buffers (L489, conf=70%)
+  [waiting 25s...]
+[21:38:01] libtiff/tif_zip.c [ZIPEncode-B] (518 chars)...
+  Done 95s — 1 findings
+  [CRITICAL] Heap Buffer Overflow via Negative tif_rawdatasize (L499, conf=95%)
+  [waiting 25s...]
+  SKIP (file not found): tif_pixarlog_PixarLogDecode_A.c
+  [waiting 25s...]
+  SKIP (file not found): tif_pixarlog_PixarLogDecode_B.c
+  [waiting 25s...]
+  SKIP (file not found): tif_pixarlog_PixarLogEncode.c
+  [waiting 25s...]
+[21:41:16] libtiff/tif_luv.c [LogLuvDecode24] (1,352 chars)...
+  Done 110s — 2 findings
+  [CRITICAL] Heap buffer overflow in LogLuvDecode24 when SGILOGDATAFMT_RAW is set (L275, conf=92%)
+  [MEDIUM] Insufficient translation buffer size check in non-RAW path (L279, conf=60%)
+
+============================================================
+LibTIFF T2 complete: 8 segments, 10 raw findings, 6 high/critical ≥65%
+Results → research/libtiff/t2_glm5_results.json

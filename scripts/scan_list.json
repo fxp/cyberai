@@ -1,0 +1,726 @@
+{
+  "imagemagick": [
+    {
+      "file": "extracts/imagemagick/bmp_ReadBMPImage_A.c",
+      "label": "ImageMagick bmp.c \u2013 ReadBMPImage [A]",
+      "target": "imagemagick",
+      "size_bytes": 4594,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/bmp.c",
+      "function": "ReadBMPImage",
+      "source_lines": "589-1721"
+    },
+    {
+      "file": "extracts/imagemagick/bmp_ReadBMPImage_B.c",
+      "label": "ImageMagick bmp.c \u2013 ReadBMPImage [B]",
+      "target": "imagemagick",
+      "size_bytes": 4154,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/bmp.c",
+      "function": "ReadBMPImage",
+      "source_lines": "589-1721"
+    },
+    {
+      "file": "extracts/imagemagick/bmp_ReadBMPImage_C.c",
+      "label": "ImageMagick bmp.c \u2013 ReadBMPImage [C]",
+      "target": "imagemagick",
+      "size_bytes": 4505,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/bmp.c",
+      "function": "ReadBMPImage",
+      "source_lines": "589-1721"
+    },
+    {
+      "file": "extracts/imagemagick/bmp_ReadBMPImage_D.c",
+      "label": "ImageMagick bmp.c \u2013 ReadBMPImage [D]",
+      "target": "imagemagick",
+      "size_bytes": 4539,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/bmp.c",
+      "function": "ReadBMPImage",
+      "source_lines": "589-1721"
+    },
+    {
+      "file": "extracts/imagemagick/bmp_ReadBMPImage_E.c",
+      "label": "ImageMagick bmp.c \u2013 ReadBMPImage [E]",
+      "target": "imagemagick",
+      "size_bytes": 4178,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/bmp.c",
+      "function": "ReadBMPImage",
+      "source_lines": "589-1721"
+    },
+    {
+      "file": "extracts/imagemagick/bmp_ReadBMPImage_F.c",
+      "label": "ImageMagick bmp.c \u2013 ReadBMPImage [F]",
+      "target": "imagemagick",
+      "size_bytes": 4383,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/bmp.c",
+      "function": "ReadBMPImage",
+      "source_lines": "589-1721"
+    },
+    {
+      "file": "extracts/imagemagick/bmp_ReadBMPImage_G.c",
+      "label": "ImageMagick bmp.c \u2013 ReadBMPImage [G]",
+      "target": "imagemagick",
+      "size_bytes": 4529,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/bmp.c",
+      "function": "ReadBMPImage",
+      "source_lines": "589-1721"
+    },
+    {
+      "file": "extracts/imagemagick/bmp_ReadBMPImage_H.c",
+      "label": "ImageMagick bmp.c \u2013 ReadBMPImage [H]",
+      "target": "imagemagick",
+      "size_bytes": 4480,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/bmp.c",
+      "function": "ReadBMPImage",
+      "source_lines": "589-1721"
+    },
+    {
+      "file": "extracts/imagemagick/bmp_ReadBMPImage_I.c",
+      "label": "ImageMagick bmp.c \u2013 ReadBMPImage [I]",
+      "target": "imagemagick",
+      "size_bytes": 4580,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/bmp.c",
+      "function": "ReadBMPImage",
+      "source_lines": "589-1721"
+    },
+    {
+      "file": "extracts/imagemagick/bmp_ReadBMPImage_J.c",
+      "label": "ImageMagick bmp.c \u2013 ReadBMPImage [J]",
+      "target": "imagemagick",
+      "size_bytes": 1577,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/bmp.c",
+      "function": "ReadBMPImage",
+      "source_lines": "589-1721"
+    },
+    {
+      "file": "extracts/imagemagick/bmp_WriteBMPImage_A.c",
+      "label": "ImageMagick bmp.c \u2013 WriteBMPImage [A]",
+      "target": "imagemagick",
+      "size_bytes": 4310,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/bmp.c",
+      "function": "WriteBMPImage",
+      "source_lines": "1836-2676"
+    },
+    {
+      "file": "extracts/imagemagick/bmp_WriteBMPImage_B.c",
+      "label": "ImageMagick bmp.c \u2013 WriteBMPImage [B]",
+      "target": "imagemagick",
+      "size_bytes": 4447,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/bmp.c",
+      "function": "WriteBMPImage",
+      "source_lines": "1836-2676"
+    },
+    {
+      "file": "extracts/imagemagick/bmp_WriteBMPImage_C.c",
+      "label": "ImageMagick bmp.c \u2013 WriteBMPImage [C]",
+      "target": "imagemagick",
+      "size_bytes": 4516,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/bmp.c",
+      "function": "WriteBMPImage",
+      "source_lines": "1836-2676"
+    },
+    {
+      "file": "extracts/imagemagick/bmp_WriteBMPImage_D.c",
+      "label": "ImageMagick bmp.c \u2013 WriteBMPImage [D]",
+      "target": "imagemagick",
+      "size_bytes": 4351,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/bmp.c",
+      "function": "WriteBMPImage",
+      "source_lines": "1836-2676"
+    },
+    {
+      "file": "extracts/imagemagick/bmp_WriteBMPImage_E.c",
+      "label": "ImageMagick bmp.c \u2013 WriteBMPImage [E]",
+      "target": "imagemagick",
+      "size_bytes": 4496,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/bmp.c",
+      "function": "WriteBMPImage",
+      "source_lines": "1836-2676"
+    },
+    {
+      "file": "extracts/imagemagick/bmp_WriteBMPImage_F.c",
+      "label": "ImageMagick bmp.c \u2013 WriteBMPImage [F]",
+      "target": "imagemagick",
+      "size_bytes": 4560,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/bmp.c",
+      "function": "WriteBMPImage",
+      "source_lines": "1836-2676"
+    },
+    {
+      "file": "extracts/imagemagick/bmp_WriteBMPImage_G.c",
+      "label": "ImageMagick bmp.c \u2013 WriteBMPImage [G]",
+      "target": "imagemagick",
+      "size_bytes": 4127,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/bmp.c",
+      "function": "WriteBMPImage",
+      "source_lines": "1836-2676"
+    },
+    {
+      "file": "extracts/imagemagick/webp_ReadWEBPImage.c",
+      "label": "ImageMagick webp.c \u2013 ReadWEBPImage",
+      "target": "imagemagick",
+      "size_bytes": 4280,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/webp.c",
+      "function": "ReadWEBPImage",
+      "source_lines": "503-649"
+    },
+    {
+      "file": "extracts/imagemagick/webp_WriteWEBPImage_A.c",
+      "label": "ImageMagick webp.c \u2013 WriteWEBPImage [A]",
+      "target": "imagemagick",
+      "size_bytes": 4406,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/webp.c",
+      "function": "WriteWEBPImage",
+      "source_lines": "1123-1283"
+    },
+    {
+      "file": "extracts/imagemagick/webp_WriteWEBPImage_B.c",
+      "label": "ImageMagick webp.c \u2013 WriteWEBPImage [B]",
+      "target": "imagemagick",
+      "size_bytes": 1605,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/webp.c",
+      "function": "WriteWEBPImage",
+      "source_lines": "1123-1283"
+    },
+    {
+      "file": "extracts/imagemagick/heic_ReadHEICImage_A.c",
+      "label": "ImageMagick heic.c \u2013 ReadHEICImage [A]",
+      "target": "imagemagick",
+      "size_bytes": 4284,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/heic.c",
+      "function": "ReadHEICImage",
+      "source_lines": "615-766"
+    },
+    {
+      "file": "extracts/imagemagick/heic_ReadHEICImage_B.c",
+      "label": "ImageMagick heic.c \u2013 ReadHEICImage [B]",
+      "target": "imagemagick",
+      "size_bytes": 751,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/heic.c",
+      "function": "ReadHEICImage",
+      "source_lines": "615-766"
+    },
+    {
+      "file": "extracts/imagemagick/gif_ReadGIFImage_A.c",
+      "label": "ImageMagick gif.c \u2013 ReadGIFImage [A]",
+      "target": "imagemagick",
+      "size_bytes": 4375,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/gif.c",
+      "function": "ReadGIFImage",
+      "source_lines": "965-1401"
+    },
+    {
+      "file": "extracts/imagemagick/gif_ReadGIFImage_B.c",
+      "label": "ImageMagick gif.c \u2013 ReadGIFImage [B]",
+      "target": "imagemagick",
+      "size_bytes": 4458,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/gif.c",
+      "function": "ReadGIFImage",
+      "source_lines": "965-1401"
+    },
+    {
+      "file": "extracts/imagemagick/gif_ReadGIFImage_C.c",
+      "label": "ImageMagick gif.c \u2013 ReadGIFImage [C]",
+      "target": "imagemagick",
+      "size_bytes": 4556,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/gif.c",
+      "function": "ReadGIFImage",
+      "source_lines": "965-1401"
+    },
+    {
+      "file": "extracts/imagemagick/gif_ReadGIFImage_D.c",
+      "label": "ImageMagick gif.c \u2013 ReadGIFImage [D]",
+      "target": "imagemagick",
+      "size_bytes": 2405,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/gif.c",
+      "function": "ReadGIFImage",
+      "source_lines": "965-1401"
+    },
+    {
+      "file": "extracts/imagemagick/gif_DecodeImage.c",
+      "label": "ImageMagick gif.c \u2013 DecodeImage",
+      "target": "imagemagick",
+      "size_bytes": 2707,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/gif.c",
+      "function": "DecodeImage",
+      "source_lines": "400-512"
+    },
+    {
+      "file": "extracts/imagemagick/png_ReadPNGImage.c",
+      "label": "ImageMagick png.c \u2013 ReadPNGImage",
+      "target": "imagemagick",
+      "size_bytes": 4057,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/png.c",
+      "function": "ReadPNGImage",
+      "source_lines": "3911-4030"
+    },
+    {
+      "file": "extracts/imagemagick/psd_ReadPSDImage_A.c",
+      "label": "ImageMagick psd.c \u2013 ReadPSDImage [A]",
+      "target": "imagemagick",
+      "size_bytes": 4226,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/psd.c",
+      "function": "ReadPSDImage",
+      "source_lines": "2380-2763"
+    },
+    {
+      "file": "extracts/imagemagick/psd_ReadPSDImage_B.c",
+      "label": "ImageMagick psd.c \u2013 ReadPSDImage [B]",
+      "target": "imagemagick",
+      "size_bytes": 4378,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/psd.c",
+      "function": "ReadPSDImage",
+      "source_lines": "2380-2763"
+    },
+    {
+      "file": "extracts/imagemagick/psd_ReadPSDImage_C.c",
+      "label": "ImageMagick psd.c \u2013 ReadPSDImage [C]",
+      "target": "imagemagick",
+      "size_bytes": 4306,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/psd.c",
+      "function": "ReadPSDImage",
+      "source_lines": "2380-2763"
+    },
+    {
+      "file": "extracts/imagemagick/psd_ReadPSDLayer.c",
+      "label": "ImageMagick psd.c \u2013 ReadPSDLayer",
+      "target": "imagemagick",
+      "size_bytes": 3456,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/psd.c",
+      "function": "ReadPSDLayer",
+      "source_lines": "1591-1683"
+    },
+    {
+      "file": "extracts/imagemagick/tiff_ReadTIFFImage_A.c",
+      "label": "ImageMagick tiff.c \u2013 ReadTIFFImage [A]",
+      "target": "imagemagick",
+      "size_bytes": 3817,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/tiff.c",
+      "function": "ReadTIFFImage",
+      "source_lines": "1167-2231"
+    },
+    {
+      "file": "extracts/imagemagick/tiff_ReadTIFFImage_B.c",
+      "label": "ImageMagick tiff.c \u2013 ReadTIFFImage [B]",
+      "target": "imagemagick",
+      "size_bytes": 4471,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/tiff.c",
+      "function": "ReadTIFFImage",
+      "source_lines": "1167-2231"
+    },
+    {
+      "file": "extracts/imagemagick/tiff_ReadTIFFImage_C.c",
+      "label": "ImageMagick tiff.c \u2013 ReadTIFFImage [C]",
+      "target": "imagemagick",
+      "size_bytes": 4050,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/tiff.c",
+      "function": "ReadTIFFImage",
+      "source_lines": "1167-2231"
+    },
+    {
+      "file": "extracts/imagemagick/tiff_ReadTIFFImage_D.c",
+      "label": "ImageMagick tiff.c \u2013 ReadTIFFImage [D]",
+      "target": "imagemagick",
+      "size_bytes": 4590,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/tiff.c",
+      "function": "ReadTIFFImage",
+      "source_lines": "1167-2231"
+    },
+    {
+      "file": "extracts/imagemagick/tiff_ReadTIFFImage_E.c",
+      "label": "ImageMagick tiff.c \u2013 ReadTIFFImage [E]",
+      "target": "imagemagick",
+      "size_bytes": 4480,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/tiff.c",
+      "function": "ReadTIFFImage",
+      "source_lines": "1167-2231"
+    },
+    {
+      "file": "extracts/imagemagick/tiff_ReadTIFFImage_F.c",
+      "label": "ImageMagick tiff.c \u2013 ReadTIFFImage [F]",
+      "target": "imagemagick",
+      "size_bytes": 4268,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/tiff.c",
+      "function": "ReadTIFFImage",
+      "source_lines": "1167-2231"
+    },
+    {
+      "file": "extracts/imagemagick/tiff_ReadTIFFImage_G.c",
+      "label": "ImageMagick tiff.c \u2013 ReadTIFFImage [G]",
+      "target": "imagemagick",
+      "size_bytes": 4531,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/tiff.c",
+      "function": "ReadTIFFImage",
+      "source_lines": "1167-2231"
+    },
+    {
+      "file": "extracts/imagemagick/tiff_ReadTIFFImage_H.c",
+      "label": "ImageMagick tiff.c \u2013 ReadTIFFImage [H]",
+      "target": "imagemagick",
+      "size_bytes": 4395,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/tiff.c",
+      "function": "ReadTIFFImage",
+      "source_lines": "1167-2231"
+    },
+    {
+      "file": "extracts/imagemagick/tiff_ReadTIFFImage_I.c",
+      "label": "ImageMagick tiff.c \u2013 ReadTIFFImage [I]",
+      "target": "imagemagick",
+      "size_bytes": 2984,
+      "source_file": "/tmp/ImageMagick-7.1.1-44/coders/tiff.c",
+      "function": "ReadTIFFImage",
+      "source_lines": "1167-2231"
+    }
+  ],
+  "libtiff": [
+    {
+      "file": "extracts/libtiff/tif_pixarlog_decode_A.c",
+      "label": "LibTIFF tif_pixarlog.c \u2013 PixarLogDecode [A]",
+      "target": "libtiff",
+      "size_bytes": 4097,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_pixarlog.c",
+      "function": "PixarLogDecode",
+      "source_lines": "834-992"
+    },
+    {
+      "file": "extracts/libtiff/tif_pixarlog_decode_B.c",
+      "label": "LibTIFF tif_pixarlog.c \u2013 PixarLogDecode [B]",
+      "target": "libtiff",
+      "size_bytes": 1834,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_pixarlog.c",
+      "function": "PixarLogDecode",
+      "source_lines": "834-992"
+    },
+    {
+      "file": "extracts/libtiff/tif_pixarlog_encode.c",
+      "label": "LibTIFF tif_pixarlog.c \u2013 PixarLogEncode",
+      "target": "libtiff",
+      "size_bytes": 3732,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_pixarlog.c",
+      "function": "PixarLogEncode",
+      "source_lines": "1300-1401"
+    },
+    {
+      "file": "extracts/libtiff/tif_getimage_TIFFReadRGBAImage.c",
+      "label": "LibTIFF tif_getimage.c \u2013 TIFFReadRGBAImage",
+      "target": "libtiff",
+      "size_bytes": 354,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_getimage.c",
+      "function": "TIFFReadRGBAImage",
+      "source_lines": "637-642"
+    },
+    {
+      "file": "extracts/libtiff/tif_getimage_gtTileSeparate_A.c",
+      "label": "LibTIFF tif_getimage.c \u2013 gtTileSeparate [A]",
+      "target": "libtiff",
+      "size_bytes": 4271,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_getimage.c",
+      "function": "gtTileSeparate",
+      "source_lines": "852-1054"
+    },
+    {
+      "file": "extracts/libtiff/tif_getimage_gtTileSeparate_B.c",
+      "label": "LibTIFF tif_getimage.c \u2013 gtTileSeparate [B]",
+      "target": "libtiff",
+      "size_bytes": 1911,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_getimage.c",
+      "function": "gtTileSeparate",
+      "source_lines": "852-1054"
+    },
+    {
+      "file": "extracts/libtiff/tif_getimage_gtStripSeparate_A.c",
+      "label": "LibTIFF tif_getimage.c \u2013 gtStripSeparate [A]",
+      "target": "libtiff",
+      "size_bytes": 4589,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_getimage.c",
+      "function": "gtStripSeparate",
+      "source_lines": "1178-1345"
+    },
+    {
+      "file": "extracts/libtiff/tif_getimage_gtStripSeparate_B.c",
+      "label": "LibTIFF tif_getimage.c \u2013 gtStripSeparate [B]",
+      "target": "libtiff",
+      "size_bytes": 601,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_getimage.c",
+      "function": "gtStripSeparate",
+      "source_lines": "1178-1345"
+    },
+    {
+      "file": "extracts/libtiff/tif_luv_LogLuvDecode32.c",
+      "label": "LibTIFF tif_luv.c \u2013 LogLuvDecode32",
+      "target": "libtiff",
+      "size_bytes": 2079,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_luv.c",
+      "function": "LogLuvDecode32",
+      "source_lines": "312-384"
+    },
+    {
+      "file": "extracts/libtiff/tif_luv_LogLuvDecode24.c",
+      "label": "LibTIFF tif_luv.c \u2013 LogLuvDecode24",
+      "target": "libtiff",
+      "size_bytes": 1354,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_luv.c",
+      "function": "LogLuvDecode24",
+      "source_lines": "259-307"
+    },
+    {
+      "file": "extracts/libtiff/tif_luv_LogLuvEncode32.c",
+      "label": "LibTIFF tif_luv.c \u2013 LogLuvEncode32",
+      "target": "libtiff",
+      "size_bytes": 3388,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_luv.c",
+      "function": "LogLuvEncode32",
+      "source_lines": "599-708"
+    },
+    {
+      "file": "extracts/libtiff/tif_luv_LogLuvEncode24.c",
+      "label": "LibTIFF tif_luv.c \u2013 LogLuvEncode24",
+      "target": "libtiff",
+      "size_bytes": 1438,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_luv.c",
+      "function": "LogLuvEncode24",
+      "source_lines": "544-594"
+    },
+    {
+      "file": "extracts/libtiff/tif_dirread_TIFFReadDirectory_A.c",
+      "label": "LibTIFF tif_dirread.c \u2013 TIFFReadDirectory [A]",
+      "target": "libtiff",
+      "size_bytes": 3407,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_dirread.c",
+      "function": "TIFFReadDirectory",
+      "source_lines": "4233-5199"
+    },
+    {
+      "file": "extracts/libtiff/tif_dirread_TIFFReadDirectory_B.c",
+      "label": "LibTIFF tif_dirread.c \u2013 TIFFReadDirectory [B]",
+      "target": "libtiff",
+      "size_bytes": 4378,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_dirread.c",
+      "function": "TIFFReadDirectory",
+      "source_lines": "4233-5199"
+    },
+    {
+      "file": "extracts/libtiff/tif_dirread_TIFFReadDirectory_C.c",
+      "label": "LibTIFF tif_dirread.c \u2013 TIFFReadDirectory [C]",
+      "target": "libtiff",
+      "size_bytes": 4600,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_dirread.c",
+      "function": "TIFFReadDirectory",
+      "source_lines": "4233-5199"
+    },
+    {
+      "file": "extracts/libtiff/tif_dirread_TIFFReadDirectory_D.c",
+      "label": "LibTIFF tif_dirread.c \u2013 TIFFReadDirectory [D]",
+      "target": "libtiff",
+      "size_bytes": 4382,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_dirread.c",
+      "function": "TIFFReadDirectory",
+      "source_lines": "4233-5199"
+    },
+    {
+      "file": "extracts/libtiff/tif_dirread_TIFFReadDirectory_E.c",
+      "label": "LibTIFF tif_dirread.c \u2013 TIFFReadDirectory [E]",
+      "target": "libtiff",
+      "size_bytes": 4517,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_dirread.c",
+      "function": "TIFFReadDirectory",
+      "source_lines": "4233-5199"
+    },
+    {
+      "file": "extracts/libtiff/tif_dirread_TIFFReadDirectory_F.c",
+      "label": "LibTIFF tif_dirread.c \u2013 TIFFReadDirectory [F]",
+      "target": "libtiff",
+      "size_bytes": 4453,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_dirread.c",
+      "function": "TIFFReadDirectory",
+      "source_lines": "4233-5199"
+    },
+    {
+      "file": "extracts/libtiff/tif_dirread_TIFFReadDirectory_G.c",
+      "label": "LibTIFF tif_dirread.c \u2013 TIFFReadDirectory [G]",
+      "target": "libtiff",
+      "size_bytes": 4407,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_dirread.c",
+      "function": "TIFFReadDirectory",
+      "source_lines": "4233-5199"
+    },
+    {
+      "file": "extracts/libtiff/tif_dirread_TIFFReadDirectory_H.c",
+      "label": "LibTIFF tif_dirread.c \u2013 TIFFReadDirectory [H]",
+      "target": "libtiff",
+      "size_bytes": 4243,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_dirread.c",
+      "function": "TIFFReadDirectory",
+      "source_lines": "4233-5199"
+    },
+    {
+      "file": "extracts/libtiff/tif_dirread_TIFFReadDirectory_I.c",
+      "label": "LibTIFF tif_dirread.c \u2013 TIFFReadDirectory [I]",
+      "target": "libtiff",
+      "size_bytes": 4067,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_dirread.c",
+      "function": "TIFFReadDirectory",
+      "source_lines": "4233-5199"
+    },
+    {
+      "file": "extracts/libtiff/tif_dirread_TIFFReadDirectory_J.c",
+      "label": "LibTIFF tif_dirread.c \u2013 TIFFReadDirectory [J]",
+      "target": "libtiff",
+      "size_bytes": 1512,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_dirread.c",
+      "function": "TIFFReadDirectory",
+      "source_lines": "4233-5199"
+    },
+    {
+      "file": "extracts/libtiff/tif_dirread_TIFFFetchNormalTag_A.c",
+      "label": "LibTIFF tif_dirread.c \u2013 TIFFFetchNormalTag [A]",
+      "target": "libtiff",
+      "size_bytes": 4565,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_dirread.c",
+      "function": "TIFFFetchNormalTag",
+      "source_lines": "6261-7625"
+    },
+    {
+      "file": "extracts/libtiff/tif_dirread_TIFFFetchNormalTag_B.c",
+      "label": "LibTIFF tif_dirread.c \u2013 TIFFFetchNormalTag [B]",
+      "target": "libtiff",
+      "size_bytes": 4542,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_dirread.c",
+      "function": "TIFFFetchNormalTag",
+      "source_lines": "6261-7625"
+    },
+    {
+      "file": "extracts/libtiff/tif_dirread_TIFFFetchNormalTag_C.c",
+      "label": "LibTIFF tif_dirread.c \u2013 TIFFFetchNormalTag [C]",
+      "target": "libtiff",
+      "size_bytes": 4399,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_dirread.c",
+      "function": "TIFFFetchNormalTag",
+      "source_lines": "6261-7625"
+    },
+    {
+      "file": "extracts/libtiff/tif_dirread_TIFFFetchNormalTag_D.c",
+      "label": "LibTIFF tif_dirread.c \u2013 TIFFFetchNormalTag [D]",
+      "target": "libtiff",
+      "size_bytes": 4542,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_dirread.c",
+      "function": "TIFFFetchNormalTag",
+      "source_lines": "6261-7625"
+    },
+    {
+      "file": "extracts/libtiff/tif_dirread_TIFFFetchNormalTag_E.c",
+      "label": "LibTIFF tif_dirread.c \u2013 TIFFFetchNormalTag [E]",
+      "target": "libtiff",
+      "size_bytes": 4359,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_dirread.c",
+      "function": "TIFFFetchNormalTag",
+      "source_lines": "6261-7625"
+    },
+    {
+      "file": "extracts/libtiff/tif_dirread_TIFFFetchNormalTag_F.c",
+      "label": "LibTIFF tif_dirread.c \u2013 TIFFFetchNormalTag [F]",
+      "target": "libtiff",
+      "size_bytes": 4511,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_dirread.c",
+      "function": "TIFFFetchNormalTag",
+      "source_lines": "6261-7625"
+    },
+    {
+      "file": "extracts/libtiff/tif_dirread_TIFFFetchNormalTag_G.c",
+      "label": "LibTIFF tif_dirread.c \u2013 TIFFFetchNormalTag [G]",
+      "target": "libtiff",
+      "size_bytes": 4602,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_dirread.c",
+      "function": "TIFFFetchNormalTag",
+      "source_lines": "6261-7625"
+    },
+    {
+      "file": "extracts/libtiff/tif_dirread_TIFFFetchNormalTag_H.c",
+      "label": "LibTIFF tif_dirread.c \u2013 TIFFFetchNormalTag [H]",
+      "target": "libtiff",
+      "size_bytes": 4603,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_dirread.c",
+      "function": "TIFFFetchNormalTag",
+      "source_lines": "6261-7625"
+    },
+    {
+      "file": "extracts/libtiff/tif_dirread_TIFFFetchNormalTag_I.c",
+      "label": "LibTIFF tif_dirread.c \u2013 TIFFFetchNormalTag [I]",
+      "target": "libtiff",
+      "size_bytes": 4530,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_dirread.c",
+      "function": "TIFFFetchNormalTag",
+      "source_lines": "6261-7625"
+    },
+    {
+      "file": "extracts/libtiff/tif_dirread_TIFFFetchNormalTag_J.c",
+      "label": "LibTIFF tif_dirread.c \u2013 TIFFFetchNormalTag [J]",
+      "target": "libtiff",
+      "size_bytes": 4456,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_dirread.c",
+      "function": "TIFFFetchNormalTag",
+      "source_lines": "6261-7625"
+    },
+    {
+      "file": "extracts/libtiff/tif_dirread_TIFFFetchNormalTag_Z.c",
+      "label": "LibTIFF tif_dirread.c \u2013 TIFFFetchNormalTag [Z]",
+      "target": "libtiff",
+      "size_bytes": 5430,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_dirread.c",
+      "function": "TIFFFetchNormalTag",
+      "source_lines": "6261-7625"
+    },
+    {
+      "file": "extracts/libtiff/tif_read_TIFFReadScanline.c",
+      "label": "LibTIFF tif_read.c \u2013 TIFFReadScanline",
+      "target": "libtiff",
+      "size_bytes": 792,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_read.c",
+      "function": "TIFFReadScanline",
+      "source_lines": "447-472"
+    },
+    {
+      "file": "extracts/libtiff/tif_read_TIFFReadEncodedStrip.c",
+      "label": "LibTIFF tif_read.c \u2013 TIFFReadEncodedStrip",
+      "target": "libtiff",
+      "size_bytes": 1457,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_read.c",
+      "function": "TIFFReadEncodedStrip",
+      "source_lines": "525-564"
+    },
+    {
+      "file": "extracts/libtiff/tif_zip_ZIPDecode_A.c",
+      "label": "LibTIFF tif_zip.c \u2013 ZIPDecode [A]",
+      "target": "libtiff",
+      "size_bytes": 4538,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_zip.c",
+      "function": "ZIPDecode",
+      "source_lines": "163-313"
+    },
+    {
+      "file": "extracts/libtiff/tif_zip_ZIPDecode_B.c",
+      "label": "LibTIFF tif_zip.c \u2013 ZIPDecode [B]",
+      "target": "libtiff",
+      "size_bytes": 768,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_zip.c",
+      "function": "ZIPDecode",
+      "source_lines": "163-313"
+    },
+    {
+      "file": "extracts/libtiff/tif_zip_ZIPEncode_A.c",
+      "label": "LibTIFF tif_zip.c \u2013 ZIPEncode [A]",
+      "target": "libtiff",
+      "size_bytes": 4275,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_zip.c",
+      "function": "ZIPEncode",
+      "source_lines": "373-506"
+    },
+    {
+      "file": "extracts/libtiff/tif_zip_ZIPEncode_B.c",
+      "label": "LibTIFF tif_zip.c \u2013 ZIPEncode [B]",
+      "target": "libtiff",
+      "size_bytes": 520,
+      "source_file": "/tmp/tiff-4.7.0/libtiff/tif_zip.c",
+      "function": "ZIPEncode",
+      "source_lines": "373-506"
+    }
+  ]
+}

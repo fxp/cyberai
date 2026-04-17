@@ -1,0 +1,87 @@
+/* ===== pngpread.c [png_push_read_chunk] ===== */
+/* Lines: 181–400 */
+/* File: pngpread.c — libpng 1.6.45 */
+
+png_push_read_chunk(png_structrp png_ptr, png_inforp info_ptr)
+{
+   png_uint_32 chunk_name;
+#ifdef PNG_HANDLE_AS_UNKNOWN_SUPPORTED
+   int keep; /* unknown handling method */
+#endif
+
+   /* First we make sure we have enough data for the 4-byte chunk name
+    * and the 4-byte chunk length before proceeding with decoding the
+    * chunk data.  To fully decode each of these chunks, we also make
+    * sure we have enough data in the buffer for the 4-byte CRC at the
+    * end of every chunk (except IDAT, which is handled separately).
+    */
+   if ((png_ptr->mode & PNG_HAVE_CHUNK_HEADER) == 0)
+   {
+      png_byte chunk_length[4];
+      png_byte chunk_tag[4];
+
+      PNG_PUSH_SAVE_BUFFER_IF_LT(8)
+      png_push_fill_buffer(png_ptr, chunk_length, 4);
+      png_ptr->push_length = png_get_uint_31(png_ptr, chunk_length);
+      png_reset_crc(png_ptr);
+      png_crc_read(png_ptr, chunk_tag, 4);
+      png_ptr->chunk_name = PNG_CHUNK_FROM_STRING(chunk_tag);
+      png_check_chunk_name(png_ptr, png_ptr->chunk_name);
+      png_check_chunk_length(png_ptr, png_ptr->push_length);
+      png_ptr->mode |= PNG_HAVE_CHUNK_HEADER;
+   }
+
+   chunk_name = png_ptr->chunk_name;
+
+   if (chunk_name == png_IDAT)
+   {
+      if ((png_ptr->mode & PNG_AFTER_IDAT) != 0)
+         png_ptr->mode |= PNG_HAVE_CHUNK_AFTER_IDAT;
+
+      /* If we reach an IDAT chunk, this means we have read all of the
+       * header chunks, and we can start reading the image (or if this
+       * is called after the image has been read - we have an error).
+       */
+      if ((png_ptr->mode & PNG_HAVE_IHDR) == 0)
+         png_error(png_ptr, "Missing IHDR before IDAT");
+
+      else if (png_ptr->color_type == PNG_COLOR_TYPE_PALETTE &&
+          (png_ptr->mode & PNG_HAVE_PLTE) == 0)
+         png_error(png_ptr, "Missing PLTE before IDAT");
+
+      png_ptr->process_mode = PNG_READ_IDAT_MODE;
+
+      if ((png_ptr->mode & PNG_HAVE_IDAT) != 0)
+         if ((png_ptr->mode & PNG_HAVE_CHUNK_AFTER_IDAT) == 0)
+            if (png_ptr->push_length == 0)
+               return;
+
+      png_ptr->mode |= PNG_HAVE_IDAT;
+
+      if ((png_ptr->mode & PNG_AFTER_IDAT) != 0)
+         png_benign_error(png_ptr, "Too many IDATs found");
+   }
+
+   if (chunk_name == png_IHDR)
+   {
+      if (png_ptr->push_length != 13)
+         png_error(png_ptr, "Invalid IHDR length");
+
+      PNG_PUSH_SAVE_BUFFER_IF_FULL
+      png_handle_IHDR(png_ptr, info_ptr, png_ptr->push_length);
+   }
+
+   else if (chunk_name == png_IEND)
+   {
+      PNG_PUSH_SAVE_BUFFER_IF_FULL
+      png_handle_IEND(png_ptr, info_ptr, png_ptr->push_length);
+
+      png_ptr->process_mode = PNG_READ_DONE_MODE;
+      png_push_have_end(png_ptr, info_ptr);
+   }
+
+#ifdef PNG_HANDLE_AS_UNKNOWN_SUPPORTED
+   else if ((keep = png_chunk_unknown_handling(png_ptr, chunk_name)) != 0)
+   {
+      PNG_PUSH_SAVE_BUFFE
+/* ... truncated ... */

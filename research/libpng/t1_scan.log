@@ -1,0 +1,7 @@
+Scanning 10 segments (starting at 0), 60s delay
+
+[10:42:28] pngrutil.c [png_handle_IHDR+png_handle_PLTE] (7,000 chars)...
+Scan failed for pngrutil.c [png_handle_IHDR+png_handle_PLTE]: GLM API timeout after 240s
+  Done 242s — 0 findings
+  Error: GLM API timeout after 240s
+  [waiting 60s...]

@@ -1,0 +1,62 @@
+ImageMagick T2 scan: 8 segments (idx 8–15), 25s delay
+
+  Loaded 7 existing results
+
+[21:49:20] coders/bmp.c [ReadBMPImage-F:pixel-write] (4,381 chars)...
+  Done 429s — 3 findings
+  [HIGH] Heap buffer overread in 1-bit BMP pixel decoding via insufficient bytes_per_line (L1278, conf=72%)
+  [MEDIUM] Division by zero via zero quantum_bits from crafted bitfield masks (L1206, conf=60%)
+  [MEDIUM] Incorrect pixel scaling from non-contiguous bitfield masks (L1210, conf=55%)
+  [waiting 25s...]
+[21:56:53] coders/bmp.c [ReadBMPImage-G:final] (4,527 chars)...
+  Done 187s — 5 findings
+  [HIGH] Heap buffer over-read via bytes_per_line recalculation in 16-bit BMP parsing (L1397, conf=75%)
+  [HIGH] Integer overflow in 16-bit bytes_per_line calculation (L1397, conf=70%)
+  [MEDIUM] Heap buffer over-read in 8-bit RLE BMP due to bytes_per_line override (L1365, conf=65%)
+  [MEDIUM] Missing bounds validation on pixel buffer pointer across all bit-depth cases (L1323, conf=80%)
+  [MEDIUM] Potential heap buffer over-read in 4-bit BMP when bytes_per_line is smaller than ceil(columns/2) (L1323, conf=70%)
+  [waiting 25s...]
+[22:00:26] coders/bmp.c [ReadBMPImage-H] (4,478 chars)...
+  Done 205s — 5 findings
+  [HIGH] Integer Overflow in 24-bit BMP bytes_per_line Calculation (L1484, conf=85%)
+  [HIGH] Integer Overflow in 32-bit BMP bytes_per_line Calculation (L1524, conf=85%)
+  [HIGH] Heap Buffer Over-read in 24-bit BMP Pixel Decoding Loop (L1491, conf=90%)
+  [HIGH] Heap Buffer Over-read in 32-bit BMP Pixel Decoding Loop (L1535, conf=90%)
+  [MEDIUM] Unchecked Pointer Arithmetic Overflow in Row Offset Calculation (L1487, conf=70%)
+  [waiting 25s...]
+[22:04:15] coders/bmp.c [ReadBMPImage-I] (4,578 chars)...
+  Done 201s — 4 findings
+  [CRITICAL] Signed-to-unsigned conversion in ICC profile size trimming leads to heap buffer overflow (L1673, conf=85%)
+  [HIGH] Integer overflow in bytes_per_line calculation for 64-bit BMP (L1576, conf=75%)
+  [HIGH] Heap buffer over-read via unchecked p16 pointer in 64-bit BMP decoding (L1582, conf=80%)
+  [MEDIUM] Potential integer overflow in ICC profile offset+profile_size bounds check (L1651, conf=60%)
+  [waiting 25s...]
+[22:08:02] coders/bmp.c [ReadBMPImage-J] (1,575 chars)...
+  Done 255s — 3 findings
+  [MEDIUM] Stale buffer data in 'magick' causes false BMP signature detection (L1698, conf=85%)
+  [LOW] Integer overflow in scene limit check (L1689, conf=60%)
+  [LOW] Attacker-controlled forward seek via ba_offset with insufficient validation (L1693, conf=55%)
+  [waiting 25s...]
+[22:12:41] coders/bmp.c [WriteBMPImage-A] (4,308 chars)...
+  Done 193s — 3 findings
+  [HIGH] Insufficient integer overflow check for image dimensions (L1868, conf=80%)
+  [MEDIUM] Unchecked SetImageStorageClass return value leading to inconsistent state (L1910, conf=65%)
+  [MEDIUM] Potential size_t overflow in shift operation bypassing dimension check (L1868, conf=70%)
+  [waiting 25s...]
+[22:16:19] coders/bmp.c [WriteBMPImage-B] (4,445 chars)...
+  Done 350s — 4 findings
+  [CRITICAL] Integer overflow in bytes_per_line calculation leading to heap buffer overflow (L2039, conf=85%)
+  [HIGH] Integer truncation in bmp_info.image_size producing malformed BMP (L2077, conf=90%)
+  [MEDIUM] Integer overflow in bmp_info.file_size accumulation (L2078, conf=80%)
+  [MEDIUM] Insufficient bounds check on image dimensions allows integer overflow in row calculation (L2071, conf=85%)
+  [waiting 25s...]
+[22:22:33] coders/bmp.c [WriteBMPImage-C] (4,514 chars)...
+  Done 203s — 4 findings
+  [CRITICAL] Heap Buffer Overflow due to Integer Overflow in image_size vs bytes_per_line*rows (L2103, conf=85%)
+  [HIGH] Integer Overflow in Row Offset Calculation (L2119, conf=75%)
+  [HIGH] Missing Bounds Validation on Buffer Writes (L2120, conf=80%)
+  [MEDIUM] Potential Write Beyond Row Boundary in 8-bit Case (L2209, conf=60%)
+
+============================================================
+ImageMagick T2 complete: 15 segments, 52 raw findings, 23 high/critical ≥65%
+Results → research/imagemagick/t2_glm5_results.json

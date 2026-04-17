@@ -1,0 +1,1379 @@
+{
+  "model": "glm-5.1",
+  "target": "ImageMagick 7.1.1-44",
+  "timestamp": "2026-04-17T00:05:49",
+  "results": [
+    {
+      "file": "coders/gif.c [DecodeImage]",
+      "chars": 2705,
+      "elapsed_s": 443.9,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Missing minimum LZW data_size validation allows decoder malfunction",
+          "line_start": 427,
+          "confidence": 0.75,
+          "description": "The code reads data_size from the GIF stream and validates only the upper bound (data_size > MaximumLZWBits) but never checks the lower bound. The GIF specification requires data_size to be at least 2. A data_size of 0 causes the LZW decoder to use an initial code size of 1 bit, which is insufficient to represent the clear code (1 << 0 = 1) and EOI code (2). This fundamental inconsistency can cause the LZW decoder to misinterpret the bitstream, potentially leading to heap buffer overflow in the code table, out-of-bounds reads via unconstrained colormap access, or denial of service. A data_size of 1 produces similar edge-case behavior where the code table starts abnormally small.",
+          "poc": "Craft a GIF89a file with the LZW Minimum Code Size byte in the image data sub-block set to 0x00. The GIF header and logical screen descriptor remain valid. The image data sub-block starts with this byte before the LZW-compressed pixel data. When ImageMagick processes this file, DecodeImage reads data_size=0, passes the upper-bound check (0 <= MaximumLZWBits), and feeds it to AcquireLZWInfo which may create a malformed LZW decode state leading to memory corruption."
+        },
+        {
+          "severity": "medium",
+          "title": "No bounds check on interlace offset before QueueAuthenticPixels",
+          "line_start": 445,
+          "confidence": 0.55,
+          "description": "The offset variable used as the row parameter to QueueAuthenticPixels is never validated against image->rows before the call. While the interlace pass-transition logic appears to produce valid offsets for well-formed inputs, there is no defensive bounds check. If offset ever exceeds image->rows due to an edge case in the interlace arithmetic or a crafted image with inconsistent dimensions/interlace flags, QueueAuthenticPixels would write pixel data to an out-of-bounds row, causing a heap buffer overflow. Notably, pass 3 has no overflow guard — after pass 3 is entered, offset increments by 2 indefinitely with no transition to a higher pass, unlike passes 0-2 which reset offset when it exceeds rows.",
+          "poc": "Create a GIF with interlace flag set and a row count that causes the pass-3 offset to exceed image->rows before the loop terminates. For example, a GIF with rows=3 and interlace enabled: pass 0 processes offset 0 (offset+=8→8, 8>=3 so pass=1, offset=4; 4>=3 so pass=2, offset=2), pass 2 processes offset 2 (offset+=4→6, 6>=3 so pass=3, offset=1), pass 3 processes offsets 1, 3... but offset=3 >= rows=3 would be out of bounds. While the loop counter y limits iterations, the offset is not independently validated, creating a window for OOB access if the interlace/dimension combination is adversarial."
+        },
+        {
+          "severity": "info",
+          "title": "Potential out-of-bounds colormap read via unconstrained LZW output",
+          "line_start": 450,
+          "confidence": 0.45,
+          "description": "The LZW decoder output value c is passed to ConstrainColormapIndex, but if that function fails to properly constrain (e.g., when image->colors is 0 or the colormap is smaller than expected), the subsequent access image->colormap+index becomes an out-of-bounds read. A malformed LZW stream can produce code values far exceeding the colormap size. If ConstrainColormapIndex has any edge-case failure (such as when colors=0 causing modulo-by-zero or returning an unconstrained index), this leads to reading arbitrary heap memory through the colormap pointer arithmetic, potentially leaking sensitive information.",
+          "poc": "Craft a GIF with a small colormap (e.g., 2 colors) but LZW data_size of 8, causing the decoder to potentially emit values 0-255. If ConstrainColormapIndex has an edge case where it fails to constrain (e.g., image->colors == 0), the index used in image->colormap+index will read beyond the allocated colormap buffer."
+        }
+      ]
+    },
+    {
+      "file": "coders/gif.c [ReadGIFImage-A]",
+      "chars": 4373,
+      "elapsed_s": 261.2,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Stack buffer underflow via negative ReadBlobBlock return in comment extension",
+          "line_start": 1095,
+          "confidence": 0.75,
+          "description": "In the comment extension handler (case 0xfe), ReadBlobBlock() returns a ssize_t count. If ReadBlobBlock returns -1 (on I/O error), the check 'if (count == 0)' passes (since -1 != 0), and then 'buffer[count] = \"\\0\"' writes a null byte to buffer[-1], which is one byte before the stack-allocated buffer[257]. This constitutes a stack buffer underflow that corrupts adjacent stack data. The corrupted byte could be the 'background' variable or other stack-adjacent data, potentially leading to further exploitation such as out-of-bounds reads when the corrupted value is used as a colormap index.",
+          "poc": "Craft a GIF file with a comment extension (0xfe) where the sub-block length byte is present but the subsequent data read triggers an I/O error (e.g., truncated file mid-block). This causes ReadBlob to return -1, which propagates through ReadBlobBlock. The negative count bypasses the 'count == 0' guard and causes buffer[-1] = 0 write. A minimal PoC GIF: GIF89a header + logical screen descriptor + global color table + extension introducer (0x21) + comment label (0xFE) + block size byte (e.g., 0xFF) + truncated data (fewer than 255 bytes, causing read error)."
+        },
+        {
+          "severity": "medium",
+          "title": "Unchecked sub-block data size in graphics control extension leads to use of uninitialized/zeroed data",
+          "line_start": 1068,
+          "confidence": 0.85,
+          "description": "In the GCE handler (case 0xf9), the while loop 'while (ReadBlobBlock(image,buffer) != 0) ;' reads all sub-blocks into the same buffer, keeping only the last one. After the loop, the code unconditionally accesses buffer[0] through buffer[3] without verifying that the last sub-block contained at least 4 bytes. A malformed GIF with a GCE whose last sub-block is shorter than 4 bytes causes the code to read beyond the actual data. While the buffer was zeroed by memset, this results in incorrect values for dispose method, delay, and opacity. A zero delay could cause rapid frame cycling, and an unexpected opacity value could lead to incorrect transparency handling downstream.",
+          "poc": "Craft a GIF with a graphics control extension (0x21 0xF9) containing a sub-block of only 1-3 bytes instead of the required 4 bytes. For example: 0x21 0xF9 0x02 0x00 0x00 (block size=2, only 2 data bytes). The while loop reads this short block, then reads the terminator (0x00). After the loop, buffer[2] and buffer[3] contain zeros from the prior memset, causing delay=0 and potentially incorrect opacity."
+        },
+        {
+          "severity": "medium",
+          "title": "Integer wraparound in offset accumulation via negative count in comment extension",
+          "line_start": 1090,
+          "confidence": 0.6,
+          "description": "In the comment extension loop, 'offset += (size_t) count' accumulates the offset into the comments string. If ReadBlobBlock returns a negative value (e.g., -1 on error), casting to size_t produces an extremely large value (e.g., 0xFFFFFFFFFFFFFFFF on 64-bit), causing offset to wrap around. If the subsequent code (not shown, but implied by the offset/extent pattern) uses this corrupted offset to write into the comments buffer, it could result in a heap buffer overflow at an arbitrary offset. Even without the full code visible, the unsafe cast of a potentially negative ssize_t to size_t in an accumulation context is a clear integer handling flaw.",
+          "poc": "Similar to the buffer underflow PoC: a GIF with a comment extension where the first ReadBlobBlock succeeds (adding to offset normally) but a subsequent call returns -1 due to an I/O error. The cast '(size_t)(-1)' produces SIZE_MAX, and offset wraps to a huge value. If the code then writes at comments[offset], this is a heap out-of-bounds write."
+        },
+        {
+          "severity": "low",
+          "title": "Potential infinite loop in GCE handler if ReadBlobBlock returns negative values",
+          "line_start": 1068,
+          "confidence": 0.5,
+          "description": "The while loop 'while (ReadBlobBlock(image,buffer) != 0) ;' in the GCE handler (0xf9) only exits when ReadBlobBlock returns exactly 0. If ReadBlobBlock returns -1 (error), the condition '-1 != 0' is true and the loop continues. If the underlying blob is in a persistent error state where ReadBlob keeps returning -1, this loop becomes infinite, causing denial of service through CPU exhaustion. While most error states would eventually resolve (EOF returns 0), certain I/O error conditions could cause persistent -1 returns.",
+          "poc": "Provide a GIF file over a pipe or network stream that is closed mid-read during a GCE extension. If the blob's error state causes ReadBlob to consistently return -1 rather than 0, the while loop never terminates."
+        }
+      ]
+    },
+    {
+      "file": "coders/gif.c [ReadGIFImage-B]",
+      "chars": 4456,
+      "elapsed_s": 414.7,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "coders/bmp.c [ReadBMPImage-A:header-parse]",
+      "chars": 4592,
+      "elapsed_s": 127.0,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "medium",
+          "title": "Unbounded BA header loop causes denial of service",
+          "line_start": 647,
+          "confidence": 0.85,
+          "description": "The while loop processing BA (bitmap array) headers has no iteration limit. A crafted BMP file containing a long chain of BA headers will cause the parser to loop excessively, reading 14 bytes per iteration. For a large file, this can result in millions of iterations, consuming significant CPU time and causing denial of service. The only termination condition is ReadBlob returning fewer than 2 bytes (EOF), which requires exhausting the entire file.",
+          "poc": "Create a BMP file beginning with repeated 'BA' magic bytes followed by 12 bytes of padding per BA header. A 1MB file could contain ~71,000 BA headers, each causing a full loop iteration with string comparison and I/O operations. Example: python -c \"import sys; sys.stdout.buffer.write(b'BA' + b'\\x00'*12 + b'BA' + b'\\x00'*12 + ... + b'BM' + ...)\""
+        },
+        {
+          "severity": "high",
+          "title": "Missing validation of OS/2 BMP image dimensions allows negative/zero values",
+          "line_start": 695,
+          "confidence": 0.9,
+          "description": "For OS/2 BMP format (header size 12), width and height are read as unsigned shorts and cast to signed short then ssize_t. Values >= 32768 become negative when cast to short, producing negative ssize_t dimensions. Zero dimensions are also possible. These invalid dimensions propagate to memory allocation and pixel processing code, potentially causing integer overflows in buffer size calculations, heap buffer overflows, or division by zero in downstream processing.",
+          "poc": "Craft an OS/2 BMP file (header size=12) with width field set to 0xFFFF (65535 unsigned, -1 as signed short). The resulting bmp_info.width will be -1 (ssize_t). This negative value can cause underflow in subsequent size calculations like width * bytes_per_pixel, leading to undersized heap allocations and buffer overflows when pixel data is written."
+        },
+        {
+          "severity": "medium",
+          "title": "Unvalidated offset_bits allows seeking beyond file boundaries",
+          "line_start": 667,
+          "confidence": 0.8,
+          "description": "bmp_info.offset_bits is read from the file and only validated against bmp_info.size (ensuring offset_bits >= size). There is no validation that offset_bits falls within the actual file/blob size. A malicious BMP can set offset_bits to a very large value (up to 0xFFFFFFFF), causing the parser to seek to an invalid position when reading pixel data. While the file_size field is checked against blob size, offset_bits is not, and the file_size check can be bypassed by setting file_size to 0.",
+          "poc": "Create a BMP file with bmp_info.offset_bits set to 0xFFFFFFFF and bmp_info.file_size set to 0 (which bypasses the file size check). The parser will accept this and later attempt to seek to offset 4294967295, which is beyond any reasonable file size, potentially causing reads from uninitialized memory or other undefined behavior."
+        },
+        {
+          "severity": "low",
+          "title": "File size validation bypassed when bmp_info.file_size is zero",
+          "line_start": 680,
+          "confidence": 0.75,
+          "description": "The file size integrity check skips validation when bmp_info.file_size is 0: `if ((ignore_filesize == MagickFalse) && (bmp_info.file_size != 0) && ...)`. A crafted BMP with file_size=0 passes this check regardless of actual file size, allowing malformed or truncated files to proceed through parsing. Combined with the unvalidated offset_bits, this enables processing of files where header fields reference data beyond the actual file boundaries.",
+          "poc": "Set the file_size field in the BMP header to 0x00000000. The file size validation check will be skipped entirely, even if the actual file is truncated or the offset_bits field points beyond the file end."
+        }
+      ]
+    },
+    {
+      "file": "coders/bmp.c [ReadBMPImage-B:color-table]",
+      "chars": 4152,
+      "elapsed_s": 109.8,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Unvalidated number_colors field enables integer overflow and heap buffer overflow",
+          "line_start": 781,
+          "confidence": 0.85,
+          "description": "The `bmp_info.number_colors` field is read directly from the file as a 32-bit unsigned integer (ReadBlobLSBLong) without any validation. A malicious BMP file can set this to an arbitrarily large value (e.g., 0xFFFFFFFF). When this value is later used to allocate and populate the color table (typically calculated as number_colors * sizeof(RGBQUAD) = number_colors * 4), the multiplication can overflow, resulting in a small heap allocation followed by a large read — a classic heap buffer overflow. Additionally, number_colors should be bounded by bits_per_pixel (e.g., max 256 for 8-bit, 16 for 4-bit, 2 for 1-bit).",
+          "poc": "Craft a BMP file with BITMAPINFOHEADER (size=40), bits_per_pixel=8, and number_colors=0x40000000. When the decoder computes color_table_size = number_colors * 4, the result overflows to 0, causing a tiny or zero allocation. Subsequent reading of the color table data writes far beyond the allocated buffer, corrupting heap metadata and enabling code execution."
+        },
+        {
+          "severity": "medium",
+          "title": "Insufficient bmp_info.size validation allows unknown header sizes >= 64",
+          "line_start": 756,
+          "confidence": 0.8,
+          "description": "The switch statement validates bmp_info.size against known BMP header sizes (40, 52, 56, 64, 78, 108, 124). The default case only rejects sizes < 64, meaning any size >= 64 that is NOT a known valid size (e.g., 65, 70, 80, 90, 100, 110, etc.) silently passes through. This allows malformed BMP files with fabricated header sizes to be processed, potentially causing misalignment in subsequent reads (color table, pixel data offsets) and leading to out-of-bounds reads or incorrect data interpretation.",
+          "poc": "Set bmp_info.size to 65 in the BMP header. The switch falls through to default, and since 65 >= 64, no error is thrown. The decoder then reads fields assuming a standard layout, but the actual file structure may be misaligned, causing reads of color table or pixel data from incorrect offsets."
+        },
+        {
+          "severity": "high",
+          "title": "Unvalidated bits_per_pixel field enables downstream memory corruption",
+          "line_start": 774,
+          "confidence": 0.75,
+          "description": "The `bmp_info.bits_per_pixel` field is read as a 16-bit unsigned short without validation against expected BMP values (1, 4, 8, 16, 24, 32). An attacker can set this to any value (e.g., 0, 3, 7, 48, 65535). Invalid values can cause division by zero, incorrect row stride calculations, wrong color table sizes, and buffer overflows when pixel data is decoded. The only partial check is at lines 851-854 which restricts to 16/32 for certain mask cases, but most code paths have no validation.",
+          "poc": "Set bits_per_pixel=0 in a BMP header. Downstream code that divides by bits_per_pixel (e.g., to calculate bytes per row) will trigger a division by zero, causing a crash/Denial of Service. Alternatively, set bits_per_pixel=3 to cause miscalculation of row padding and pixel buffer sizes, leading to heap buffer overflow during pixel data reading."
+        },
+        {
+          "severity": "medium",
+          "title": "Unvalidated compression field with mask reading causes data misinterpretation",
+          "line_start": 775,
+          "confidence": 0.7,
+          "description": "The `bmp_info.compression` field is read without validation against known compression types. When compression is set to BI_BITFIELDS (3) or BI_ALPHABITFIELDS (6), the code reads 12 or 16 additional bytes of mask data. An attacker can set compression to BI_BITFIELDS with a header size of 40, causing the decoder to read 12 bytes of what should be color table data as mask values. This misinterpretation can lead to incorrect pixel decoding, information disclosure (reading unintended data as masks), or crashes from invalid mask configurations (e.g., zero masks causing division by zero in color scaling).",
+          "poc": "Create a BMP with size=40, compression=BI_BITFIELDS(3), bits_per_pixel=32. The code reads 12 bytes of mask data from the stream that follows the 40-byte header. If the file is crafted so these bytes come from what would normally be color table or pixel data, the masks will be garbage values. Subsequent pixel decoding using these masks can cause out-of-bounds accesses or arithmetic errors."
+        }
+      ]
+    },
+    {
+      "file": "coders/bmp.c [ReadBMPImage-C:pixel-decode]",
+      "chars": 4503,
+      "elapsed_s": 183.8,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Unvalidated profile offset and size leading to heap buffer overflow/over-read",
+          "line_start": 956,
+          "confidence": 0.85,
+          "description": "The profile_data and profile_size values are read directly from the untrusted BMP file via ReadBlobLSBLong without any validation. These attacker-controlled values are stored as MagickOffsetType and are likely used later in the function to seek to a file offset and allocate/read profile data. A malicious profile_size (up to 0xFFFFFFFF ≈ 4GB) can cause excessive memory allocation (DoS) or, if the actual file data is smaller than profile_size, a heap buffer over-read when the profile data is copied. On 32-bit systems, casting unsigned 32-bit values to signed MagickOffsetType (ssize_t) can produce negative values, potentially bypassing size checks entirely.",
+          "poc": "Craft a BMP file with bmp_info.size > 108 (e.g., size=124 for BITMAPV5HEADER), set the profile_size field (at offset ~142 in the file) to 0xFFFFFFFF, and set profile_data to a valid-looking offset. When the decoder later attempts to allocate profile_size bytes and read from profile_data offset, it will either allocate ~4GB (DoS) or read past the heap buffer boundary (over-read)."
+        },
+        {
+          "severity": "medium",
+          "title": "Zero gamma value causing potential division by zero downstream",
+          "line_start": 920,
+          "confidence": 0.75,
+          "description": "When bmp_info.colorspace == 0, image->gamma is computed as the average of the three gamma_scale values. If an attacker sets all three gamma_scale fields to zero (by writing 0x00000000 for each in the BMP header), image->gamma becomes 0.0. Downstream image processing code that divides by image->gamma (e.g., for gamma correction: pixel = pow(pixel, 1.0/gamma)) will produce infinity or NaN, potentially causing denial of service, incorrect rendering, or propagation of NaN through subsequent computations leading to undefined behavior.",
+          "poc": "Craft a BMP V4 header with bmp_info.size > 40, colorspace = 0, and all three gamma_scale fields set to 0x00000000. The resulting image->gamma = 0.0 will cause division by zero or infinity propagation in any downstream code that computes 1.0/gamma or pow(value, 1.0/gamma)."
+        },
+        {
+          "severity": "low",
+          "title": "No EOF validation on sequential ReadBlobLSBLong calls",
+          "line_start": 866,
+          "confidence": 0.7,
+          "description": "The code performs numerous sequential ReadBlobLSBLong calls (15+ calls for CIE primaries, gamma scales, intent, profile data/size) without checking the return status or verifying that sufficient data exists in the file. When ReadBlobLSBLong encounters EOF, it silently returns 0. This means a truncated BMP file will be processed with zero-filled values instead of being rejected as corrupt. While this doesn't directly cause a crash, it can lead to silent data corruption, incorrect color management being applied, and processing of a malformed file that should have been rejected. Combined with the profile_data/profile_size issue, a truncated file could result in profile_size=0 being stored, which may bypass later validation checks that assume non-zero means valid.",
+          "poc": "Create a BMP file with bmp_info.size set to 124 (indicating V5 header) but truncate the file after only the first few header fields. The ReadBlobLSBLong calls for CIE primaries, gamma scales, and profile info will all return 0, resulting in zero-valued chromaticity and gamma being applied to the image without any error being raised."
+        }
+      ]
+    },
+    {
+      "file": "coders/bmp.c [ReadBMPImage-D:rle-decode]",
+      "chars": 4537,
+      "elapsed_s": 335.9,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Integer Overflow via MagickAbsoluteValue with INT_MIN Height",
+          "line_start": 969,
+          "confidence": 0.88,
+          "description": "The height validation at line 969 only checks `bmp_info.height == 0`, while the error message 'NegativeOrZeroImageSize' implies negative values should also be rejected. Negative heights are valid in BMP (top-down bitmaps), but the value INT_MIN (-2147483648 for 32-bit signed) causes undefined behavior in `MagickAbsoluteValue`. On 2's complement systems, `abs(INT_MIN)` typically returns INT_MIN (still negative), which when cast to `size_t` on line 1036 becomes an enormous value (0xFFFFFFFF80000000 on 64-bit, 0x80000000 on 32-bit). This can lead to denial of service via excessive memory allocation attempts, and on 32-bit systems where 2GB might be allocable, subsequent pixel operations could corrupt memory. The width check correctly uses `<= 0`, making the height check asymmetry clearly a bug.",
+          "poc": "Craft a BMP file with the biHeight header field set to 0x80000000 (-2147483648 as a signed 32-bit integer). The file passes the `height == 0` check, but MagickAbsoluteValue(-2147483648) invokes undefined behavior. On typical implementations, image->rows becomes (size_t)(-2147483648) which is either ~18 quintillion (64-bit) or ~2 billion (32-bit), causing SetImageExtent to attempt a catastrophic allocation or succeed with a corrupted dimension."
+        },
+        {
+          "severity": "low",
+          "title": "Insufficient Colormap Data Size Validation",
+          "line_start": 1003,
+          "confidence": 0.72,
+          "description": "The check `(MagickSizeType) bmp_info.number_colors > blob_size` compares a count of color entries against the total file size in bytes, but does not account for the actual bytes needed per color entry (3-4 bytes in BMP). A file with number_colors close to blob_size would pass this check even though the colormap requires far more data than available (e.g., number_colors=200 needs 800 bytes but only ~246 bytes remain after headers in a 300-byte file). The subsequent read into bmp_colormap would return partial data, potentially leaving uninitialized heap data in the colormap buffer that could be interpreted as color values. Impact is limited because number_colors is bounded to 256 for paletted images (bits_per_pixel < 16).",
+          "poc": "Craft a BMP with bits_per_pixel=8, number_colors=200, and total file size of 300 bytes. The check `200 > 300` is false, so it passes. But the colormap needs 200*4=800 bytes while only ~246 bytes are available after the 54-byte minimum header. The read partially fills bmp_colormap, leaving heap residue as color values."
+        },
+        {
+          "severity": "low",
+          "title": "Missing BI_ALPHABITFIELDS Bits-Per-Pixel Validation",
+          "line_start": 1013,
+          "confidence": 0.65,
+          "description": "BI_BITFIELDS compression is properly validated to require bits_per_pixel >= 16, but BI_ALPHABITFIELDS has no analogous check. A BMP with compression=BI_ALPHABITFIELDS and bits_per_pixel=8 (or 4, 1) passes all validation, causing the image to be treated as having an alpha channel (alpha_trait=BlendPixelTrait on line 1040) while the pixel data is actually paletted indices. This type confusion between paletted and alpha-blended pixel data can lead to incorrect pixel interpretation and potential out-of-bounds access in downstream alpha-blending code paths that expect direct color values rather than palette indices.",
+          "poc": "Craft a BMP with compression=BI_ALPHABITFIELDS (4), bits_per_pixel=8, and alpha_mask=0xFF000000. The BI_BITFIELDS bpp check is skipped, and the image is marked as PseudoClass with alpha_trait=BlendPixelTrait. Downstream alpha compositing code may treat palette indices as direct pixel values, causing incorrect memory accesses."
+        }
+      ]
+    },
+    {
+      "file": "coders/bmp.c [ReadBMPImage-F:pixel-write]",
+      "chars": 4381,
+      "elapsed_s": 428.6,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Heap buffer overread in 1-bit BMP pixel decoding via insufficient bytes_per_line",
+          "line_start": 1278,
+          "confidence": 0.72,
+          "description": "In the 1-bit BMP decoding path, the code reads ceil(image->columns/8) bytes per scanline from the `pixels` buffer (advancing `p` once per 8 pixels in the main loop and once more for the remainder). However, the row stride is governed by `bytes_per_line`, which is used to compute the starting offset for each row: `p=pixels+((ssize_t) image->rows-y-1)*(ssize_t) bytes_per_line`. If `bytes_per_line` is smaller than ceil(image->columns/8) — which can happen due to an integer overflow in the bytes_per_line calculation on 32-bit builds, or if bytes_per_line is derived from attacker-controlled header fields without proper validation — the pixel reading loops will read beyond the allocated `pixels` buffer. This results in a heap buffer overread that can leak sensitive heap data or cause a denial of service (crash).",
+          "poc": "Craft a BMP file with biBitCount=1, a very large biWidth value (e.g., 0x7FFFFFFF) that causes an integer overflow in the bytes_per_line calculation: bytes_per_line = ((biWidth + 31) / 32) * 4. On a 32-bit build, biWidth + 31 can overflow, producing a small bytes_per_line while image->columns remains large. The 1-bit decoding loop then reads far more bytes per row than bytes_per_line allows, overreading the heap buffer. Alternatively, if any code path allows bytes_per_line to be set from the file without validation, a small bytes_per_line with a large columns value triggers the overread directly."
+        },
+        {
+          "severity": "medium",
+          "title": "Division by zero via zero quantum_bits from crafted bitfield masks",
+          "line_start": 1206,
+          "confidence": 0.6,
+          "description": "The shift/quantum_bits calculation code processes color channel masks to determine bit positions and widths. When a mask is zero (e.g., bmp_info.alpha_mask=0 when alpha_trait is UndefinedPixelTrait, or a crafted zero mask from a BI_BITFIELDS BMP header), the corresponding quantum_bits value is computed as 0 (since the quantum_bits loop condition is immediately false for a zero mask: (0 << sample) & 0x80000000 == 0). Downstream pixel normalization code typically divides by quantum_bits (e.g., pixel_value = shifted_value * MaxRange / ((1 << quantum_bits) - 1)), and a quantum_bits of 0 produces a divisor of 0, causing a floating-point exception and crash. While the hardcoded masks in this extract are non-zero, the calculation logic is designed to handle arbitrary masks from file headers (BI_BITFIELDS), where an attacker can supply zero or degenerate masks.",
+          "poc": "Craft a BMP file with BI_BITFIELDS compression (biCompression=3) and set one or more color masks (e.g., red_mask, green_mask, blue_mask, alpha_mask) to 0 in the BITMAPV4HEADER or BITMAPV5HEADER extension. When the decoder processes pixel data, the quantum_bits for the zero-masked channel will be 0, and subsequent scaling/division by quantum_bits (or (1<<quantum_bits)-1) will trigger a division by zero, crashing the application."
+        },
+        {
+          "severity": "medium",
+          "title": "Incorrect pixel scaling from non-contiguous bitfield masks",
+          "line_start": 1210,
+          "confidence": 0.55,
+          "description": "The shift and quantum_bits calculation assumes that each color mask has a single contiguous run of set bits (e.g., 0x00FF0000). For a non-contiguous mask like 0x80FF0000 (bits 31 and 16-23 set), the algorithm computes shift.red=0 and quantum_bits.red=1 (only counting the contiguous MSB run), discarding the lower 8 bits entirely. This causes pixel values to be scaled incorrectly — values are mapped to a much smaller range than intended. While this is primarily a correctness bug, it can lead to unexpected behavior: pixel values may be truncated to 0 or 1-bit precision, and if downstream code makes assumptions about value ranges (e.g., using pixel values as array indices after scaling), the miscalculation could contribute to out-of-bounds access. An attacker can craft a BMP with BI_BITFIELDS and non-contiguous masks to trigger this.",
+          "poc": "Create a BMP with BI_BITFIELDS compression and set red_mask=0x80FF0000. The shift calculation finds shift.red=0 (bit 31 is set), then quantum_bits calculation counts only 1 contiguous bit from the MSB (since bit 30 is not set in 0x80FF0000). The lower 8 red bits (0x00FF0000) are completely ignored during pixel decoding, producing severely incorrect color values. If downstream code uses these values as indices or in bounds calculations, this could lead to memory safety violations."
+        }
+      ]
+    },
+    {
+      "file": "coders/bmp.c [ReadBMPImage-G:final]",
+      "chars": 4527,
+      "elapsed_s": 187.2,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Heap buffer over-read via bytes_per_line recalculation in 16-bit BMP parsing",
+          "line_start": 1397,
+          "confidence": 0.75,
+          "description": "In the 16-bit case, bytes_per_line is recalculated as 2*(image->columns+image->columns % 2), potentially overriding the value derived from the BMP header that was used to allocate the 'pixels' buffer. If the original bytes_per_line (used for buffer allocation) is smaller than this recalculated value, the row offset computation p=pixels+((ssize_t) image->rows-y-1)*(ssize_t) bytes_per_line will point outside the allocated buffer, causing a heap buffer over-read. A crafted BMP with a manipulated header (e.g., small biSizeImage or inconsistent width) can trigger this.",
+          "poc": "Craft a 16-bit BMP file where the header declares a small bytes_per_line (e.g., via a small biSizeImage or width field), but image->columns is set to a larger value through a separate code path. The recalculated bytes_per_line=2*(columns+columns%2) will exceed the allocated buffer size, causing OOB reads when iterating rows."
+        },
+        {
+          "severity": "high",
+          "title": "Integer overflow in 16-bit bytes_per_line calculation",
+          "line_start": 1397,
+          "confidence": 0.7,
+          "description": "The expression bytes_per_line=2*(image->columns+image->columns % 2) can overflow when image->columns is large. For example, if image->columns is close to SIZE_MAX/2, the addition image->columns+(image->columns%2) can overflow, and the subsequent multiplication by 2 can also overflow. This results in a small bytes_per_line value, causing the row offset calculation to incorrectly index into the pixel buffer and the inner loop to read far beyond buffer boundaries.",
+          "poc": "Craft a BMP where biWidth is set to a value near SIZE_MAX/2 (e.g., 0x3FFFFFFF on 32-bit). The bytes_per_line calculation overflows, producing a small value. The loop then reads 2*image->columns bytes per row, causing a massive heap buffer over-read."
+        },
+        {
+          "severity": "medium",
+          "title": "Heap buffer over-read in 8-bit RLE BMP due to bytes_per_line override",
+          "line_start": 1365,
+          "confidence": 0.65,
+          "description": "In the 8-bit case, when compression is BI_RLE8 or BI_RLE4, bytes_per_line is overridden to image->columns. However, the 'pixels' buffer may have been allocated based on the original bytes_per_line (which includes row padding). If the RLE decompression produces data with a different layout than expected, or if image->columns is larger than the actual decompressed row size, the pointer p will read beyond the buffer. Additionally, BI_RLE4 is a 4-bit compression method being handled in the 8-bit case, which is a logic inconsistency that could lead to misinterpretation of decompressed data.",
+          "poc": "Craft an 8-bit BMP with BI_RLE4 compression (type confusion). The RLE4 decompression produces 4-bit indexed data, but the 8-bit reader interprets each byte as a single palette index, potentially reading beyond the decompressed data boundaries if the buffer layout doesn't match the assumed image->columns width."
+        },
+        {
+          "severity": "medium",
+          "title": "Missing bounds validation on pixel buffer pointer across all bit-depth cases",
+          "line_start": 1323,
+          "confidence": 0.8,
+          "description": "In all cases (4-bit, 8-bit, 16-bit), the row pointer p is computed as pixels+((ssize_t) image->rows-y-1)*(ssize_t) bytes_per_line without any validation that the resulting address falls within the allocated 'pixels' buffer. If bytes_per_line or image->rows is inconsistent with the buffer size (due to a crafted BMP header), the pointer p can reference memory outside the buffer. The inner loops then read from p without bounds checks, causing heap buffer over-reads. This is a systematic lack of defensive bounds checking.",
+          "poc": "Craft a BMP file where the header declares a large biHeight (rows) value but the pixel data buffer is allocated based on a smaller biSizeImage. The row offset calculation will eventually point beyond the buffer, and the inner pixel-reading loops will read out-of-bounds memory."
+        },
+        {
+          "severity": "medium",
+          "title": "Potential heap buffer over-read in 4-bit BMP when bytes_per_line is smaller than ceil(columns/2)",
+          "line_start": 1323,
+          "confidence": 0.7,
+          "description": "In the 4-bit case, the inner loop reads approximately ceil(image->columns/2) bytes per row from pointer p. However, if bytes_per_line (from the BMP header) is smaller than ceil(image->columns/2), the pointer p will advance beyond the current row's allocated space into the next row or beyond the buffer entirely. The code trusts that bytes_per_line is consistent with image->columns but does not validate this assumption, allowing a crafted BMP to trigger OOB reads.",
+          "poc": "Craft a 4-bit BMP with biWidth=100 (expecting 50 bytes of pixel data per row) but set the row stride (bytes_per_line) to a smaller value like 10 via header manipulation. The loop will read 50 bytes starting from each row offset, but rows are only 10 bytes apart, causing reads into adjacent rows and eventually beyond the buffer."
+        }
+      ]
+    },
+    {
+      "file": "coders/bmp.c [ReadBMPImage-H]",
+      "chars": 4478,
+      "elapsed_s": 204.5,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Integer Overflow in 24-bit BMP bytes_per_line Calculation",
+          "line_start": 1484,
+          "confidence": 0.85,
+          "description": "The expression `4*((image->columns*24+31)/32)` can overflow when image->columns is large. On platforms where the intermediate type is 32-bit, `image->columns*24` wraps around, producing a small bytes_per_line. This causes the subsequently allocated pixel buffer to be undersized relative to what the inner loop reads (3 bytes per column), leading to a heap buffer over-read. An attacker can craft a BMP with large column dimensions to trigger this.",
+          "poc": "Craft a 24-bit BMP file with biWidth (columns) set to a value such that columns*24 overflows the intermediate integer type. For a 32-bit intermediate: columns=0x10000001 causes columns*24=0x180000018, truncated to 0x80000018, yielding a small bytes_per_line. The inner loop then reads 3*0x10000001 bytes per row, far exceeding the allocated buffer."
+        },
+        {
+          "severity": "high",
+          "title": "Integer Overflow in 32-bit BMP bytes_per_line Calculation",
+          "line_start": 1524,
+          "confidence": 0.85,
+          "description": "The expression `4*(image->columns)` can overflow when image->columns exceeds SIZE_MAX/4 (on 32-bit) or when bytes_per_line is stored in a 32-bit type. This results in an undersized pixel buffer allocation. The inner loop then reads 4 bytes per column via four *p++ operations, causing a heap buffer over-read that can leak sensitive heap data or crash the process.",
+          "poc": "Craft a 32-bit BMP with biWidth=0x40000001. If bytes_per_line is 32-bit, 4*0x40000001=0x100000004 wraps to 4. The buffer is allocated as ~4*rows bytes, but the inner loop reads 4*0x40000001 bytes per row, causing massive heap over-read."
+        },
+        {
+          "severity": "high",
+          "title": "Heap Buffer Over-read in 24-bit BMP Pixel Decoding Loop",
+          "line_start": 1491,
+          "confidence": 0.9,
+          "description": "The inner loop unconditionally reads 3 bytes per pixel via *p++ without checking whether p remains within the allocated pixel buffer bounds. If bytes_per_line is smaller than 3*columns (due to integer overflow or a mismatched header), the pointer p advances past the end of the heap-allocated buffer. This results in out-of-bounds reads that can disclose heap memory contents or cause a denial of service.",
+          "poc": "Provide a 24-bit BMP where the header declares more columns than the actual pixel data supports, or where integer overflow in bytes_per_line causes buffer undersizing. The loop at lines 1492-1494 will read past the buffer: SetPixelBlue(image,ScaleCharToQuantum(*p++),q); SetPixelGreen(image,ScaleCharToQuantum(*p++),q); SetPixelRed(image,ScaleCharToQuantum(*p++),q);"
+        },
+        {
+          "severity": "high",
+          "title": "Heap Buffer Over-read in 32-bit BMP Pixel Decoding Loop",
+          "line_start": 1535,
+          "confidence": 0.9,
+          "description": "The inner loop reads 4 bytes per pixel via four consecutive *p++ dereferences without validating that p stays within the pixel buffer. If bytes_per_line overflows or the BMP header is inconsistent with the actual data, p will read past the heap buffer boundary. This can leak heap data or cause a crash.",
+          "poc": "Provide a 32-bit BMP with columns value causing 4*columns to overflow, or with truncated pixel data. The four *p++ reads at lines 1535-1538 will access memory beyond the allocated buffer: pixel=(unsigned int)(*p++); pixel|=((unsigned int)*p++<<8); pixel|=((unsigned int)*p++<<16); pixel|=((unsigned int)*p++<<24);"
+        },
+        {
+          "severity": "medium",
+          "title": "Unchecked Pointer Arithmetic Overflow in Row Offset Calculation",
+          "line_start": 1487,
+          "confidence": 0.7,
+          "description": "The row pointer calculation `p=pixels+((ssize_t) image->rows-y-1)*(ssize_t) bytes_per_line` can overflow if bytes_per_line and the row index produce a product exceeding PTRDIFF_MAX/SSIZE_MAX. This could cause p to wrap around and point to an arbitrary memory location relative to pixels, leading to out-of-bounds reads or writes. No bounds checking is performed on the computed offset.",
+          "poc": "Craft a BMP with large rows and a bytes_per_line value such that (rows-1)*bytes_per_line overflows ssize_t. The resulting pointer p will reference memory far from the intended buffer, causing undefined behavior when dereferenced in the pixel loop."
+        }
+      ]
+    },
+    {
+      "file": "coders/bmp.c [ReadBMPImage-I]",
+      "chars": 4578,
+      "elapsed_s": 201.4,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Signed-to-unsigned conversion in ICC profile size trimming leads to heap buffer overflow",
+          "line_start": 1673,
+          "confidence": 0.85,
+          "description": "The `profile_size_orig` is constructed from the first 4 bytes of the ICC profile data as a `MagickOffsetType` (signed type). If datum[0] >= 0x80, the resulting value is negative. The comparison `profile_size_orig < profile_size` evaluates to true for any negative value against a positive `profile_size`. Then `SetStringInfoLength(profile, (size_t) profile_size_orig)` casts the negative value to `size_t`, producing an extremely large unsigned value. On 32-bit systems, this can bypass the `~length < MagickPathMax` safety check in `SetStringInfoLength` for certain negative values (e.g., -4097), causing an integer overflow in the reallocation size (`length + MagickPathMax` wraps to a small value) while `string_info->length` is set to the huge value, enabling subsequent heap buffer overflows. On 64-bit, this causes a DoS via failed allocation or fatal exception.",
+          "poc": "Craft a BMP file with an embedded ICC profile where the first 4 bytes of the profile data encode a value with the high bit set (e.g., 0xFF000000), making profile_size_orig negative. Set bmp_info.colorspace to 0x4D424544, profile_data and profile_size to valid positive values. The ICC profile data starts with bytes like {0xFF, 0xFF, 0xF0, 0x00} which yields profile_size_orig = -4096 on 32-bit, bypassing the safety check and causing heap corruption."
+        },
+        {
+          "severity": "high",
+          "title": "Integer overflow in bytes_per_line calculation for 64-bit BMP",
+          "line_start": 1576,
+          "confidence": 0.75,
+          "description": "The calculation `bytes_per_line=4*((image->columns*64+31)/32)` can overflow when `image->columns` is sufficiently large. On 32-bit systems, if `image->columns >= 0x04000000` (67M), `image->columns*64` overflows to a small value, causing `bytes_per_line` to be much smaller than the actual `8*image->columns` bytes needed per row. This mismatch between the calculated `bytes_per_line` and the actual data accessed via `p16` (which reads 4 unsigned shorts per pixel = 8 bytes per pixel) leads to heap buffer over-reads as the p16 pointer walks beyond the allocated pixel buffer.",
+          "poc": "Create a BMP file with bits_per_pixel=64 and image->columns set to a value like 0x04000001 on a 32-bit build. The bytes_per_line calculation overflows, resulting in a small buffer allocation. The subsequent p16 reads in the loop access memory far beyond the buffer boundary."
+        },
+        {
+          "severity": "high",
+          "title": "Heap buffer over-read via unchecked p16 pointer in 64-bit BMP decoding",
+          "line_start": 1582,
+          "confidence": 0.8,
+          "description": "In the 64-bit BMP case, the `p16` pointer is computed from the `pixels` buffer and incremented 4 times per pixel (`*p16++`) without any bounds checking against the end of the allocated buffer. If the BMP file data is truncated, malformed, or if `bytes_per_line` is miscalculated (e.g., due to integer overflow), the p16 pointer can read beyond the heap-allocated `pixels` buffer. Each iteration reads 4 unsigned shorts (8 bytes), and with `image->columns` iterations per row and `image->rows` rows, the total read can far exceed the buffer size.",
+          "poc": "Craft a 64-bit BMP file where the declared image dimensions (columns x rows) require more pixel data than is actually present in the file. The pixel buffer will be allocated and partially filled, but the p16 loop will read beyond the valid data, causing a heap buffer over-read that can leak sensitive memory contents."
+        },
+        {
+          "severity": "medium",
+          "title": "Potential integer overflow in ICC profile offset+profile_size bounds check",
+          "line_start": 1651,
+          "confidence": 0.6,
+          "description": "The bounds check `blob_size < (MagickSizeType) (offset+profile_size)` can be bypassed if `offset+profile_size` overflows. The `offset` is computed as `start_position+14+profile_data` where `profile_data` comes from the BMP header (attacker-controlled). On 32-bit systems, if `offset` and `profile_size` are both large positive values, their sum can overflow to a small or negative value. When cast to `MagickSizeType` (unsigned), a negative sum becomes a very large value, but if the overflow wraps to a small positive value, the check `blob_size < small_value` passes, allowing the subsequent `ReadBlob` to read `profile_size` bytes from an offset that may be beyond the actual file data.",
+          "poc": "Craft a BMP with profile_data and profile_size values chosen so that (start_position+14+profile_data)+profile_size overflows on 32-bit, wrapping to a value smaller than blob_size. This bypasses the bounds check and allows reading profile_size bytes from an invalid offset."
+        }
+      ]
+    },
+    {
+      "file": "coders/bmp.c [ReadBMPImage-J]",
+      "chars": 1575,
+      "elapsed_s": 254.6,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "medium",
+          "title": "Stale buffer data in 'magick' causes false BMP signature detection",
+          "line_start": 1698,
+          "confidence": 0.85,
+          "description": "On line 1698, `*magick='\\0'` only clears the first byte of the 2-byte signature buffer. When `ReadBlob(image,2,magick)` on line 1700 returns only 1 byte (e.g., near EOF), `magick[1]` retains stale data from a previous iteration. The `if` condition on line 1701 correctly checks `count == 2` before calling IsBMP, but the `while` condition on line 1717 calls `IsBMP(magick,2)` without verifying that 2 bytes were successfully read. If the single byte read is 'B' (0x42) and the stale `magick[1]` is 'M' (0x4D) from a prior iteration, IsBMP returns true, causing the loop to continue and attempt to parse non-BMP data as a BMP image. This can lead to unexpected parsing of attacker-controlled data, potential denial of service, or escalation to more severe memory corruption vulnerabilities in the BMP header parsing code at the top of the loop.",
+          "poc": "Craft a multi-image BMP file where: (1) the first image is valid, (2) the ba_offset or file layout positions the read cursor such that exactly 1 byte ('B', 0x42) remains before EOF, and (3) the previous iteration left 'M' (0x4D) in magick[1]. The while condition will evaluate IsBMP as true despite only 1 byte being read, causing an extra loop iteration that parses garbage/crafted data as a BMP header."
+        },
+        {
+          "severity": "low",
+          "title": "Integer overflow in scene limit check",
+          "line_start": 1689,
+          "confidence": 0.6,
+          "description": "The expression `image_info->scene + image_info->number_scenes - 1` on line 1691 can overflow if both values are large. For example, if `scene` is 0x7FFFFFFE and `number_scenes` is 3, the sum wraps to a small or negative value, causing the comparison `image->scene >= (overflowed_result)` to evaluate incorrectly. This could cause the loop to break prematurely (skipping valid images) or continue longer than intended. While these values are typically application-controlled rather than file-controlled, a web application that passes user input to these fields without validation could be exploited.",
+          "poc": "Invoke ImageMagick with scene parameters that cause overflow: e.g., `convert -scene 2147483646 -scenes 3 crafted.bmp out.bmp`. The integer overflow in the sum would cause the scene limit check to malfunction."
+        },
+        {
+          "severity": "low",
+          "title": "Attacker-controlled forward seek via ba_offset with insufficient validation",
+          "line_start": 1693,
+          "confidence": 0.55,
+          "description": "The `bmp_info.ba_offset` value is derived from the BMP file header and is fully attacker-controlled. While the code prevents backward seeks (`offset < TellBlob(image)`) and checks SeekBlob's return value, it allows seeking to any forward position within or beyond the file. On certain blob types (e.g., memory-mapped or custom streams), SeekBlob may succeed even for offsets beyond the actual data, positioning the read cursor in uninitialized or zero-filled memory. Subsequent ReadBlob calls would then operate on unexpected data. Additionally, a crafted ba_offset pointing to a position within the current image's pixel data could cause the parser to reinterpret pixel data as BMP headers in the next loop iteration.",
+          "poc": "Craft a BMP file with a ba_offset value pointing forward to a position within the file that contains attacker-controlled data designed to be misinterpreted as a valid BMP header, potentially triggering vulnerabilities in the header parsing code."
+        }
+      ]
+    },
+    {
+      "file": "coders/bmp.c [WriteBMPImage-A]",
+      "chars": 4308,
+      "elapsed_s": 192.6,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Insufficient integer overflow check for image dimensions",
+          "line_start": 1868,
+          "confidence": 0.8,
+          "description": "The dimension validation check `((image->columns << 3) != (size_t) ((int) (image->columns << 3)))` only verifies that `columns * 8` and `rows * 8` individually fit in a signed 32-bit integer. It does NOT validate that the product `columns * rows * bytes_per_pixel` fits in any integer type. For a 32-bit RGBA BMP (4 bytes/pixel), columns=32768 and rows=32768 pass the check (32768*8=262144 fits in int), but columns*rows*4 = 2^32 overflows a 32-bit unsigned int. Additionally, on 32-bit systems, the shift `image->columns << 3` can itself overflow `size_t` (if columns > 2^28), causing the check to pass incorrectly due to wraparound (e.g., columns=0x20000001 → columns<<3 wraps to 8, which equals (size_t)(int)8). This can lead to undersized buffer allocation and subsequent heap buffer overflow when writing pixel data.",
+          "poc": "Create an image with dimensions 32768x32768 in RGBA mode. The check passes since 32768*8=262144 fits in int32, but the total pixel buffer size (32768*32768*4 = 4GB) overflows a 32-bit size calculation. On 32-bit systems, an image with columns=536870913 (0x20000001) causes columns<<3 to wrap to 8, bypassing the check entirely."
+        },
+        {
+          "severity": "medium",
+          "title": "Unchecked SetImageStorageClass return value leading to inconsistent state",
+          "line_start": 1910,
+          "confidence": 0.65,
+          "description": "Multiple calls to `SetImageStorageClass(image, DirectClass, exception)` have their return values explicitly discarded with `(void)`. If SetImageStorageClass fails (e.g., due to memory allocation failure), the image remains in PseudoClass storage with more than 256 colors. The code then sets `bmp_info.bits_per_pixel=8` and `bmp_info.number_colors=256`, but since `image->colors > 256`, the condition `(size_t) bmp_info.number_colors < image->colors` triggers another SetImageStorageClass call which is also ignored on failure. The image stays PseudoClass with >256 colors but the BMP header is configured for only 256 color entries. Subsequent pixel writing code may access colormap indices beyond the 256-entry BMP color table, causing out-of-bounds writes.",
+          "poc": "Craft a PseudoClass image with >256 colors (e.g., 300 unique colors) and force SetImageStorageClass to fail by exhausting memory resources. The writer will proceed with bits_per_pixel=8 and number_colors=256, but pixel indices can reference colormap entries 256-299, causing out-of-bounds access when writing the BMP color table or pixel data."
+        },
+        {
+          "severity": "medium",
+          "title": "Potential size_t overflow in shift operation bypassing dimension check",
+          "line_start": 1868,
+          "confidence": 0.7,
+          "description": "On 32-bit platforms where `size_t` is 32 bits, the expression `image->columns << 3` can overflow `size_t` itself before the comparison is evaluated. For example, if `image->columns = 0x20000001` (536,870,913), then `columns << 3` overflows to `0x00000008`. The check compares `0x00000008 != (size_t)((int)0x00000008)` which evaluates to false, so the dimension check passes. However, the actual image width is over 500 million pixels, which would require enormous memory and cause integer overflows in all subsequent size calculations (bytes_per_line, pixel buffer allocation, etc.).",
+          "poc": "On a 32-bit build of ImageMagick, create an image with columns=0x20000001 (536870913). The shift overflow causes the dimension validation to pass, but subsequent buffer size calculations will overflow, leading to heap buffer overflow when writing pixel data."
+        }
+      ]
+    },
+    {
+      "file": "coders/bmp.c [WriteBMPImage-B]",
+      "chars": 4445,
+      "elapsed_s": 349.6,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Integer overflow in bytes_per_line calculation leading to heap buffer overflow",
+          "line_start": 2039,
+          "confidence": 0.85,
+          "description": "The calculation `bytes_per_line=4*((image->columns*bmp_info.bits_per_pixel+31)/32)` can overflow on systems where `size_t` is 32-bit. When `image->columns * bmp_info.bits_per_pixel` exceeds 2^32, `bytes_per_line` wraps to a small value. The subsequent allocation on line ~2101 uses `MagickMax(bytes_per_line, image->columns+256UL)`, which falls back to `image->columns+256` — far smaller than the actual per-row requirement of `image->columns * (bits_per_pixel/8)` for images with >8 bpp. When pixel data is later written to this undersized buffer, a heap buffer overflow occurs, potentially enabling arbitrary code execution. The width/height check on lines ~2071-2073 only constrains dimensions to fit in `signed int`, which still allows `columns * bits_per_pixel` to overflow 32 bits (e.g., columns=134217728 with bpp=32 yields 2^32, overflowing to 0).",
+          "poc": "Create an image with columns=134217728 (2^27) and bits_per_pixel=32. The multiplication 2^27 * 32 = 2^32 overflows to 0 on 32-bit systems, making bytes_per_line=0. The allocation uses max(0, 134217728+256) = ~134M bytes per row, but actual pixel data per row is ~512MB (4 bytes/pixel * 134M pixels), causing a heap overflow when writing pixel data. On 64-bit systems, use columns=65536, rows=65536 with 32bpp: bytes_per_line*rows = 2^18 * 2^16 = 2^34, which truncates to 0 when cast to unsigned int for image_size."
+        },
+        {
+          "severity": "high",
+          "title": "Integer truncation in bmp_info.image_size producing malformed BMP",
+          "line_start": 2077,
+          "confidence": 0.9,
+          "description": "The assignment `bmp_info.image_size=(unsigned int) (bytes_per_line*image->rows)` truncates the 64-bit product to 32-bit unsigned int. For large images where `bytes_per_line * image->rows > UINT_MAX`, the image_size field in the BMP header is set to an incorrect (wrapped) value. While the internal buffer allocation uses the full 64-bit values and is correctly sized, the BMP file written to disk contains a malformed header with an incorrect image_size. This malformed file can trigger integer overflow vulnerabilities in BMP readers that allocate buffers based on the header's image_size field and then read the full pixel data based on width/height/bpp, leading to heap buffer overflows in downstream consumers.",
+          "poc": "Create a 65536x65536 image with 32 bits per pixel. bytes_per_line = 4*65536 = 262144. bytes_per_line * rows = 262144 * 65536 = 17,179,869,184 (0x400000000), which truncates to 0 when cast to unsigned int. The resulting BMP file has image_size=0 in the header but contains ~16GB of pixel data. A reader allocating based on image_size would allocate 0 bytes then attempt to read the full pixel data, causing a heap overflow."
+        },
+        {
+          "severity": "medium",
+          "title": "Integer overflow in bmp_info.file_size accumulation",
+          "line_start": 2078,
+          "confidence": 0.8,
+          "description": "The statement `bmp_info.file_size+=bmp_info.image_size` adds the potentially-truncated image_size to file_size. Since image_size is already an unsigned int that may have wrapped due to the truncation on line 2077, file_size will also be incorrect. Additionally, even without the truncation, if the true image data size plus header size exceeds UINT_MAX, the file_size field overflows. This produces a BMP file with an invalid file_size in the header, which can confuse parsers and potentially be leveraged in attacks against BMP readers that trust the header field for memory allocation or data copying operations.",
+          "poc": "Any image triggering the image_size truncation will also produce an incorrect file_size. Additionally, the extra_size additions on lines ~2068-2069 (`bmp_info.file_size+=(unsigned int) extra_size`) could independently overflow if file_size is near UINT_MAX, though this is less likely in practice."
+        },
+        {
+          "severity": "medium",
+          "title": "Insufficient bounds check on image dimensions allows integer overflow in row calculation",
+          "line_start": 2071,
+          "confidence": 0.85,
+          "description": "The dimension check `((ssize_t) image->columns != (ssize_t) ((signed int) image->columns))` only verifies that columns and rows fit within a signed 32-bit int (max ~2.1 billion). However, this is insufficient to prevent overflow in the `bytes_per_line` calculation where columns is multiplied by bits_per_pixel (up to 32). A column count of INT_MAX/32 ≈ 67 million is well within the signed int range but causes `columns * 32` to reach ~2^36, which can overflow 32-bit arithmetic. The check should validate that `columns * bits_per_pixel` does not overflow, or that `bytes_per_line * rows` fits within the target unsigned int type for image_size.",
+          "poc": "An image with columns=1073741824 (2^30, fits in signed int) and bits_per_pixel=32: columns * bits_per_pixel = 2^35, which is valid for 64-bit size_t but the resulting bytes_per_line (~2^33) causes image_size truncation. The dimension check passes but the downstream calculations still overflow."
+        }
+      ]
+    },
+    {
+      "file": "coders/bmp.c [WriteBMPImage-A]",
+      "chars": 4308,
+      "elapsed_s": 153.4,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Insufficient integer overflow check on image dimensions allows file_size overflow",
+          "line_start": 1872,
+          "confidence": 0.85,
+          "description": "The overflow check `((image->columns << 3) != (size_t) ((int) (image->columns << 3)))` only validates that `columns*8` and `rows*8` fit in a 32-bit int. This allows columns and rows up to ~2^28 each. However, the BMP file_size (a 32-bit field per BMP spec) is later computed as header + color_table + bytes_per_line * rows, where bytes_per_line can be columns*4 for 32-bit BMP. This means total pixel data can reach columns*4*rows which easily overflows a 32-bit unsigned integer (e.g., columns=2^20, rows=2^10 gives ~4GB of pixel data). The silent truncation of file_size leads to a malformed BMP with an incorrect header, which can cause heap buffer overflows in BMP readers that trust the header's file_size to allocate buffers.",
+          "poc": "Create an image with very large dimensions (e.g., 65536 x 65536) in sRGB colorspace. The check passes since 65536*8=524288 fits in int. But pixel data = 65536*4*65536 = 16GB, which overflows a 32-bit file_size field. Convert to BMP3/BMP4 format. The written file will have a truncated file_size in the header, causing parsers to misinterpret the file."
+        },
+        {
+          "severity": "medium",
+          "title": "Ignored return value of SetImageStorageClass leads to inconsistent state and potential buffer overflow",
+          "line_start": 1897,
+          "confidence": 0.7,
+          "description": "The return value of SetImageStorageClass() is consistently ignored (cast to void) at multiple points (lines ~1897, ~1927, ~1930). If SetImageStorageClass fails (e.g., due to memory allocation failure when converting from PseudoClass to DirectClass), the image remains in PseudoClass with image->colors > 256, but the code proceeds as if the conversion succeeded or skips the color table size calculation. Specifically, when image->colors > 256 and SetImageStorageClass fails, the code enters the colormapped path with bits_per_pixel=8 and number_colors=256, but the color table size is NOT added to file_size/offset_bits (because the else branch is skipped). This creates an inconsistent state where the BMP header claims a smaller file than actual content, and subsequent color table writing may write beyond allocated buffers.",
+          "poc": "Craft a PseudoClass image with colors > 256 (e.g., 300 unique colors). Force SetImageStorageClass to fail by exhausting memory or using a specially crafted image. The writer will proceed with bits_per_pixel=8, number_colors=256, but the color table allocation in the file will be undersized, leading to out-of-bounds writes when writing the 300 color entries into a 256-entry table."
+        },
+        {
+          "severity": "medium",
+          "title": "Potential integer overflow in bmp_info.file_size accumulation with large bits_per_pixel shift",
+          "line_start": 1921,
+          "confidence": 0.5,
+          "description": "The code computes `3*(1UL << bmp_info.bits_per_pixel)` and `(1UL << bmp_info.bits_per_pixel)` to add to bmp_info.file_size and bmp_info.offset_bits. While currently bmp_info.bits_per_pixel is limited to 1, 4, or 8 (max shift of 8), the initial default assignment is `bmp_info.bits_per_pixel=8` and the conditional logic only overrides it for colors <= 256. If a future code change or unexpected input causes bits_per_pixel to exceed 31, the shift operation `1UL << bmp_info.bits_per_pixel` would be undefined behavior in C. Additionally, if bmp_info.file_size is a 32-bit type (matching BMP format), the accumulated value could silently overflow when large pixel data is added later, producing a file with an incorrect size header.",
+          "poc": "Not directly exploitable with current code path since bits_per_pixel is capped at 8. However, if image->colors is manipulated to be 0 or a very large value through memory corruption, the default bits_per_pixel=8 would remain, and the color table size calculation would proceed with 256 entries. The real risk is in the file_size overflow when pixel data is added for large images."
+        }
+      ]
+    },
+    {
+      "file": "coders/bmp.c [WriteBMPImage-B]",
+      "chars": 4445,
+      "elapsed_s": 273.3,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Integer Overflow in bytes_per_line Calculation (32-bit systems)",
+          "line_start": 2051,
+          "confidence": 0.85,
+          "description": "The calculation `bytes_per_line=4*((image->columns*bmp_info.bits_per_pixel+31)/32)` can overflow on 32-bit systems where `size_t` is 32-bit. When `image->columns * bmp_info.bits_per_pixel` exceeds 2^32, the multiplication wraps around to a small value, producing an incorrectly small `bytes_per_line`. This truncated value is then used in the buffer allocation on line 2095-2096 via `MagickMax(bytes_per_line, image->columns+256UL)`, resulting in an undersized heap buffer. When pixel data is subsequently written row-by-row using the true column count and bits_per_pixel, a heap buffer overflow occurs.",
+          "poc": "On a 32-bit system, create an image with columns=134217728 (2^27) and bits_per_pixel=32 (e.g., 32-bit RGBA BMP). The multiplication 134217728*32 = 2^32 overflows to 0 in 32-bit arithmetic. bytes_per_line becomes 4*((0+31)/32) = 0. The allocation uses MagickMax(0, 134217728+256) = 134217984 bytes per row, but the actual pixel data per row requires ~536870912 bytes. Writing pixel data overflows the heap buffer by ~4x."
+        },
+        {
+          "severity": "medium",
+          "title": "Integer Overflow in bmp_info.image_size Cast to unsigned int",
+          "line_start": 2078,
+          "confidence": 0.9,
+          "description": "The computation `bmp_info.image_size=(unsigned int)(bytes_per_line*image->rows)` truncates the result to 32 bits. On 64-bit systems where `bytes_per_line` is correctly computed as a 64-bit `size_t`, the product `bytes_per_line*image->rows` can exceed 2^32, causing the cast to `unsigned int` to wrap around. This produces an incorrect `image_size` in the BMP header, which also corrupts `bmp_info.file_size` (line 2079) since it accumulates the truncated value. The malformed BMP file has incorrect size fields, which can cause buffer overflows in BMP readers that allocate buffers based on the header's image_size field.",
+          "poc": "Create an image with columns=65536, bits_per_pixel=32, rows=65536. bytes_per_line = 4*((65536*32+31)/32) = 262144. bytes_per_line*rows = 262144*65536 = 17179869184 (2^34). (unsigned int)(2^34) = 0. bmp_info.image_size = 0, bmp_info.file_size is also wrong. The resulting BMP file has a zero image_size in the header but contains ~16GB of pixel data."
+        },
+        {
+          "severity": "low",
+          "title": "Integer Overflow in bmp_info.file_size Accumulation",
+          "line_start": 2079,
+          "confidence": 0.8,
+          "description": "The statement `bmp_info.file_size+=bmp_info.image_size` adds the already-truncated 32-bit `image_size` to `file_size`. Since `image_size` can be 0 or a small wrapped value due to the overflow in Finding 2, `file_size` will also be incorrect. Additionally, if `file_size` is `unsigned int`, the addition itself can overflow independently. This results in a BMP file with completely wrong size fields in the header, causing parsing failures or potential issues in downstream consumers.",
+          "poc": "Same as Finding 2 - with columns=65536, bpp=32, rows=65536: image_size wraps to 0, so file_size only reflects header sizes, not the ~16GB of pixel data."
+        }
+      ]
+    },
+    {
+      "file": "coders/bmp.c [WriteBMPImage-C]",
+      "chars": 4514,
+      "elapsed_s": 275.0,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Heap buffer overflow due to unchecked consistency between allocation size and write size",
+          "line_start": 2106,
+          "confidence": 0.85,
+          "description": "The buffer 'pixels' is allocated with size 'bmp_info.image_size' and zeroed with memset(pixels,0,(size_t)bmp_info.image_size). However, the actual data written to the buffer is determined by 'bytes_per_line * image->rows' across all bit-depth cases (1, 4, 8, 16). If bmp_info.image_size is smaller than bytes_per_line * image->rows — which can occur due to an integer overflow in the image_size calculation (e.g., when both values are large and their product overflows a 32-bit unsigned int, a common issue since BMP image_size is a 32-bit field) — the subsequent *q++ writes will overflow the heap buffer. There is no bounds check validating that q remains within the allocated buffer.",
+          "poc": "Craft a BMP image with very large dimensions (e.g., columns and rows such that bytes_per_line * rows overflows a 32-bit integer). When ImageMagick writes this image as BMP, the image_size calculation wraps to a small value, a small buffer is allocated, but the write loops iterate over the full row/column count, causing a heap buffer overflow. For example, with bits_per_pixel=8, columns=0x40000000 and rows=0x4, bytes_per_line=0x40000000, image_size would overflow 32-bit to 0, allocating a tiny buffer while the write loop attempts to write 0x100000000 bytes."
+        },
+        {
+          "severity": "high",
+          "title": "Integer overflow in row offset calculation leading to out-of-bounds write",
+          "line_start": 2120,
+          "confidence": 0.75,
+          "description": "The row offset calculation 'q=pixels+((ssize_t) image->rows-y-1)*(ssize_t) bytes_per_line' appears in every case (1, 4, 8, 16). On 32-bit platforms where ssize_t is 32 bits, if image->rows and bytes_per_line are both sufficiently large, their product can overflow the 32-bit ssize_t, causing q to point to an incorrect location within (or outside) the pixels buffer. This leads to out-of-bounds writes via subsequent *q++ operations. Even on 64-bit platforms, if bytes_per_line itself was computed with an integer overflow (e.g., as a 32-bit value), the offset calculation would be wrong.",
+          "poc": "On a 32-bit build, provide an image with rows=65536 and bytes_per_line=65536 (e.g., 65536 columns at 8bpp). The product 65536*65536=0x100000000 overflows a 32-bit ssize_t to 0, causing q to point to the start of the buffer instead of the correct row offset, corrupting the heap."
+        },
+        {
+          "severity": "low",
+          "title": "Misleading comment and potential logic error in 4-bit case",
+          "line_start": 2158,
+          "confidence": 0.9,
+          "description": "The case 4 (4 bits per pixel) code block has a comment stating 'Convert PseudoClass image to a BMP monochrome image' which is incorrect — it should say '16-color image' or similar. While this is primarily a documentation issue, it indicates the code may not have been carefully reviewed for correctness in this path. The same x++ pattern after partial nibble writes as in the 1-bit case is present, which while not directly exploitable (since offset is recalculated independently), suggests copy-paste programming that could mask deeper logic errors.",
+          "poc": "N/A - this is a code quality issue that may indicate insufficient review of the 4-bit encoding path."
+        },
+        {
+          "severity": "high",
+          "title": "Unbounded write without per-row bounds validation",
+          "line_start": 2120,
+          "confidence": 0.8,
+          "description": "In all bit-depth cases, the code calculates the row start pointer q and then writes data via *q++ without any bounds checking against the end of the pixels buffer. Specifically, there is no check that q < pixels + bmp_info.image_size before each write. If any row offset calculation is incorrect (due to integer overflow, miscalculated bytes_per_line, or inconsistent bmp_info.image_size), the writes will silently overflow the heap buffer. A defensive check such as verifying q remains within bounds after each row would mitigate this.",
+          "poc": "Provide a crafted image where bytes_per_line is larger than expected relative to bmp_info.image_size (e.g., due to an inconsistency in how these values are computed from image dimensions). The write loops will write past the end of the allocated buffer."
+        }
+      ]
+    },
+    {
+      "file": "coders/bmp.c [WriteBMPImage-D]",
+      "chars": 4349,
+      "elapsed_s": 219.0,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "medium",
+          "title": "Missing padding zero-initialization in 32-bit BMP write path",
+          "line_start": 2326,
+          "confidence": 0.75,
+          "description": "The 32-bit (ARGB8888) BMP writing case does not zero-pad the row buffer up to `bytes_per_line`, unlike the 16-bit case (line ~2293: `for (x=2L*...; x < bytes_per_line; x++) *q++=0x00;`) and the 24-bit case (line ~2321: `for (x=3L*...; x < bytes_per_line; x++) *q++=0x00;`). If `bytes_per_line` exceeds `4 * image->columns` for any reason (e.g., a manipulated BMP header value, an upstream integer overflow in the bytes_per_line calculation, or a non-standard alignment requirement), uninitialized heap data remaining in the `pixels` buffer will be written to the output BMP file, leaking memory contents to disk or to a consumer of the output image.",
+          "poc": "Craft an image where the bytes_per_line calculation for a 32-bit BMP yields a value greater than 4*columns (e.g., by manipulating image metadata or exploiting an upstream integer overflow in bytes_per_line). Write the image as BMP with bits_per_pixel=32. The output file will contain heap data in the row padding gaps. Alternatively, if the pixels buffer was previously used for a larger image, residual data from the prior allocation will be emitted."
+        },
+        {
+          "severity": "high",
+          "title": "Heap buffer overflow via unchecked pixel data write against bytes_per_line",
+          "line_start": 2250,
+          "confidence": 0.65,
+          "description": "In all three bit-depth cases (16, 24, 32), the code writes pixel data based on `image->columns` without validating that the bytes written fit within `bytes_per_line` or the allocated `pixels` buffer. The row pointer is computed as `q = pixels + (rows-y-1) * bytes_per_line`, and then pixel data is written sequentially. If `bytes_per_line` is smaller than the actual pixel data size per row (e.g., `2*columns` for 16-bit, `3*columns` for 24-bit, `4*columns` for 32-bit) due to an integer overflow in the bytes_per_line calculation upstream, the pixel writing loop will overflow into adjacent rows or past the buffer end. Similarly, the padding loops (`for (x=2L*columns; x < bytes_per_line; x++) *q++=0x00`) will write out of bounds if `bytes_per_line` exceeds the allocated row size. No bounds checking is performed between the write operations and the buffer allocation.",
+          "poc": "Provide an image with extremely large width (e.g., width > 2^30 on a 32-bit build) such that the bytes_per_line calculation overflows. For example, with bits_per_pixel=16 and width=0x40000001, `2*width = 0x80000002` overflows a signed 32-bit integer to a negative value, causing bytes_per_line to be computed incorrectly. The pixel writing loop iterates `width` times writing 2 bytes each, far exceeding the undersized buffer. On 64-bit systems, a similar overflow could be triggered if intermediate calculations use 32-bit arithmetic before promotion to 64-bit."
+        },
+        {
+          "severity": "low",
+          "title": "Undefined behavior via potentially unaligned memory write in 16-bit pixel path",
+          "line_start": 2276,
+          "confidence": 0.85,
+          "description": "The 16-bit pixel writing code uses `*((unsigned short *) q) = pixel;` to write a 2-byte value. If `q` is not aligned to a 2-byte boundary (which can happen if `bytes_per_line` is odd, or if the buffer start address is odd), this constitutes undefined behavior in C. On architectures that enforce alignment (e.g., some ARM processors), this will cause a bus error/crash. On x86, it works but is still technically UB. The subsequent `q += 2` preserves any misalignment. This could be triggered if the `pixels` buffer allocation or the row offset calculation produces an odd address.",
+          "poc": "Craft a BMP image where bytes_per_line is odd (e.g., 16-bit with width that produces an odd bytes_per_line after alignment calculation, or if alignment is incorrectly computed). On an alignment-enforcing architecture, the `*(unsigned short*)q` write will crash. On x86, the write succeeds but the behavior is undefined per the C standard."
+        }
+      ]
+    },
+    {
+      "file": "coders/bmp.c [WriteBMPImage-E]",
+      "chars": 4494,
+      "elapsed_s": 170.2,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Integer Overflow in RLE Buffer Allocation Leading to Heap Buffer Overflow",
+          "line_start": 2373,
+          "confidence": 0.75,
+          "description": "The expression `(size_t)(2*(bytes_per_line+2)+2)` passed as the first argument to AcquireVirtualMemory can experience integer overflow. If bytes_per_line is large enough (e.g., >= 0x7FFFFFFE on systems where the intermediate arithmetic is 32-bit), the computation `2*(bytes_per_line+2)+2` wraps around to a small value. For example, if bytes_per_line=0x7FFFFFFE, then bytes_per_line+2=0x80000000, 2*0x80000000=0 (32-bit overflow), and 0+2=2. This causes AcquireVirtualMemory to allocate a drastically undersized buffer. The subsequent call to EncodeImage() writes RLE-encoded data into this undersized buffer, resulting in a heap buffer overflow that can lead to arbitrary code execution.",
+          "poc": "Create an image with extremely large width (e.g., ~2 billion pixels for 8bpp) such that bytes_per_line overflows in the expression 2*(bytes_per_line+2)+2. Set compression to RLE. The WriteBMPImage function will allocate a tiny buffer but EncodeImage will write far beyond it. A crafted image with width=2147483646 and 8 bits per pixel with compression enabled would trigger this on 32-bit arithmetic systems."
+        },
+        {
+          "severity": "high",
+          "title": "Integer Truncation in bmp_info.image_size Assignment",
+          "line_start": 2381,
+          "confidence": 0.85,
+          "description": "The return value of EncodeImage() is cast to `unsigned int` when assigned to `bmp_info.image_size`. EncodeImage() returns a size_t (or similar wide type), which on 64-bit systems can exceed UINT_MAX (4,294,967,295). When the encoded data size exceeds 32 bits, the truncation produces an incorrect image_size. This corrupted value is then added to bmp_info.file_size, propagating the error. When the BMP header is written with this truncated size, the file metadata becomes inconsistent with the actual data. If downstream code or a BMP reader allocates memory based on the header's image_size and then reads the actual (larger) encoded data, it can cause a heap buffer overflow on the read side. Additionally, if the truncated value is smaller than the actual encoded data, subsequent write operations using bmp_info.image_size as a bound could read past the bmp_data buffer boundary.",
+          "poc": "Create a very large image (e.g., >4GB of RLE-encoded pixel data) with compression enabled. EncodeImage will return a size_t value > UINT_MAX. The cast to unsigned int truncates this, e.g., 0x100000001 becomes 0x1. The BMP file is written with image_size=1 but contains far more data, causing metadata inconsistency and potential OOB reads when the file is later processed."
+        },
+        {
+          "severity": "medium",
+          "title": "Integer Overflow in bmp_info.file_size with Profile Data",
+          "line_start": 2467,
+          "confidence": 0.7,
+          "description": "The addition `bmp_info.file_size += profile_size + profile_size_pad` can overflow the unsigned int type of bmp_info.file_size. If a large ICC profile is attached to the image, profile_size can be large enough that the sum wraps around. Since bmp_info.file_size is written to the BMP file header via WriteBlobLSBLong, the resulting file would contain an incorrect (wrapped) file size. This metadata corruption can cause BMP readers to misinterpret the file structure, potentially leading to out-of-bounds reads or other memory safety issues when the file is loaded. The earlier subtraction/addition pattern with bmp_info.image_size (lines 2380-2383) also contributes to file_size corruption when image_size itself is truncated.",
+          "poc": "Attach a large ICC profile (e.g., >2GB) to an image being saved as BMP. The profile_size + profile_size_pad addition to bmp_info.file_size will overflow the unsigned int, wrapping to a small value. The BMP header will contain an incorrect file_size, causing readers to misparse the file."
+        },
+        {
+          "severity": "low",
+          "title": "Potential Underflow in profile_data Offset Calculation",
+          "line_start": 2464,
+          "confidence": 0.5,
+          "description": "The calculation `profile_data = (MagickOffsetType) bmp_info.file_size - 14` can produce a negative value if bmp_info.file_size is less than 14 due to prior integer overflow or corruption. Since profile_data is of type MagickOffsetType (a signed type), a negative offset would be stored. If this offset is later used to seek within the file or calculate write positions, it could cause writes to incorrect file positions, potentially corrupting the BMP header or other critical file structures.",
+          "poc": "Craft an image where prior integer overflows in bmp_info.file_size cause it to be less than 14. Then attach a profile. The profile_data offset will be negative, potentially causing incorrect file positioning during write."
+        }
+      ]
+    },
+    {
+      "file": "coders/bmp.c [WriteBMPImage-F]",
+      "chars": 4558,
+      "elapsed_s": 67.8,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "medium",
+          "title": "Undefined Behavior: Negative Float to Unsigned Integer Conversion in Chromaticity Z-Component Calculation",
+          "line_start": 2530,
+          "confidence": 0.92,
+          "description": "The chromaticity primary values (x, y) are individually bounds-checked to be in (0.0, 1.0], but their SUM is not validated. In CIE color spaces, the z-component is computed as `1.0 - (x + y)`. When x + y > 1.0 (which is possible since each can be up to 1.0 independently), this expression becomes negative. The negative double is then multiplied by 0x40000000 and cast to `unsigned int`, which is undefined behavior per C11 §6.3.1.4. On common platforms (x86), this typically wraps to a large unsigned value, producing a malformed BMP output. Under optimization, compilers may assume this UB cannot happen and elide subsequent code paths, potentially leading to unpredictable behavior.",
+          "poc": "Create an image with chromaticity red_primary.x = 0.8, red_primary.y = 0.8 (sum = 1.6 > 1.0). When WriteBMPImage processes this for a V4 BMP (type > 3 with alpha or color info), the expression (1.0 - (0.8 + 0.8)) * 0x40000000 = (-0.6) * 1073741824 = -644245094.4, which is cast to unsigned int — undefined behavior. Same applies to green and blue primaries."
+        },
+        {
+          "severity": "low",
+          "title": "Incomplete Chromaticity Sum Validation Leading to Malformed BMP Output",
+          "line_start": 2508,
+          "confidence": 0.88,
+          "description": "The bounds-checking logic validates each chromaticity component independently (x and y separately against [0,1]), but does not validate that x + y <= 1.0 as required by CIE 1931 color space constraints. This allows writing BMP files with invalid chromaticity endpoints where the computed z-component (1 - x - y) is negative. While the individual checks prevent NaN and out-of-range single values, the missing sum constraint permits semantically invalid color data that can cause downstream parsing issues in BMP consumers.",
+          "poc": "Set image->chromaticity.red_primary = {0.9, 0.9}, green_primary = {0.8, 0.8}, blue_primary = {0.7, 0.7}. Each component passes the isgreater/isgreater checks individually, but each pair sums to > 1.0, producing negative z-components that trigger UB when cast to unsigned int."
+        },
+        {
+          "severity": "low",
+          "title": "Potential Integer Truncation in Signed Width/Height Cast",
+          "line_start": 2485,
+          "confidence": 0.65,
+          "description": "bmp_info.width and bmp_info.height are cast to (signed int) before being written. If the underlying storage type of these fields is larger than int (e.g., ssize_t or magick_int64_t), values exceeding INT_MAX or below INT_MIN would undergo implementation-defined or undefined behavior during the cast. This could produce a BMP header with an incorrect image dimension, potentially causing issues in consumers that trust the header dimensions for memory allocation.",
+          "poc": "If bmp_info.width is set to a value > 2147483647 (INT_MAX), the cast (signed int) bmp_info.width produces implementation-defined behavior, potentially writing a negative width into the BMP header, which some parsers interpret as a special encoding or use for buffer size calculations."
+        }
+      ]
+    },
+    {
+      "file": "coders/bmp.c [WriteBMPImage-G]",
+      "chars": 4125,
+      "elapsed_s": 159.8,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Heap buffer overflow in BMP colormap writing due to loop bound mismatch",
+          "line_start": 2610,
+          "confidence": 0.75,
+          "description": "The buffer `bmp_colormap` is allocated with `(1UL << bmp_info.bits_per_pixel) * 4` bytes, but the first colormap-writing loop iterates `MagickMin(image->colors, bmp_info.number_colors)` times, which is independent of the allocation size. If `MagickMin(image->colors, bmp_info.number_colors)` exceeds `1UL << bmp_info.bits_per_pixel`, the loop writes past the end of the heap buffer. The second loop correctly bounds itself to `1UL << bmp_info.bits_per_pixel`, but the first loop has no such protection. This can be triggered if `bmp_info.number_colors` or `image->colors` is inconsistent with `bmp_info.bits_per_pixel` (e.g., due to integer overflow in the shift or a logic error in setting these fields). Each iteration writes 3-4 bytes, so the overflow can be substantial.",
+          "poc": "Craft an image where image->storage_class == PseudoClass, image->colors is large (e.g., 256), but bmp_info.bits_per_pixel is set to a small value (e.g., 4, giving allocation for only 16 entries). This causes the first loop to write 256*4=1024 bytes into a 16*4=64 byte buffer. This could be achieved by manipulating image properties to create an inconsistency between the number of colormap entries and bits_per_pixel, or by triggering an integer overflow in the computation of bits_per_pixel."
+        },
+        {
+          "severity": "medium",
+          "title": "Signed integer overflow in WriteBlob size calculation for colormap",
+          "line_start": 2620,
+          "confidence": 0.6,
+          "description": "The WriteBlob calls for the colormap use `1L << bmp_info.bits_per_pixel` (signed long), while the allocation uses `1UL << bmp_info.bits_per_pixel` (unsigned long). If `bmp_info.bits_per_pixel` is large enough (>= 31 on 32-bit or >= 63 on 64-bit), the signed left shift produces undefined behavior, potentially resulting in a negative value. When cast to `size_t`, this becomes a very large number, causing WriteBlob to read far past the allocated buffer. While typical PseudoClass BMP images have small bits_per_pixel values, this signed/unsigned inconsistency is a latent vulnerability that could be triggered if bits_per_pixel is not properly validated upstream.",
+          "poc": "If bmp_info.bits_per_pixel were set to 31 on a 32-bit system: `1L << 31` = INT_MIN (-2147483648), `3 * (1L << 31)` = signed overflow (UB), cast to size_t yields a huge value. WriteBlob would then attempt to read gigabytes past the buffer, causing a crash or information leak."
+        },
+        {
+          "severity": "low",
+          "title": "Potential out-of-bounds read in profile padding write",
+          "line_start": 2655,
+          "confidence": 0.4,
+          "description": "The padding write `WriteBlob(image, (size_t) profile_size_pad, \"\\0\\0\\0\")` uses a 4-byte string literal (3 null bytes + terminator). If `profile_size_pad` could exceed 3 due to an integer overflow or incorrect computation, WriteBlob would read past the string literal. While 4-byte alignment padding should be at most 3, a corrupted `profile_size_pad` value could trigger this.",
+          "poc": "If profile_size_pad is computed with an integer overflow and becomes > 3 (e.g., 4 or more), WriteBlob reads past the 4-byte string literal, leaking stack data into the output file."
+        }
+      ]
+    },
+    {
+      "file": "coders/psd.c [ReadPSDLayer]",
+      "chars": 3454,
+      "elapsed_s": 77.1,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Unvalidated PSD compression type from file",
+          "line_start": 1639,
+          "confidence": 0.8,
+          "description": "The compression type is read directly from the PSD file via ReadBlobShort() and cast to PSDCompressionType without any validation that the value corresponds to a valid enum member. An attacker can craft a PSD file with an arbitrary/invalid compression type value. This untrusted value is passed to ConvertPSDCompression() and then to ReadPSDChannel(), which may not handle unexpected compression types, potentially leading to buffer overflows, out-of-bounds reads, or other undefined behavior during channel data decompression.",
+          "poc": "Craft a PSD file where the per-channel compression field (2 bytes) contains a value not in the PSDCompressionType enum (e.g., 0xFFFF). When ReadPSDLayer processes this layer, ReadBlobShort returns 0xFFFF, which is cast to PSDCompressionType and passed to ReadPSDChannel. If ReadPSDChannel's switch/case doesn't handle this value, it may fall through to default processing with incorrect assumptions about data layout, causing heap buffer overflow during pixel data reading."
+        },
+        {
+          "severity": "medium",
+          "title": "Missing EOF/error check on ReadBlobShort for compression type",
+          "line_start": 1639,
+          "confidence": 0.75,
+          "description": "ReadBlobShort() can return 0 or an undefined value when the blob is exhausted or encounters an error (e.g., truncated file). The return value is not checked for EOF or error conditions before being cast to PSDCompressionType and used. If the file is truncated at this point, the compression variable would be 0 (Raw), causing ReadPSDChannel to attempt reading raw pixel data that doesn't exist, potentially reading beyond buffer boundaries or processing garbage data.",
+          "poc": "Create a PSD file that is truncated immediately before the per-channel compression type field for one of the layer channels. ReadBlobShort returns 0 on EOF, which maps to Raw compression. ReadPSDChannel then attempts to read raw uncompressed pixel data from the exhausted stream, potentially causing reads past the end of allocated buffers or processing uninitialized memory."
+        },
+        {
+          "severity": "high",
+          "title": "Potential out-of-bounds channel access via unvalidated channel count",
+          "line_start": 1633,
+          "confidence": 0.65,
+          "description": "The loop iterates layer_info->channels times, where layer_info->channels is derived from the PSD file (attacker-controlled). While SetPSDMetaChannels() is called beforehand, if it fails to properly validate or cap the channel count against the actual image dimensions or allocated resources, the loop will call ReadPSDChannel with out-of-bounds channel indices. ReadPSDChannel uses the channel index to determine which pixel channel to write to, so an excessive channel count could cause writes beyond allocated image channel buffers, leading to heap corruption.",
+          "poc": "Craft a PSD file where the layer record specifies an abnormally large number of channels (e.g., 255) but the actual image only supports a small number (e.g., 4 for RGBA). If SetPSDMetaChannels doesn't reject or cap this value, the loop will call ReadPSDChannel with channel indices 4 through 254, each of which reads a compression type and channel data, potentially writing pixel data beyond the bounds of the image's channel storage."
+        },
+        {
+          "severity": "medium",
+          "title": "Unchecked SetPSDMetaChannels return status allows partial setup",
+          "line_start": 1630,
+          "confidence": 0.5,
+          "description": "While the return value of SetPSDMetaChannels is checked (status), if SetPSDMetaChannels partially succeeds (e.g., allocates some but not all meta channels before encountering an error), the subsequent loop may still attempt to read channel data for channels that were not properly initialized. The function may return MagickFalse but leave the image in an inconsistent state where some channels are allocated and others are not, leading to potential null pointer dereferences or use of uninitialized memory in ReadPSDChannel.",
+          "poc": "Craft a PSD file with a layer that requests a large number of channels that causes SetPSDMetaChannels to fail partway through allocation (e.g., due to memory pressure). The function returns MagickFalse, but the image may have partially allocated channel structures. If the error handling path doesn't properly clean up, subsequent operations on the layer image could access uninitialized or partially set up channel data."
+        }
+      ]
+    },
+    {
+      "file": "coders/psd.c [ReadPSDImage-A]",
+      "chars": 4224,
+      "elapsed_s": 174.5,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Missing dimension validation for PSD version 2 (PSB) files",
+          "line_start": 2427,
+          "confidence": 0.85,
+          "description": "The code validates that PSD version 1 files have dimensions <= 30000, but performs NO validation for version 2 (PSB) files. Per the PSD specification, version 2 files support dimensions up to 300,000 x 300,000, but the code accepts any 32-bit value. A crafted PSB file with extremely large dimensions (e.g., 0xFFFFFFFF x 0xFFFFFFFF) could bypass this check. While SetImageExtent() provides a secondary check against resource limits, the missing primary validation violates defense-in-depth and could lead to integer overflows in downstream calculations that use psd_info.rows/columns before or after SetImageExtent, or cause denial-of-service via excessive memory allocation attempts.",
+          "poc": "Craft a PSD file with signature '8BPS', version=2, reserved=0x000000000000, channels=1, rows=0xFFFFFFFF, columns=0xFFFFFFFF, depth=8, mode=3 (RGB). The dimension check is skipped because version != 1, allowing the extreme dimensions to pass through to SetImageExtent and subsequent processing."
+        },
+        {
+          "severity": "medium",
+          "title": "No validation of color mode value against expected range",
+          "line_start": 2435,
+          "confidence": 0.75,
+          "description": "psd_info.mode is read as a 16-bit unsigned short from the file but is never validated to be within the range of valid PSD color modes (0-7 typically: Bitmap, Grayscale, Indexed, RGB, CMYK, Multichannel, Duotone, Lab). The switch statement handles specific modes but no default error case is shown. An unrecognized mode value would fall through the switch without setting min_channels or the colorspace appropriately, leaving psd_info.min_channels at its default of 3 and the image in an undefined colorspace state. This could lead to incorrect channel processing, buffer overreads when reading channel data (expecting 3+ channels but file provides fewer), or type confusion in downstream code.",
+          "poc": "Craft a PSD file with mode=0xFFFF (65535). The switch statement won't match any case, min_channels remains 3, and colorspace remains unspecified. Subsequent channel reading code may attempt to read 3+ channels from a file that doesn't provide them, causing out-of-bounds reads."
+        },
+        {
+          "severity": "medium",
+          "title": "Missing validation that channel count is appropriate for color mode",
+          "line_start": 2423,
+          "confidence": 0.7,
+          "description": "While the total channel count is validated against MaxPSDChannels, there is no validation that the channel count is appropriate for the specified color mode. For example, RGB mode (mode=3) should have at least 3 channels, but the code accepts 1 channel with RGB mode. Similarly, CMYK mode should have at least 4 channels. The only mode-specific channel check is for IndexedMode (channels > 3 is rejected). This mismatch between channel count and color mode could cause buffer overreads when the code attempts to read more channels than exist in the file, or could cause incorrect pixel data interpretation.",
+          "poc": "Craft a PSD file with mode=3 (RGB), channels=1, rows=100, columns=100, depth=8. The min_channels will be set to 3 (default), but only 1 channel exists. When the code later attempts to read 3 channels of pixel data, it will read beyond the available data, potentially causing a crash or information disclosure."
+        },
+        {
+          "severity": "low",
+          "title": "Ignored return value on reserved field read",
+          "line_start": 2422,
+          "confidence": 0.6,
+          "description": "The return value of ReadBlob() when reading the 6-byte reserved field is explicitly cast to (void) and ignored. If the read fails or returns fewer than 6 bytes, the psd_info.reserved buffer may contain uninitialized or stale data. While the reserved field is typically not used in processing, if any code path later reads from psd_info.reserved, it could use uninitialized data. Additionally, the missing error check means a truncated file at this point would not be detected until the EOFBlob check later, potentially allowing processing to continue with partially-read header data.",
+          "poc": "Provide a PSD file that is truncated immediately after the version field (only 4+2=6 bytes total). The ReadBlob for reserved will fail, but the error is ignored. Subsequent reads may return garbage or default values, and the EOFBlob check at line ~2443 may not catch all cases if the file has just enough data to pass individual reads."
+        }
+      ]
+    },
+    {
+      "file": "coders/psd.c [ReadPSDImage-B]",
+      "chars": 4376,
+      "elapsed_s": 326.0,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "coders/psd.c [ReadPSDImage-C]",
+      "chars": 4304,
+      "elapsed_s": 327.6,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Integer overflow in SeekBlob offset calculation",
+          "line_start": 2643,
+          "confidence": 0.75,
+          "description": "The expression `offset+(MagickOffsetType) length` in the SeekBlob call can overflow. If `length` is an unsigned type (e.g., size_t) with a value exceeding SSIZE_MAX, the cast to `MagickOffsetType` (signed) produces a negative value. The resulting sum could be negative or unexpectedly small, causing SeekBlob to position the file pointer at an incorrect location. Subsequent parsing (ReadPSDMergedImage, ReadPSDLayersInternal) would then interpret file data incorrectly, potentially leading to heap buffer overflows, out-of-bounds reads, or other memory corruption in downstream parsing routines.",
+          "poc": "Craft a PSD file where the layer and mask information length field is set to a value near SIZE_MAX (e.g., 0xFFFFFFFF on 32-bit or 0x7FFFFFFFFFFFFFFF+1 on 64-bit). When cast to MagickOffsetType (signed), this becomes negative, causing the seek target offset+length to wrap to an incorrect position. The subsequent ReadPSDMergedImage call will then parse data from the wrong file offset, potentially interpreting attacker-controlled data as image dimensions, channel counts, or buffer sizes."
+        },
+        {
+          "severity": "medium",
+          "title": "Unchecked SeekBlob return value leading to incorrect file position",
+          "line_start": 2643,
+          "confidence": 0.8,
+          "description": "The return value of SeekBlob is explicitly discarded with `(void)`. If SeekBlob fails (e.g., seeking beyond file bounds or to an invalid offset due to the integer overflow above), the file position is undefined. Subsequent read operations (ReadPSDMergedImage at line 2670, ReadPSDLayersInternal at line 2676) will operate on unexpected data, potentially causing misinterpretation of file content as image metadata, leading to buffer overflows or crashes.",
+          "poc": "Provide a PSD file with a layer/mask information length that causes SeekBlob to seek past the end of file. Since the return value is not checked, execution continues with the file pointer at EOF or an unexpected position. ReadPSDMergedImage then reads garbage/zero data, potentially causing uninitialized memory use or incorrect buffer allocations."
+        },
+        {
+          "severity": "info",
+          "title": "Potential use-after-free with icc_profile pointer during profile replication",
+          "line_start": 2748,
+          "confidence": 0.45,
+          "description": "The `icc_profile` pointer is obtained from `image` via `GetImageProfile(image,\"icc\")` and then used in a loop calling `SetImageProfile` on subsequent images. If `image` and any `next` image share internal profile storage through copy-on-write semantics, calling `SetImageProfile` on `next` could trigger a COW detachment that reallocates `image`'s profile map storage, invalidating the `icc_profile` pointer. Subsequent iterations would then dereference freed memory.",
+          "poc": "Craft a PSD file that produces multiple output images where image->next shares profile storage with image (via COW). The icc_profile pointer obtained before the loop becomes dangling after SetImageProfile triggers COW detachment on the first iteration, causing use-after-free on subsequent iterations."
+        },
+        {
+          "severity": "medium",
+          "title": "Stale image_list_length after ReadPSDMergedImage may bypass safety checks",
+          "line_start": 2669,
+          "confidence": 0.5,
+          "description": "The variable `image_list_length` is computed at line 2668 before `ReadPSDMergedImage` is called at line 2670. If `ReadPSDMergedImage` modifies the image list (e.g., adds or removes images), `image_list_length` becomes stale. The stale value is then used at line 2680 in the condition `(psd_info.has_merged_image == MagickFalse) && (image_list_length == 1) && (length != 0)`. An incorrect `image_list_length == 1` evaluation when the actual list length differs could cause `ReadPSDLayersInternal` to be called unexpectedly or skipped, potentially leading to incorrect image processing or bypassing of the InsufficientImageDataInFile safety check at line 2687.",
+          "poc": "Craft a PSD file where ReadPSDMergedImage partially succeeds but modifies the image list length. If image_list_length was 1 before the call but the actual list grows, the condition at line 2680 evaluates incorrectly, potentially skipping ReadPSDLayersInternal or entering unexpected code paths."
+        }
+      ]
+    },
+    {
+      "file": "coders/tiff.c [ReadTIFFImage-A]",
+      "chars": 3815,
+      "elapsed_s": 228.8,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "medium",
+          "title": "Integer overflow in ssize_t cast within subimage loop",
+          "line_start": 1295,
+          "confidence": 0.75,
+          "description": "The for-loop condition `i < (ssize_t) image_info->scene` casts a `size_t` value to `ssize_t`. If `image_info->scene` exceeds `SSIZE_MAX` (e.g., 0x80000000 on 32-bit), the cast produces a negative value, causing the loop to not execute despite the guard check `image_info->scene < (size_t) TIFFNumberOfDirectories(tiff)` passing. This logic bypass means the code skips subimage navigation entirely and processes the wrong TIFF frame, potentially leading to incorrect output or processing of unintended data.",
+          "poc": "Craft a TIFF file and request a subimage index >= SSIZE_MAX (e.g., on 32-bit: image.tif[2147483648]). The guard check passes if TIFFNumberOfDirectories returns a value > 2^31, but the loop body never executes, causing the first directory to be processed instead of the requested subimage."
+        },
+        {
+          "severity": "medium",
+          "title": "Denial of Service via unbounded image allocation in subimage loop",
+          "line_start": 1293,
+          "confidence": 0.8,
+          "description": "The subimage handling loop calls `AcquireNextImage()` for each iteration up to `image_info->scene` times, bounded only by `TIFFNumberOfDirectories()`. A crafted TIFF file with a very large number of IFD entries (e.g., chained directories) can cause `TIFFNumberOfDirectories()` to return a large value, leading to excessive memory allocation and potential OOM crash. Each `AcquireNextImage` allocates a full Image structure with associated resources.",
+          "poc": "Create a TIFF file with thousands of chained IFD directories. Request subimage processing (e.g., image.tif[50000]). The loop will allocate ~50000 Image structures, exhausting available memory."
+        },
+        {
+          "severity": "high",
+          "title": "Use of uninitialized stack variables (height, width, rows_per_strip)",
+          "line_start": 1233,
+          "confidence": 0.7,
+          "description": "The variables `height`, `width`, and `rows_per_strip` are declared as `uint32` but never initialized to default values. If subsequent `TIFFGetField()` calls fail to populate these variables (e.g., due to a malformed TIFF missing required tags), they will contain stack garbage. These values are typically used later in the function to calculate buffer sizes, allocate memory, and control loop bounds, potentially leading to buffer overflows, out-of-bounds reads/writes, or information disclosure of stack contents.",
+          "poc": "Craft a minimal TIFF file that is valid enough to pass initial parsing but missing the ImageWidth, ImageLength, or RowsPerStrip tags. The corresponding variables will retain stack garbage values, which may be used as dimensions for memory allocation and pixel processing loops in subsequent code."
+        },
+        {
+          "severity": "medium",
+          "title": "Potential infinite loop in TIFFNumberOfDirectories with circular IFD chains",
+          "line_start": 1285,
+          "confidence": 0.65,
+          "description": "The call to `TIFFNumberOfDirectories(tiff)` on line 1285 walks the IFD chain to count directories. A malformed TIFF with circular IFD references (where a later directory's `next IFD` pointer points back to an earlier one) can cause this function to loop indefinitely or return an extremely large value. This leads to either a hang (infinite loop in libtiff) or the memory exhaustion issue described above.",
+          "poc": "Craft a TIFF file where IFD #0's next pointer points to IFD #1, and IFD #1's next pointer points back to IFD #0. TIFFNumberOfDirectories will loop infinitely, hanging the process."
+        }
+      ]
+    },
+    {
+      "file": "coders/tiff.c [ReadTIFFImage-A]",
+      "chars": 3815,
+      "elapsed_s": 165.9,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "medium",
+          "title": "Signed integer overflow in scene loop via size_t to ssize_t cast",
+          "line_start": 1297,
+          "confidence": 0.7,
+          "description": "The loop condition `i < (ssize_t) image_info->scene` casts a `size_t` (unsigned) value to `ssize_t` (signed). If `image_info->scene` exceeds `SSIZE_MAX` (e.g., >= 2^31 on 32-bit or >= 2^63 on 64-bit), this cast invokes undefined behavior per the C standard. On typical implementations, the value wraps to a negative number, causing the loop to not execute when it should (logic bypass). Conversely, a compiler exploiting UB could optimize away the check entirely, potentially leading to unexpected control flow. The outer guard `image_info->scene < (size_t) TIFFNumberOfDirectories(tiff)` limits practical exploitation since TIFFNumberOfDirectories typically returns a small value, but on systems where tdir_t is uint32 and the TIFF is crafted to report many directories, the cast could produce a negative loop bound, skipping directory reads and leaving the image in an inconsistent state.",
+          "poc": "Craft a TIFF file where TIFFNumberOfDirectories returns a value > SSIZE_MAX (requires uint32 tdir_t and circular/manipulated directory chain). Set image_info->scene to a value between SSIZE_MAX and TIFFNumberOfDirectories result. The cast (ssize_t)image_info->scene wraps negative, loop body is skipped, but code proceeds as if directories were read."
+        },
+        {
+          "severity": "medium",
+          "title": "Resource exhaustion via unbounded scene iteration",
+          "line_start": 1293,
+          "confidence": 0.85,
+          "description": "The for-loop iterates up to `image_info->scene` times, calling `AcquireNextImage()` on each iteration. Each call allocates a new Image structure (which includes pixel caches, profiles, and other metadata). A user-controlled scene index (e.g., via filename `image.tif[65534]`) combined with a TIFF file reporting many directories via `TIFFNumberOfDirectories()` can cause allocation of tens of thousands of Image structures, exhausting available memory. There is no upper bound check on `image_info->scene` beyond the TIFFNumberOfDirectories comparison, and no incremental resource limit enforcement within the loop.",
+          "poc": "Create a TIFF with 65535 IFD entries (maximum for uint16 tdir_t). Request scene 65534 via filename 'image.tif[65534]'. The loop will call AcquireNextImage 65534 times, each allocating significant memory, leading to OOM denial of service."
+        },
+        {
+          "severity": "low",
+          "title": "Incomplete resource cleanup in ThrowTIFFException macro",
+          "line_start": 1171,
+          "confidence": 0.6,
+          "description": "The ThrowTIFFException macro only cleans up `pixel_info` and `quantum_info` before calling ThrowReaderException. Other resources that may have been allocated earlier in the function (such as `sample_info` obtained via TIFFGetField for TIFFTAG_EXTRASAMPLES, or `chromaticity` from TIFFTAG_PRIMARYCHROMATICITIES) are not freed. While `sample_info` is managed by libtiff internally, `chromaticity` is a user-allocated float pointer declared at line 1180 that could leak if the macro is invoked after chromaticity is set. This is a memory leak that could be exploited for resource exhaustion in a loop processing many malformed TIFF images.",
+          "poc": "Craft a TIFF that sets chromaticity tags successfully but triggers an error shortly after (e.g., invalid bits_per_sample). The ThrowTIFFException macro will be invoked, leaking the chromaticity buffer allocated by TIFFGetField."
+        },
+        {
+          "severity": "medium",
+          "title": "Potential infinite loop in TIFFNumberOfDirectories with circular IFD chain",
+          "line_start": 1289,
+          "confidence": 0.5,
+          "description": "The call to `TIFFNumberOfDirectories(tiff)` at line 1289 iterates through all IFD entries by following next-directory pointers. A crafted TIFF with a circular IFD chain (where a directory's next IFD offset points back to a previous directory) can cause this function to loop indefinitely or return an extremely large count. While modern libtiff versions have some protections, older versions or specific configurations may be vulnerable. If TIFFNumberOfDirectories returns an artificially large value, the subsequent comparison `image_info->scene < (size_t) TIFFNumberOfDirectories(tiff)` would pass for large scene values, enabling the resource exhaustion described in finding #2.",
+          "poc": "Craft a TIFF where IFD #0's next IFD offset points to IFD #0 itself (offset 0 or the offset of IFD #0). TIFFNumberOfDirectories will loop indefinitely (older libtiff) or return a very large count, bypassing the scene bounds check and enabling massive memory allocation in the scene loop."
+        }
+      ]
+    },
+    {
+      "file": "coders/tiff.c [ReadTIFFImage-B]",
+      "chars": 4469,
+      "elapsed_s": 102.9,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Missing validation of width/height leading to integer overflow in buffer calculations",
+          "line_start": 1318,
+          "confidence": 0.85,
+          "description": "The width and height values read from the TIFF file (via TIFFGetField for TIFFTAG_IMAGEWIDTH and TIFFTAG_IMAGELENGTH) are assigned directly to image->columns and image->rows without any bounds checking. A crafted TIFF file can specify extremely large dimensions (up to 2^32-1 for uint32). When downstream code computes buffer sizes as width * height * samples_per_pixel * (bits_per_sample/8), this multiplication can silently overflow on 32-bit systems (or even 64-bit with sufficiently large values), resulting in a much smaller allocation than expected. Subsequent image data reads would then write past the allocated buffer, causing a heap buffer overflow. This is a classic integer-overflow-to-heap-overflow pattern in image parsers.",
+          "poc": "Craft a TIFF file with IMAGEWIDTH=65536 and IMAGELENGTH=65536 and samples_per_pixel=4 and bits_per_sample=8. The required buffer is 65536*65536*4 = 16GB, but on a 32-bit system the multiplication overflows, resulting in a small allocation. The subsequent pixel data write overflows the heap. Alternatively, use values like width=0x40000000, height=0x40000000 which overflow to a small value when multiplied."
+        },
+        {
+          "severity": "high",
+          "title": "Missing zero-dimension check for width and height",
+          "line_start": 1318,
+          "confidence": 0.8,
+          "description": "The code does not validate that width and height are non-zero before assigning them to image->columns and image->rows. A TIFF file with IMAGEWIDTH=0 or IMAGELENGTH=0 will result in zero-dimension image, which can cause division-by-zero, zero-size heap allocations (which may return a non-NULL dangling pointer), or other undefined behavior in downstream image processing code that assumes positive dimensions.",
+          "poc": "Craft a TIFF file with TIFFTAG_IMAGEWIDTH set to 0 and TIFFTAG_IMAGELENGTH set to 1 (or vice versa). The image->columns will be set to 0, and subsequent code that divides by columns or allocates rows*columns bytes will encounter undefined behavior."
+        },
+        {
+          "severity": "medium",
+          "title": "Depth set to 64 for IEEEFP without downstream compatibility check",
+          "line_start": 1332,
+          "confidence": 0.6,
+          "description": "When sample_format is SAMPLEFORMAT_IEEEFP and bits_per_sample is 64, the validation at lines 1332-1337 allows this combination, and image->depth is set to 64 at line 1427. However, much of the downstream ImageMagick processing pipeline assumes depth is at most 32 (or in some code paths, at most 16 or 8). Setting depth=64 can lead to buffer overflows in code that allocates based on depth<=32 assumptions, or incorrect pixel processing due to type confusion between integer and floating-point representations.",
+          "poc": "Craft a TIFF file with SAMPLEFORMAT=IEEEFP (value 3), BITSPERSAMPLE=64, and valid width/height. The image will have depth=64, which may overflow buffers in downstream quantum processing code that uses depth to compute pixel buffer sizes with the assumption depth<=32."
+        }
+      ]
+    },
+    {
+      "file": "coders/tiff.c [ReadTIFFImage-C]",
+      "chars": 4048,
+      "elapsed_s": 125.1,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "coders/tiff.c [ReadTIFFImage-D]",
+      "chars": 4588,
+      "elapsed_s": 171.9,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Heap Buffer Over-Read in TIFF Colormap Processing",
+          "line_start": 1593,
+          "confidence": 0.82,
+          "description": "When processing a TIFF image with PHOTOMETRIC_PALETTE, the code allocates an image colormap with `image->colors` entries (derived from `bits_per_sample` via `GetQuantumRange(bits_per_sample)+1`), then iterates over the TIFF-provided `red_colormap`, `green_colormap`, and `blue_colormap` arrays up to `image->colors` entries. However, there is no validation that the TIFF COLORMAP tag actually contains `image->colors` entries. A crafted TIFF file can declare a large `BitsPerSample` (e.g., 16, yielding 65536 expected entries) but provide a COLORMAP tag with far fewer entries. This causes out-of-bounds reads on the heap-allocated colormap arrays returned by libtiff's TIFFGetField, potentially leaking sensitive memory contents or causing a crash.",
+          "poc": "Craft a TIFF file with: BitsPerSample=16, PhotometricInterpretation=PALETTE, but a COLORMAP tag containing only 256 uint16 values per channel instead of the expected 65536. The code will iterate i from 0 to 65535, reading far beyond the actual colormap buffer. Using a tool like `tiffset` or a hex editor: 1) Create a valid palette TIFF with 8-bit colormap. 2) Modify the BitsPerSample tag from 8 to 16. 3) The COLORMAP tag still only has 256 entries per channel, but the code will attempt to read 65536 entries per channel."
+        },
+        {
+          "severity": "medium",
+          "title": "Floating-Point Precision Issue in Colormap Size Check",
+          "line_start": 1568,
+          "confidence": 0.6,
+          "description": "The check `pow(2.0,1.0*bits_per_sample) <= MaxColormapSize` uses floating-point arithmetic to determine if the colormap size is within bounds. The `pow()` function can produce imprecise results for certain inputs due to floating-point rounding. If `pow(2.0, bits_per_sample)` evaluates to a value slightly less than or equal to `MaxColormapSize` due to rounding, but the true integer value `1 << bits_per_sample` exceeds `MaxColormapSize`, the code would proceed to allocate an oversized colormap. This could lead to excessive memory consumption or, combined with the OOB read above, amplify the impact. The integer computation `(1U << bits_per_sample)` should be used instead.",
+          "poc": "On systems where MaxColormapSize is not a power of 2, craft a TIFF with bits_per_sample such that pow(2.0, bits_per_sample) rounds down to <= MaxColormapSize but the true value exceeds it. For standard MaxColormapSize=65536 this is not practically exploitable since 2^16=65536 is exactly representable, but custom builds with different MaxColormapSize values could be vulnerable."
+        },
+        {
+          "severity": "low",
+          "title": "Unchecked Return Value of SetImageColorspace",
+          "line_start": 1631,
+          "confidence": 0.55,
+          "description": "The return value of `SetImageColorspace(image,image->colorspace,exception)` is assigned to `status` but the subsequent check `status&=(MagickStatusType) ResetImagePixels(image,exception)` combines it with ResetImagePixels using bitwise AND. If SetImageColorspace fails but ResetImagePixels succeeds, the combined status could still appear successful (or vice versa), potentially leaving the image in an inconsistent colorspace state. This could lead to incorrect image processing or subtle memory corruption in downstream operations that assume the colorspace was properly set.",
+          "poc": "Provide a TIFF file with an invalid or unsupported colorspace value that causes SetImageColorspace to fail, while ResetImagePixels succeeds. The combined status check may pass, allowing processing to continue with an improperly initialized colorspace."
+        }
+      ]
+    },
+    {
+      "file": "coders/tiff.c [ReadTIFFImage-E]",
+      "chars": 4478,
+      "elapsed_s": 255.2,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Integer Overflow in number_pixels calculation (image->columns * rows_per_strip)",
+          "line_start": 1777,
+          "confidence": 0.85,
+          "description": "The calculation of `number_pixels` uses `MagickMax` with two arguments. The first argument explicitly casts `image->columns` to `MagickSizeType` (64-bit), but the second argument `image->columns * rows_per_strip` performs the multiplication without any cast. On 32-bit systems where `size_t` is 32-bit, this multiplication can overflow, producing a small value. Even on 64-bit systems, if both operands are sufficiently large (e.g., each near 2^32), the 64-bit product can overflow. The resulting undersized `number_pixels` is typically used to allocate buffers for reading image data, leading to a heap buffer overflow when the actual pixel data is read into the too-small buffer. The inconsistency between the first argument (cast to MagickSizeType) and the second (no cast) strongly suggests this is an oversight by the developer.",
+          "poc": "Craft a TIFF file with: image->columns = 0x10000 (65536), TIFFTAG_ROWSPERSTRIP = 0x10000 (65536), samples_per_pixel = 1, bits_per_sample = 1. On a 32-bit system, image->columns * rows_per_strip = 0x100000000 which overflows to 0 in 32-bit arithmetic. The first MagickMax argument would be 65536*1*1 = 65536, so number_pixels = 65536. However, the actual strip contains 65536*65536 = 4GB of pixel data, causing a massive heap buffer overflow when reading. On 64-bit systems, use columns near 2^33 and rows_per_strip near 2^33 to overflow 64-bit multiplication."
+        },
+        {
+          "severity": "medium",
+          "title": "Undefined behavior with bits_per_sample=0 in number_pixels calculation",
+          "line_start": 1777,
+          "confidence": 0.75,
+          "description": "When bits_per_sample is 0, the expression `log(bits_per_sample)/log(2.0)` evaluates to `log(0)/log(2)` = -infinity. Then `ceil(-inf)` = -inf, and `pow(2.0, -inf)` = 0.0. This makes the first argument to MagickMax equal to 0, so number_pixels is determined solely by `image->columns * rows_per_strip`. A bits_per_sample of 0 is invalid for TIFF image data, and subsequent code that uses bits_per_sample for buffer size calculations or bit-shift operations may divide by zero, access out-of-bounds memory, or allocate insufficient buffers. The lack of validation for bits_per_sample > 0 before this calculation is a security concern.",
+          "poc": "Craft a TIFF file with bits_per_sample = 0, reasonable image dimensions (e.g., 100x100), and samples_per_pixel = 3. The pow() expression evaluates to 0, making the first MagickMax argument 0. number_pixels becomes image->columns * rows_per_strip. Later code that divides by or shifts by bits_per_sample will encounter undefined behavior (division by zero or shift by negative count), potentially crashing or corrupting memory."
+        },
+        {
+          "severity": "low",
+          "title": "Floating-point precision loss in number_pixels calculation",
+          "line_start": 1777,
+          "confidence": 0.6,
+          "description": "The first argument to MagickMax uses floating-point arithmetic: `(MagickSizeType) image->columns * samples_per_pixel * pow(2.0, ceil(log(bits_per_sample)/log(2.0)))`. The result of the pow() call is a double, which causes the entire multiplication chain to be performed in floating-point. For very large values of image->columns and samples_per_pixel, the double precision (53-bit mantissa) may not be sufficient to represent the exact integer result, leading to truncation or rounding. This could result in number_pixels being slightly smaller than the true value, potentially causing off-by-one or small buffer overflows. Additionally, the implicit conversion from double to MagickSizeType (unsigned integer) for very large doubles that exceed the integer range is undefined behavior in C.",
+          "poc": "Craft a TIFF with image->columns = 0x200000 (2097152), samples_per_pixel = 255, bits_per_sample = 16. The pow expression yields 16.0. The product is 2097152 * 255 * 16.0 = 8,589,869,056.0. This is within double precision range, but for larger values (e.g., columns = 0x2000000 with samples_per_pixel = 65535), the product exceeds 2^53 and loses integer precision, potentially truncating to a smaller value."
+        }
+      ]
+    },
+    {
+      "file": "coders/tiff.c [ReadTIFFImage-F]",
+      "chars": 4266,
+      "elapsed_s": 600.1,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "coders/tiff.c [ReadTIFFImage-G]",
+      "chars": 4529,
+      "elapsed_s": 169.8,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Inadequate Heap Overflow Sanity Check in ReadTileMethod",
+          "line_start": 2008,
+          "confidence": 0.92,
+          "description": "The HeapOverflowSanityCheck validates rows * sizeof(*tile_pixels) which equals rows * 1 (since tile_pixels is unsigned char*), but the actual allocation uses extent = MagickMax(tile_size, rows * MagickMax(stride, length)). The sanity check does NOT protect against overflow in the real allocation expression. A crafted TIFF with large tile dimensions (e.g., rows=0xFFFF, stride=0x10001) can cause rows*stride to overflow on 32-bit or wrap on 64-bit, resulting in a small extent allocation. Subsequent tile data reads then overflow the heap buffer.",
+          "poc": "Craft a TIFF with TILEWIDTH and TILELENGTH set to large values (e.g., 65535) such that rows * stride overflows size_t. The HeapOverflowSanityCheck(rows, 1) passes trivially, but the actual extent calculation overflows, leading to a small allocation and heap buffer overflow when TIFFReadEncodedTile writes tile data."
+        },
+        {
+          "severity": "high",
+          "title": "Heap Buffer Overread via rows_per_strip=0 in ReadStripMethod",
+          "line_start": 1935,
+          "confidence": 0.88,
+          "description": "When rows_per_strip is 0 (settable via TIFFTAG_ROWSPERSTRIP in a crafted TIFF), the variable rows_remaining (size_t) is set to 0 after reading a strip, then decremented to SIZE_MAX via underflow. This causes the condition (rows_remaining == 0) to never trigger again, so no new strips are read and p is never reset to strip_pixels. The pointer p advances by stride each iteration for image->rows iterations, eventually reading far past the allocated buffer in ImportQuantumPixels.",
+          "poc": "Craft a TIFF with ROWSPERSTRIP tag set to 0. The extent allocation becomes MagickMax(strip_size, 0) = strip_size. After the first row, rows_remaining underflows from 0 to SIZE_MAX. The pointer p advances by stride each of image->rows iterations, causing ImportQuantumPixels to read heap memory beyond the strip_pixels buffer."
+        },
+        {
+          "severity": "medium",
+          "title": "Integer Overflow in number_pixels Calculation",
+          "line_start": 2006,
+          "confidence": 0.8,
+          "description": "The expression number_pixels=(MagickSizeType) columns*rows performs the multiplication in uint32 arithmetic (since columns and rows are uint32) BEFORE the cast to MagickSizeType. If columns=65536 and rows=65536, the product overflows uint32 to 0, which is then cast to MagickSizeType. This can lead to incorrect size calculations if number_pixels is used downstream for buffer sizing or bounds checks.",
+          "poc": "Craft a TIFF with TILEWIDTH=65536 and TILELENGTH=65536. The multiplication 65536*65536=4294967296 overflows uint32 to 0, making number_pixels=0. Should be (MagickSizeType)columns * (MagickSizeType)rows to avoid overflow."
+        },
+        {
+          "severity": "medium",
+          "title": "Potential Integer Overflow in Strip Extent Calculation",
+          "line_start": 1913,
+          "confidence": 0.72,
+          "description": "The extent calculation extent=MagickMax(strip_size, rows_per_strip*MagickMax(stride,length)) can overflow on 32-bit platforms where size_t is 32 bits. If rows_per_strip is a large uint32 value and stride/length are also large, the multiplication wraps around producing a small extent value. This leads to an undersized allocation, and subsequent TIFFReadEncodedStrip or ImportQuantumPixels operations overflow the buffer.",
+          "poc": "On a 32-bit build, craft a TIFF with ROWSPERSTRIP=0x10000 and configure image dimensions/bits-per-sample so that stride is large (e.g., 0x10001). The product 0x10000*0x10001=0x100010000 overflows 32-bit size_t to 0x10000, causing a small allocation while the actual data written exceeds it."
+        }
+      ]
+    },
+    {
+      "file": "coders/tiff.c [ReadTIFFImage-H]",
+      "chars": 4393,
+      "elapsed_s": 188.4,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Insufficient HeapOverflowSanityCheck in Generic TIFF Method",
+          "line_start": 2108,
+          "confidence": 0.8,
+          "description": "The HeapOverflowSanityCheck validates `image->rows * sizeof(*pixels)` but the actual allocation is `image->columns * image->rows * sizeof(uint32)`. The check omits the `image->columns` multiplier, meaning it fails to detect overflow in the full allocation size calculation. If `image->columns * image->rows * sizeof(uint32)` overflows while `image->rows * sizeof(*pixels)` does not, the sanity check passes but the subsequent allocation via AcquireVirtualMemory could be insufficient, leading to a heap buffer overflow when TIFFReadRGBAImage writes pixel data.",
+          "poc": "Craft a TIFF file where image->rows is small enough that `rows * sizeof(*pixels)` doesn't overflow, but image->columns is large enough that `columns * rows * sizeof(uint32)` overflows the intermediate type. On systems where MagickSizeType multiplication doesn't prevent the issue, TIFFReadRGBAImage will write beyond the allocated buffer."
+        },
+        {
+          "severity": "high",
+          "title": "Integer Overflow in Pointer Arithmetic for Generic Method Pixel Iteration",
+          "line_start": 2123,
+          "confidence": 0.75,
+          "description": "The expression `p+=(ptrdiff_t) (image->columns*image->rows)-1;` computes `image->columns*image->rows` using the native `size_t` type without a 64-bit cast. On 32-bit systems or when the intermediate result exceeds `ptrdiff_t` range, this multiplication can overflow, causing `p` to point to an incorrect memory location. Subsequent pixel processing in the loop would then read from or write to out-of-bounds memory, leading to heap corruption or information disclosure.",
+          "poc": "On a 32-bit build, craft a TIFF with columns=65537 and rows=65537. The 32-bit multiplication overflows: 65537*65537=4295098369 which wraps to 131073 in 32-bit. The pointer p is advanced by only 131072*sizeof(uint32) bytes instead of the correct ~16GB, causing subsequent pixel reads to access memory before the intended end of the buffer."
+        },
+        {
+          "severity": "medium",
+          "title": "Missing Validation of TIFFReadTile Return Size Against Expected Data",
+          "line_start": 2062,
+          "confidence": 0.7,
+          "description": "After calling TIFFReadTile, the code only checks for a -1 error return but does not validate that the returned `size` is sufficient for the subsequent processing loop. The loop iterates `rows_remaining` times, advancing the read pointer `p` by `stride` bytes each iteration, potentially reading up to `rows_remaining * stride` bytes from `tile_pixels`. If TIFFReadTile returns fewer bytes than expected (e.g., a short read due to a truncated/crafted TIFF), the loop reads beyond the actually-written data in tile_pixels. While the buffer is memset to zero initially, stale data from previous tile reads could be leaked, and if rows_remaining*stride exceeds the buffer extent, a heap over-read occurs.",
+          "poc": "Craft a TIFF file with tile dimensions that cause TIFFReadTile to return a small positive size (e.g., a truncated tile), while rows_remaining and stride are derived from image/tile metadata that expect more data. The processing loop will read beyond the returned data, potentially past the tile_pixels buffer boundary."
+        },
+        {
+          "severity": "medium",
+          "title": "Potential Mismatch Between GetAuthenticPixels Extent and ImportQuantumPixels Processing Width",
+          "line_start": 2070,
+          "confidence": 0.6,
+          "description": "GetAuthenticPixels is called with `columns_remaining` as the width, which can be less than the full tile width at image edges. However, ImportQuantumPixels is called with `quantum_info` that may be configured for the full tile width. If ImportQuantumPixels processes more pixels than the columns_remaining region allocated by GetAuthenticPixels, it would write beyond the authenticated pixel cache region, causing a heap buffer overflow. This is especially dangerous at the right edge of the image where columns_remaining < tile width.",
+          "poc": "Craft a TIFF image whose width is not a multiple of the tile width. When processing the rightmost tiles, columns_remaining will be less than the tile width. If ImportQuantumPixels uses the full tile width from quantum_info instead of columns_remaining, it writes past the pixel cache region returned by GetAuthenticPixels."
+        }
+      ]
+    },
+    {
+      "file": "coders/tiff.c [ReadTIFFImage-I]",
+      "chars": 2982,
+      "elapsed_s": 131.1,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Buffer Over-Read/Over-Write in Reverse Pixel Iteration Loop",
+          "line_start": 2149,
+          "confidence": 0.85,
+          "description": "The pixel reading loop iterates `image->columns` times while decrementing both the source pointer `p` and destination pointer `q` on each iteration. The loop reads from `*p` (via TIFFGetR/TIFFGetG/TIFFGetB/TIFFGetA) and writes to `q` (via SetPixel* functions) without validating that the iteration count matches the actual allocated buffer sizes. If a crafted TIFF file declares a larger `image->columns` value than the actual pixel data in the strip/tile, the loop will read before the start of the source buffer (buffer under-read) and write before the start of the destination pixel buffer (buffer under-write). The reverse iteration pattern (`p--`, `q-=GetPixelChannels(image)`) makes this particularly dangerous as it moves toward lower memory addresses, potentially accessing unmapped memory or corrupting adjacent heap metadata.",
+          "poc": "Craft a TIFF file with a large ImageWidth (columns) value in the IFD header but provide strip/tile data that contains fewer pixels than declared. For example, set ImageWidth=65535 but provide strip data for only 100 pixels. When the reverse pixel loop executes, it will iterate 65535 times, reading far beyond the allocated source buffer and writing far beyond the allocated destination buffer, causing heap corruption and potential code execution."
+        },
+        {
+          "severity": "medium",
+          "title": "Integer Underflow in SetImageProgress Scene Calculation",
+          "line_start": 2224,
+          "confidence": 0.7,
+          "description": "The expression `(MagickOffsetType) image->scene-1` is passed to `SetImageProgress`. If `image->scene` is 0 (which can occur for the first frame in a multi-frame TIFF), the subtraction `image->scene-1` may underflow before the cast to `MagickOffsetType` depending on the unsigned type of `scene`. If `scene` is an unsigned type, this results in a very large positive value being passed, which could cause unexpected behavior in progress tracking or be used as an index/offset elsewhere leading to out-of-bounds access.",
+          "poc": "Craft a multi-frame TIFF where the first frame has scene number 0. When `AcquireNextImage` processes the second frame and calls `SetImageProgress(image, LoadImagesTag, (MagickOffsetType) image->scene-1, image->scene)`, the underflow occurs. If `image->scene` is of type `size_t` and equals 0, then `0-1` wraps to `SIZE_MAX` before the signed cast."
+        },
+        {
+          "severity": "info",
+          "title": "Missing Validation of TIFFReadDirectory Return Value for Frame Counting",
+          "line_start": 2212,
+          "confidence": 0.65,
+          "description": "The `TIFFReadDirectory` return value is checked for non-zero to determine if more frames exist, but the code doesn't validate whether the next directory/frame is well-formed before calling `AcquireNextImage`. A malformed subsequent frame could have inconsistent dimensions or properties that lead to buffer mismatches in subsequent iterations of the outer loop. The `more_frames` flag drives continued processing without sufficient validation of the new frame's integrity.",
+          "poc": "Create a multi-frame TIFF where the first frame is valid but the second frame's IFD contains corrupted dimension fields (e.g., ImageWidth=0 or extremely large). The code will attempt to allocate and process the second frame based on these corrupted values, potentially leading to zero-size allocations or integer overflow in buffer size calculations."
+        }
+      ]
+    },
+    {
+      "file": "coders/heic.c [ReadHEICImage-A]",
+      "chars": 4282,
+      "elapsed_s": 140.4,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "TOCTOU Race Condition: File Reopened by Name After Validation",
+          "line_start": 649,
+          "confidence": 0.85,
+          "description": "The code reads and validates the first 128 bytes of the file (magic number check via heif_check_filetype), then closes the blob, and subsequently reopens the file by name using heif_context_read_from_file(heif_context, image->filename, ...). Between the validation and the second read, an attacker could replace the file (e.g., via a symlink swap) with a malicious file that would not pass the initial filetype check. This bypasses the safety validation and feeds arbitrary data to the libheif parser, potentially triggering parser vulnerabilities. The fix would be to read the entire file into memory first and use heif_context_read_from_memory instead.",
+          "poc": "1. Create a valid HEIC file at /tmp/poc.heic\n2. Run an ImageMagick convert in one thread: convert /tmp/poc.heic out.png\n3. In another thread, after the magic check passes but before heif_context_read_from_file executes, replace /tmp/poc.heic with a symlink to a crafted malicious HEIF file or a non-HEIF file\n4. The libheif parser processes the replaced file without the filetype validation gate"
+        },
+        {
+          "severity": "medium",
+          "title": "Memory Leak of 'ids' Array on Error Paths Within Loop",
+          "line_start": 725,
+          "confidence": 0.7,
+          "description": "The ids array is allocated via AcquireQuantumMemory at line 725. Within the for-loop, if AcquireNextImage fails (GetNextImageInList returns NULL) or if heif_context_get_image_handle fails (IsHEIFSuccess returns MagickFalse), the code sets status=MagickFalse and breaks out of the loop. However, the ids pointer is not freed on these error paths before the break. While the code is truncated and cleanup may exist after the visible portion, the break statements within the loop bypass any such cleanup. This can be triggered repeatedly to exhaust memory (memory leak DoS).",
+          "poc": "Craft a HEIF file with multiple top-level images where one image handle is corrupted or invalid. When heif_context_get_image_handle fails for a non-primary image, the break is hit without freeing ids. Repeat processing to leak memory."
+        },
+        {
+          "severity": "medium",
+          "title": "Missing Image Size Limit on Older libheif Versions (Decompression Bomb)",
+          "line_start": 672,
+          "confidence": 0.8,
+          "description": "The maximum image size limit (heif_context_set_maximum_image_size_limit) is only applied when LIBHEIF_NUMERIC_VERSION >= 1.19.0 (compile-time check). On systems with older libheif versions, no size limit is enforced, allowing a crafted HEIF file to declare extremely large dimensions. This can lead to excessive memory allocation and potential denial of service when the image is decoded. The max_size variable is computed but never used on older library versions.",
+          "poc": "On a system with libheif < 1.19.0, craft a HEIF file with declared dimensions of 100000x100000 pixels. The decoder will attempt to allocate ~40GB of memory for the decoded image buffer, causing OOM or system instability."
+        },
+        {
+          "severity": "low",
+          "title": "Unchecked Negative Return from heif_context_get_number_of_top_level_images",
+          "line_start": 713,
+          "confidence": 0.6,
+          "description": "heif_context_get_number_of_top_level_images returns int, which is stored in ssize_t count. While the 'count > 1' check would reject negative values, if the function returns INT_MAX, the subsequent AcquireQuantumMemory((size_t)count, sizeof(*ids)) attempts to allocate a very large buffer (INT_MAX * sizeof(heif_item_id), potentially ~8GB). Although AcquireQuantumMemory should return NULL for excessive allocations (and the NULL check exists), the attempt itself could cause resource exhaustion. Additionally, the cast (int)count when passing to heif_context_get_list_of_top_level_image_IDs is redundant but safe given the source type.",
+          "poc": "Craft a HEIF container that reports an extremely large number of top-level image IDs (close to INT_MAX). This forces a massive allocation attempt before the NULL check catches it."
+        }
+      ]
+    },
+    {
+      "file": "coders/heic.c [ReadHEICImage-B]",
+      "chars": 749,
+      "elapsed_s": 49.4,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Ignored return value of ReadHEICDepthImage",
+          "line_start": 760,
+          "confidence": 0.85,
+          "description": "The return value of ReadHEICDepthImage() is not checked or assigned to the 'status' variable. If ReadHEICDepthImage fails (e.g., due to a malformed depth image in the HEIC file), the 'status' variable retains its previous value (likely MagickTrue), causing the error to go undetected. This means a partially initialized or corrupt image object could be returned to the caller, potentially leading to memory corruption, information disclosure, or crashes when downstream code operates on the invalid image. The subsequent check on 'status' at line 763 is ineffective for catching errors from ReadHEICDepthImage.",
+          "poc": "Craft a HEIC file with a valid primary image but a corrupted/invalid depth image (e.g., malformed auxiliary image metadata). When ReadHEICDepthImage fails internally, the error is silently ignored, and the image is returned in an inconsistent state. The fix would be: status=ReadHEICDepthImage(image_info,image,image_handle,exception);"
+        },
+        {
+          "severity": "low",
+          "title": "Potential integer overflow in scene bounds check",
+          "line_start": 748,
+          "confidence": 0.5,
+          "description": "The expression 'image_info->scene + image_info->number_scenes - 1' on line 748 could theoretically overflow if both values are large unsigned integers. If image_info->scene + image_info->number_scenes wraps around, the bounds check could evaluate incorrectly, potentially allowing iteration beyond the intended range or causing an unexpected break. In practice, ImageMagick typically validates these values earlier, but the arithmetic itself is not overflow-safe.",
+          "poc": "Set image_info->scene to a large value (e.g., 0xFFFFFFFF) and image_info->number_scenes to 2, causing the sum to wrap to 0, making the comparison evaluate incorrectly."
+        }
+      ]
+    },
+    {
+      "file": "coders/webp.c [ReadWEBPImage]",
+      "chars": 4278,
+      "elapsed_s": 497.4,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Heap buffer overflow via missing length validation after blob_size adjustment",
+          "line_start": 562,
+          "confidence": 0.85,
+          "description": "When GetBlobSize() returns 0 (as it does for non-seekable streams like stdin/pipes), and the RIFF chunk size in the WEBP header is crafted so that `delta = length - blob_size` equals exactly 12 or 20, the adjusted `length` becomes 0. The code only validates `length >= 12` BEFORE the adjustment (line ~558) but never re-checks after `length -= delta`. This leads to: (1) AcquireQuantumMemory(0,1) may return a non-NULL pointer to a zero-byte allocation (e.g., glibc malloc(0) returns a valid pointer), (2) memcpy(stream, header, 12) writes 12 bytes into the zero-byte buffer causing a heap buffer overflow, and (3) `length-12` in ReadBlob underflows to SIZE_MAX-11, causing a massive out-of-bounds write via ReadBlob(image, SIZE_MAX-11, stream+12). The WriteWebPLSBWord(header+4, length-8) also suffers an integer underflow writing 0xFFFFFFF8 into the header.",
+          "poc": "Craft a minimal WEBP header (12 bytes): 'RIFF' + little-endian uint32 chunk_size=4 + 'WEBP'. Pipe this to ImageMagick via stdin: `printf 'RIFF\\x04\\x00\\x00\\x00WEBP' | convert - output.png`. GetBlobSize() returns 0 for the pipe. length = 4+8 = 12. delta = 12-0 = 12 (passes check). length becomes 0. If AcquireQuantumMemory(0,1) returns non-NULL, memcpy writes 12 bytes to a 0-byte heap allocation -> heap buffer overflow. For delta=20 variant, use chunk_size=12 (length=20)."
+        },
+        {
+          "severity": "medium",
+          "title": "Integer underflow in length-8 passed to WriteWebPLSBWord after adjustment",
+          "line_start": 570,
+          "confidence": 0.9,
+          "description": "After `length -= delta`, if length becomes 0 (when blob_size=0 for non-seekable streams), the expression `length-8` in WriteWebPLSBWord(header+4, length-8) underflows. Since length is size_t (unsigned), 0-8 wraps to SIZE_MAX-7. WriteWebPLSBWord writes this as a 32-bit value (0xFFFFFFF8) into the stack-local header buffer. While this doesn't directly corrupt memory (the write targets a valid stack buffer), it produces a semantically incorrect RIFF chunk size that propagates into the stream buffer, potentially confusing downstream parsers and indicating a missing validation step.",
+          "poc": "Same as the heap buffer overflow PoC: pipe a crafted 12-byte WEBP header with chunk_size=4 via stdin. After adjustment, length=0, and WriteWebPLSBWord(header+4, 0-8) writes the underflowed value."
+        },
+        {
+          "severity": "medium",
+          "title": "Denial of service via unbounded memory allocation from crafted RIFF chunk size",
+          "line_start": 556,
+          "confidence": 0.95,
+          "description": "The RIFF chunk size read from the WEBP header via ReadWebPLSBWord() is a 32-bit value. After adding 8, `length` can be up to ~4GB (0xFFFFFFF8). The code allocates `length` bytes via AcquireQuantumMemory without any upper bound check specific to reasonable WEBP file sizes. A crafted WEBP file with a large RIFF chunk size can cause ImageMagick to attempt allocating gigabytes of memory, leading to denial of service through memory exhaustion, OOM kills, or excessive swap usage. The only mitigation is that the allocation may fail and return NULL, which is handled, but the attempt itself consumes resources.",
+          "poc": "Create a WEBP file with RIFF header declaring chunk_size = 0x7FFFFFF0 (length = 0x7FFFFFF8, ~2GB). The file itself can be small. `convert crafted.webp output.png` will attempt a ~2GB allocation."
+        }
+      ]
+    },
+    {
+      "file": "coders/webp.c [WriteWEBPImage-A]",
+      "chars": 4404,
+      "elapsed_s": 67.0,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Unvalidated Integer Configuration Parameters Passed to WebP Encoder",
+          "line_start": 1170,
+          "confidence": 0.75,
+          "description": "Multiple SetIntegerOption calls set WebP configuration fields (partitions, method, segments, filter_strength, filter_sharpness, filter_type, pass, preprocessing, sns_strength, target_size, alpha_compression, alpha_filtering, alpha_quality, show_compressed, thread_level) directly from user-controlled image options without any bounds validation before passing to WebPValidateConfig. For example, configure.partitions should be 0-3, configure.method should be 0-6, configure.segments should be 1-4. If WebPValidateConfig does not catch all invalid values (especially in older libwebp versions), out-of-range values could cause out-of-bounds array accesses or buffer overflows within the libwebp encoder internals. Historical CVEs (e.g., CVE-2023-4863) have shown that invalid WebP configuration can lead to heap buffer overflows.",
+          "poc": "convert input.png -define webp:partitions=9999 -define webp:method=9999 -define webp:segments=9999 output.webp"
+        },
+        {
+          "severity": "medium",
+          "title": "Unvalidated Float Conversion for target_PSNR Allows NaN/Infinity Values",
+          "line_start": 1167,
+          "confidence": 0.8,
+          "description": "The target_PSNR configuration field is set from user input via StringToDouble cast to float without any validation. A user can supply special floating-point values such as 'inf', '-inf', 'nan', or extremely large numbers. These special float values can cause undefined behavior in the WebP encoder's rate-control algorithms, potentially leading to infinite loops, division by zero, or incorrect memory allocations. WebPValidateConfig may not check for NaN/infinity in floating-point fields.",
+          "poc": "convert input.png -define webp:target-psnr=inf output.webp\nconvert input.png -define webp:target-psnr=nan output.webp\nconvert input.png -define webp:target-psnr=1e308 output.webp"
+        },
+        {
+          "severity": "medium",
+          "title": "near_lossless Parameter Set from Unvalidated Quality Value",
+          "line_start": 1148,
+          "confidence": 0.7,
+          "description": "When WEBP_ENCODER_ABI_VERSION >= 0x020e, configure.near_lossless is set directly from image->quality without range validation. The near_lossless parameter in libwebp is expected to be in the range 0-100. If image->quality is set to a value outside this range (e.g., a very large number or negative value), the near_lossless field receives an out-of-range value. While quality >= 100 triggers lossless mode, near_lossless is still set to the raw quality value, which could be 10000 or -1, potentially causing unexpected encoder behavior.",
+          "poc": "convert input.png -quality 99999 output.webp\nconvert input.png -quality -50 output.webp"
+        },
+        {
+          "severity": "low",
+          "title": "Missing Total Pixel Count Overflow Check on Image Dimensions",
+          "line_start": 1140,
+          "confidence": 0.6,
+          "description": "The code checks individual dimension limits (columns > 16383, rows > 16383) but does not check the product columns * rows for overflow or excessive memory allocation. With both dimensions at 16383, the total pixel count is ~268 million, which at 4 bytes/pixel (RGBA) requires ~1GB. While this doesn't overflow a 64-bit size_t, it could cause excessive memory consumption (DoS) or overflow a 32-bit size_t on 32-bit builds (16383*16383*4 = 1,073,610,756 which exceeds UINT32_MAX on multiplication with bytes-per-pixel).",
+          "poc": "convert -size 16383x16383 xc:white output.webp  # Allocates ~1GB RAM\n# On 32-bit: columns*rows*4 could overflow size_t during buffer allocation"
+        }
+      ]
+    },
+    {
+      "file": "coders/webp.c [WriteWEBPImage-B]",
+      "chars": 1603,
+      "elapsed_s": 241.4,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Missing NULL check for CoalesceImages result leads to potential buffer overflow",
+          "line_start": 1239,
+          "confidence": 0.75,
+          "description": "When CoalesceImages() is called (line 1239) because animation frames have differing dimensions, its return value is never checked for NULL. If CoalesceImages fails (e.g., due to memory allocation failure), coalesce_image remains NULL, and the code falls through to the else branch (line 1250-1251), calling WriteAnimatedWEBPImage with the original image that has mismatched frame dimensions. WebP animation requires consistent frame sizes; processing frames with inconsistent dimensions under the assumption of uniformity can lead to buffer overflows in the encoder — reading past the bounds of smaller frames or writing past allocated buffers.",
+          "poc": "Craft a multi-frame image (e.g., GIF or MIFF) where frames have different dimensions (e.g., first frame 100x100, second frame 50x50). Force CoalesceImages to fail by exhausting memory (e.g., via resource limits). The encoder will attempt to process mismatched frames, potentially reading out-of-bounds pixel data from smaller frames."
+        },
+        {
+          "severity": "medium",
+          "title": "Fragile ownership transfer between WebPMemoryWriter and WebPData creates latent double-free",
+          "line_start": 1259,
+          "confidence": 0.7,
+          "description": "In the non-animated success path, webp_data.bytes is set to writer.mem (line 1259-1260), transferring buffer ownership implicitly. WebPDataClear(&webp_data) at line 1270 frees this buffer via WebPFree(). However, writer.mem still holds a dangling pointer to the freed memory. While WebPMemoryWriterClear is not called on writer in this success path, the ownership model is broken: (1) if WriteWEBPImageProfile reallocates webp_data.bytes, writer.mem points to freed memory; (2) any future code change adding cleanup of writer would trigger a double-free. Additionally, WebPDataClear and WebPMemoryWriterClear may use different deallocators in custom-allocator configurations, causing heap corruption.",
+          "poc": "Encode a single (non-animated) WEBP image. In the success path, after WebPDataClear frees webp_data.bytes (== writer.mem), writer.mem is a dangling pointer. If a signal handler, error path, or future code change invokes WebPMemoryWriterClear(&writer), a double-free occurs. With custom allocators, the mismatch between WebPDataClear's deallocator and WebPMemoryWriter's allocator can corrupt heap metadata."
+        },
+        {
+          "severity": "medium",
+          "title": "Unconditional WebPDataClear on potentially uninitialized or stale webp_data",
+          "line_start": 1270,
+          "confidence": 0.6,
+          "description": "WebPDataClear(&webp_data) is called unconditionally at line 1270, even in error paths where webp_data may not have been properly populated. In the non-animated failure path (WriteSingleWEBPImage returns MagickFalse), writer is cleared via WebPMemoryWriterClear but webp_data is never assigned — it retains whatever prior value it held. If webp_data was not zero-initialized earlier in the function, WebPDataClear will attempt to free a garbage pointer, causing heap corruption or a crash. Even if zero-initialized, if a prior iteration left stale data in webp_data, it could be incorrectly freed.",
+          "poc": "Trigger WriteSingleWEBPImage failure (e.g., by providing an image with unsupported color space or exceeding resource limits). If webp_data contains stale bytes pointer from a prior state, WebPDataClear will free invalid memory. This can be triggered reliably by crafting an image that passes initial validation but fails during WebP encoding."
+        },
+        {
+          "severity": "low",
+          "title": "DestroyImageList after WriteAnimatedWEBPImage may invalidate referenced pixel data",
+          "line_start": 1246,
+          "confidence": 0.4,
+          "description": "After WriteAnimatedWEBPImage encodes coalesce_image into webp_data, DestroyImageList(coalesce_image) is called immediately (line 1247). If WriteAnimatedWEBPImage internally stores lazy references to the image's pixel data (e.g., for later profile embedding or if encoding is deferred), destroying the source image creates dangling pointers. While typical WebP encoding is synchronous and produces a self-contained byte stream, the immediate destruction without verifying webp_data is complete is a fragile pattern that could become exploitable if the encoding implementation changes.",
+          "poc": "Provide a multi-frame image with varying dimensions to trigger the coalesce path. If WriteAnimatedWEBPImage defers any pixel access (e.g., for multi-pass encoding), the subsequent DestroyImageList frees the pixel buffers, making webp_data contain or reference freed memory. Subsequent WriteWEBPImageProfile or WriteBlob operations would then access freed data."
+        }
+      ]
+    },
+    {
+      "file": "coders/png.c [ReadPNGImage-A]",
+      "chars": 4055,
+      "elapsed_s": 147.5,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "medium",
+          "title": "Resource Leak / File Descriptor Leak on Error Path",
+          "line_start": 3954,
+          "confidence": 0.85,
+          "description": "When ReadOnePNGImage() returns NULL (indicating an error), the function returns NULL without calling CloseBlob() on the image. Unlike the ThrowReaderException macro used elsewhere (which properly closes the blob and destroys the image), this error path simply returns NULL. If the original image (from AcquireImage) was not destroyed by ReadOnePNGImage, both the image memory and the open file descriptor are leaked. An attacker can trigger this by crafting a PNG file that passes the initial signature/size checks but causes ReadOnePNGImage to fail, potentially exhausting file descriptors through repeated invocation (DoS).",
+          "poc": "Create a PNG file with a valid 8-byte signature and size >= 61 bytes, but with corrupted internal chunk data that causes ReadOnePNGImage to fail and return NULL. Repeatedly process this file to leak file descriptors: convert malicious.png out.png && convert malicious.png out.png ... until 'Too many open files' error occurs."
+        },
+        {
+          "severity": "high",
+          "title": "Potential Use-After-Free via mng_info->image Dangling Pointer",
+          "line_start": 3953,
+          "confidence": 0.55,
+          "description": "The original image pointer is stored in mng_info->image at line 3953. Then ReadOnePNGImage() is called, which may internally free/destroy the original image and return a new image pointer (or NULL). After ReadOnePNGImage returns, MngReadInfoFreeStruct(mng_info) is called. If MngReadInfoFreeStruct accesses mng_info->image (e.g., for cleanup or unlinking), it would dereference a dangling pointer to the already-freed original image, resulting in a use-after-free. This pattern of storing a pointer in a structure, potentially invalidating it via a called function, and then using the structure is a classic UAF pattern in ImageMagick.",
+          "poc": "Craft a PNG that causes ReadOnePNGImage to replace the original image with a new one (e.g., via MNG/APNG frame handling), freeing the original. If MngReadInfoFreeStruct then accesses mng_info->image, heap metadata corruption or controlled code execution may be possible. A PNG with specific chunk sequences that trigger image replacement in ReadOnePNGImage would be needed."
+        },
+        {
+          "severity": "low",
+          "title": "Weak File Size Validation Bypass for Non-Seekable Streams",
+          "line_start": 3946,
+          "confidence": 0.7,
+          "description": "The check `GetBlobSize(image) < 61` is intended to reject files too small to contain a valid PNG datastream. However, GetBlobSize() may return 0 or an incorrect value for non-seekable input sources (pipes, stdin, network streams). For such streams, this check would incorrectly reject valid PNG data (if GetBlobSize returns 0) or could potentially allow processing of truncated data (if GetBlobSize returns a stale/cached value). This weakens the validation gate and could allow malformed/truncated PNG data to reach ReadOnePNGImage, increasing attack surface for vulnerabilities in the PNG parsing logic.",
+          "poc": "Pipe a truncated PNG (e.g., 30 bytes with valid signature) through stdin: cat truncated.png | convert - out.png. Depending on GetBlobSize behavior for pipes, the size check may be bypassed, allowing the truncated data to reach ReadOnePNGImage."
+        }
+      ]
+    }
+  ]
+}
