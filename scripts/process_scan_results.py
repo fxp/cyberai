@@ -28,6 +28,7 @@ TARGETS = {
     "nginx":   RESEARCH / "nginx",
     "sqlite":  RESEARCH / "sqlite",
     "openssl": RESEARCH / "openssl",
+    "zlib":    RESEARCH / "zlib",
 }
 
 # Confidence threshold for manual triage flagging

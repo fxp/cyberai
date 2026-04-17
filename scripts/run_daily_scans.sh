@@ -8,10 +8,11 @@
 #   4. nginx 1.27.4   (t1 extracts, 150s timeout, 33 segments, ~90 min)
 #   5. sqlite 3.49.1  (t1 extracts, 150s timeout, 29 segments, ~80 min)
 #   6. openssl 3.4.1  (t1 extracts, 150s timeout, 32 segments, ~88 min)
+#   7. zlib 1.3.1     (t1 extracts, 120s timeout, 25 segments, ~60 min)
 #
-# 总计: ~418 min; 预计完成时间 08:05 + 6:58 = 15:03 BJT
+# 总计: ~478 min; 预计完成时间 08:05 + 7:58 = 16:03 BJT
 #
-# Usage: bash scripts/run_daily_scans.sh [--libpng] [--expat] [--curl] [--nginx] [--sqlite] [--openssl] [--all]
+# Usage: bash scripts/run_daily_scans.sh [--libpng] [--expat] [--curl] [--nginx] [--sqlite] [--openssl] [--zlib] [--all]
 #        (no args = --all)
 
 set -euo pipefail
@@ -25,10 +26,10 @@ LOG="$LOG_DIR/daily_${TIMESTAMP}.log"
 
 log() { echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG"; }
 
-RUN_LIBPNG=0; RUN_EXPAT=0; RUN_CURL=0; RUN_NGINX=0; RUN_SQLITE=0; RUN_OPENSSL=0
+RUN_LIBPNG=0; RUN_EXPAT=0; RUN_CURL=0; RUN_NGINX=0; RUN_SQLITE=0; RUN_OPENSSL=0; RUN_ZLIB=0
 
 if [[ $# -eq 0 || " $* " == *" --all "* ]]; then
-  RUN_LIBPNG=1; RUN_EXPAT=1; RUN_CURL=1; RUN_NGINX=1; RUN_SQLITE=1; RUN_OPENSSL=1
+  RUN_LIBPNG=1; RUN_EXPAT=1; RUN_CURL=1; RUN_NGINX=1; RUN_SQLITE=1; RUN_OPENSSL=1; RUN_ZLIB=1
 fi
 for arg in "$@"; do
   case $arg in
@@ -38,12 +39,13 @@ for arg in "$@"; do
     --nginx)   RUN_NGINX=1   ;;
     --sqlite)  RUN_SQLITE=1  ;;
     --openssl) RUN_OPENSSL=1 ;;
+    --zlib)    RUN_ZLIB=1    ;;
   esac
 done
 
 log "=== CyberAI Daily Scan Batch ==="
 log "Date: $(date '+%Y-%m-%d %H:%M:%S %Z')"
-log "Tasks: libpng=$RUN_LIBPNG expat=$RUN_EXPAT curl=$RUN_CURL nginx=$RUN_NGINX sqlite=$RUN_SQLITE openssl=$RUN_OPENSSL"
+log "Tasks: libpng=$RUN_LIBPNG expat=$RUN_EXPAT curl=$RUN_CURL nginx=$RUN_NGINX sqlite=$RUN_SQLITE openssl=$RUN_OPENSSL zlib=$RUN_ZLIB"
 
 # ── 1. libpng ──
 if [[ $RUN_LIBPNG -eq 1 ]]; then
@@ -93,10 +95,19 @@ fi
 
 # ── 6. openssl ──
 if [[ $RUN_OPENSSL -eq 1 ]]; then
-  log "--- [6/6] openssl 3.4.1 GLM scan (t1, 32 segments, 150s timeout) ---"
+  log "--- [6/7] openssl 3.4.1 GLM scan (t1, 32 segments, 150s timeout) ---"
   python scripts/scan_openssl_t1.py --timeout 150 --delay 30 2>&1 | tee -a "$LOG" || \
     log "WARNING: openssl scan exited non-zero"
   log "--- openssl scan done ---"
+  sleep 60
+fi
+
+# ── 7. zlib ──
+if [[ $RUN_ZLIB -eq 1 ]]; then
+  log "--- [7/7] zlib 1.3.1 GLM scan (t1, 25 segments, 120s timeout) ---"
+  python scripts/scan_zlib_t1.py --timeout 120 --delay 25 2>&1 | tee -a "$LOG" || \
+    log "WARNING: zlib scan exited non-zero"
+  log "--- zlib scan done ---"
 fi
 
 log "=== All scans complete. Log: $LOG ==="
