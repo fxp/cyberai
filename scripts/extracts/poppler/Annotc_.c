@@ -1,0 +1,26 @@
+// Source: /Users/xiaopingfeng/Projects/cyberai/targets/poppler-26.04.0/poppler/Annot.cc
+// Segment 65/79
+
+
+
+#define ANNOT_FILE_ATTACHMENT_AP_PUSHPIN                                                                                                                                                                                                       \
+    "4.301 23 m 19.699 23 l 21.523 23 23 21.523 23 19.699 c 23 4.301 l 23\n"                                                                                                                                                                   \
+    "2.477 21.523 1 19.699 1 c 4.301 1 l 2.477 1 1 2.477 1 4.301 c 1 19.699\n"                                                                                                                                                                 \
+    "l 1 21.523 2.477 23 4.301 23 c h\n"                                                                                                                                                                                                       \
+    "4.301 23 m f\n"                                                                                                                                                                                                                           \
+    "0.533333 0.541176 0.521569 RG 2 w\n"                                                                                                                                                                                                      \
+    "1 J\n"                                                                                                                                                                                                                                    \
+    "1 j\n"                                                                                                                                                                                                                                    \
+    "[] 0.0 d\n"                                                                                                                                                                                                                               \
+    "4 M 5 4 m 6 5 l S\n"                                                                                                                                                                                                                      \
+    "2 w\n"                                                                                                                                                                                                                                    \
+    "11 14 m 9 12 l 6 12 l 13 5 l 13 8 l 15 10 l 18 11 l 20 11 l 12 19 l 12\n"                                                                                                                                                                 \
+    "17 l 11 14 l h\n"                                                                                                                                                                                                                         \
+    "11 14 m S\n"                                                                                                                                                                                                                              \
+    "3 w\n"                                                                                                                                                                                                                                    \
+    "6 5 m 9 8 l S\n"                                                                                                                                                                                                                          \
+    "0.729412 0.741176 0.713725 RG 2 w\n"                                                                                                                                                                                                      \
+    "5 5 m 6 6 l S\n"                                                                                                                                                                                                                          \
+    "2 w\n"                                                                                                                                                                                                                                    \
+    "11 15 m 9 13 l 6 13 l 13 6 l 13 9 l 15 11 l 18 12 l 20 12 l 12 20 l 12\n"                                                                                                                                                                 \
+    "18 l 11 15 l h\n"                                                                                                                                                            

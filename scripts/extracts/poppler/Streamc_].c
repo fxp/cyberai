@@ -1,0 +1,26 @@
+// Source: /Users/xiaopingfeng/Projects/cyberai/targets/poppler-26.04.0/poppler/Stream.cc
+// Segment 29/36
+
+val = 0x00ca },
+    { .len = 7, .val = 0x010a }, { .len = 8, .val = 0x0065 }, { .len = 8, .val = 0x0025 }, { .len = 9, .val = 0x00aa }, { .len = 8, .val = 0x0005 }, { .len = 8, .val = 0x0085 }, { .len = 8, .val = 0x0045 }, { .len = 9, .val = 0x00ea },
+    { .len = 7, .val = 0x0106 }, { .len = 8, .val = 0x005d }, { .len = 8, .val = 0x001d }, { .len = 9, .val = 0x009a }, { .len = 7, .val = 0x0116 }, { .len = 8, .val = 0x007d }, { .len = 8, .val = 0x003d }, { .len = 9, .val = 0x00da },
+    { .len = 7, .val = 0x010e }, { .len = 8, .val = 0x006d }, { .len = 8, .val = 0x002d }, { .len = 9, .val = 0x00ba }, { .len = 8, .val = 0x000d }, { .len = 8, .val = 0x008d }, { .len = 8, .val = 0x004d }, { .len = 9, .val = 0x00fa },
+    { .len = 7, .val = 0x0101 }, { .len = 8, .val = 0x0053 }, { .len = 8, .val = 0x0013 }, { .len = 8, .val = 0x011b }, { .len = 7, .val = 0x0111 }, { .len = 8, .val = 0x0073 }, { .len = 8, .val = 0x0033 }, { .len = 9, .val = 0x00c6 },
+    { .len = 7, .val = 0x0109 }, { .len = 8, .val = 0x0063 }, { .len = 8, .val = 0x0023 }, { .len = 9, .val = 0x00a6 }, { .len = 8, .val = 0x0003 }, { .len = 8, .val = 0x0083 }, { .len = 8, .val = 0x0043 }, { .len = 9, .val = 0x00e6 },
+    { .len = 7, .val = 0x0105 }, { .len = 8, .val = 0x005b }, { .len = 8, .val = 0x001b }, { .len = 9, .val = 0x0096 }, { .len = 7, .val = 0x0115 }, { .len = 8, .val = 0x007b }, { .len = 8, .val = 0x003b }, { .len = 9, .val = 0x00d6 },
+    { .len = 7, .val = 0x010d }, { .len = 8, .val = 0x006b }, { .len = 8, .val = 0x002b }, { .len = 9, .val = 0x00b6 }, { .len = 8, .val = 0x000b }, { .len = 8, .val = 0x008b }, { .len = 8, .val = 0x004b }, { .len = 9, .val = 0x00f6 },
+    { .len = 7, .val = 0x0103 }, { .len = 8, .val = 0x0057 }, { .len = 8, .val = 0x0017 }, { .len = 8, .val = 0x011f }, { .len = 7, .val = 0x0113 }, { .len = 8, .val = 0x0077 }, { .len = 8, .val = 0x0037 }, { .len = 9, .val = 0x00ce },
+    { .len = 7, .val = 0x010b }, { .len = 8, .val = 0x0067 }, { .len = 8, .val = 0x0027 }, { .len = 9, .val = 0x00ae }, { .len = 8, .val = 0x0007 }, { .len = 8, .val = 0x0087 }, { .len = 8, .val = 0x0047 }, { .len = 9, .val = 0x00ee },
+    { .len = 7, .val = 0x0107 }, { .len = 8, .val = 0x005f }, { .len = 8, .val = 0x001f }, { .len = 9, .val = 0x009e }, { .len = 7, .val = 0x0117 }, { .len = 8, .val = 0x007f }, { .len = 8, .val = 0x003f }, { .len = 9, .val = 0x00de },
+    { .len = 7, .val = 0x010f }, { .len = 8, .val = 0x006f }, { .len = 8, .val = 0x002f }, { .len = 9, .val = 0x00be }, { .len = 8, .val = 0x000f }, { .len = 8, .val = 0x008f }, { .len = 8, .val = 0x004f }, { .len = 9, .val = 0x00fe },
+    { .len = 7, .val = 0x0100 }, { .len = 8, .val = 0x0050 }, { .len = 8, .val = 0x0010 }, { .len = 8, .val = 0x0118 }, { .len = 7, .val = 0x0110 }, { .len = 8, .val = 0x0070 }, { .len = 8, .val = 0x0030 }, { .len = 9, .val = 0x00c1 },
+    { .len = 7, .val = 0x0108 }, { .len = 8, .val = 0x0060 }, { .len = 8, .val = 0x0020 }, { .len = 9, .val = 0x00a1 }, { .len = 8, .val = 0x0000 }, { .len = 8, .val = 0x0080 }, { .len = 8, .val = 0x0040 }, { .len = 9, .val = 0x00e1 },
+    { .len = 7, .val = 0x0104 }, { .len = 8, .val = 0x0058 }, { .len = 8, .val = 0x0018 }, { .len = 9, .val = 0x0091 }, { .len = 7, .val = 0x0114 }, { .len = 8, .val = 0x0078 }, { .len = 8, .val = 0x0038 }, { .len = 9, .val = 0x00d1 },
+    { .len = 7, .val = 0x010c }, { .len = 8, .val = 0x0068 }, { .len = 8, .val = 0x0028 }, { .len = 9, .val = 0x00b1 }, { .len = 8, .val = 0x0008 }, { .len = 8, .val = 0x0088 }, { .len = 8, .val = 0x0048 }, { .len = 9, .val = 0x00f1 },
+    { .len = 7, .val = 0x0102 }, { .len = 8, .val = 0x0054 }, { .len = 8, .val = 0x0014 }, { .len = 8, .val = 0x011c }, { .len = 7, .val = 0x0112 }, { .len = 8, .val = 0x0074 }, { .len = 8, .val = 0x0034 }, { .len = 9, .val = 0x00c9 },
+    { .len = 7, .val = 0x010a }, { .len = 8, .val = 0x0064 }, { .len = 8, .val = 0x0024 }, { .len = 9, .val = 0x00a9 }, { .len = 8, .val = 0x0004 }, { .len = 8, .val = 0x0084 }, { .len = 8, .val = 0x0044 }, { .len = 9, .val = 0x00e9 },
+    { .len = 7, .val = 0x0106 }, { .len = 8, .val = 0x005c }, { .len = 8, .val = 0x001c }, { .len = 9, .val = 0x0099 }, { .len = 7, .val = 0x0116 }, { .len = 8, .val = 0x007c }, { .len = 8, .val = 0x003c }, { .len = 9, .val = 0x00d9 },
+    { .len = 7, .val = 0x010e }, { .len = 8, .val = 0x006c }, { .len = 8, .val = 0x002c }, { .len = 9, .val = 0x00b9 }, { .len = 8, .val = 0x000c }, { .len = 8, .val = 0x008c }, { .len = 8, .val = 0x004c }, { .len = 9, .val = 0x00f9 },
+    { .len = 7, .val = 0x0101 }, { .len = 8, .val = 0x0052 }, { .len = 8, .val = 0x0012 }, { .len = 8, .val = 0x011a }, { .len = 7, .val = 0x0111 }, { .len = 8, .val = 0x0072 }, { .len = 8, .val = 0x0032 }, { .len = 9, .val = 0x00c5 },
+    { .len = 7, .val = 0x0109 }, { .len = 8, .val = 0x0062 }, { .len = 8, .val = 0x0022 }, { .len = 9, .val = 0x00a5 }, { .len = 8, .val = 0x0002 }, { .len = 8, .val = 0x0082 }, { .len = 8, .val = 0x0042 }, { .len = 9, .val = 0x00e5 },
+    { .len = 7, .val = 0x010

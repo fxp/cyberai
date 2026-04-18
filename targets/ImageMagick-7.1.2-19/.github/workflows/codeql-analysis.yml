@@ -1,0 +1,81 @@
+on:
+  workflow_dispatch:
+  schedule:
+  - cron: 0 6 * * *
+  push:
+    branches:
+    - main
+    paths:
+    - .github/workflows/codeql-analysis.yml
+
+permissions: {}
+
+name: Codeql analysis
+jobs:
+  c_cpp:
+    name: Linux Q${{matrix.quantum}}-x64 hdri=${{matrix.hdri}} (${{matrix.modules}})
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        quantum: [ 16 ]
+        hdri: [ yes ]
+        modules: [ 'with-modules', 'without-modules' ]
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Install dependencies
+        run: |
+          set -e
+          export DEBIAN_FRONTEND=noninteractive
+          sudo apt-get update -y
+          sudo apt-get install -y libltdl-dev
+
+      - name: Configure ImageMagick
+        run: |
+          export CFLAGS="-Wno-deprecated-declarations"
+          autoreconf -fiv
+          ./configure --with-quantum-depth=${{matrix.quantum}} --enable-hdri=${{matrix.hdri}} --${{matrix.modules}}
+          echo "" > config.status
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@c10b8064de6f491fea524254123dbe5e09572f13 #v4.35.1
+        with:
+          languages: c-cpp
+
+      - name: Build ImageMagick
+        run: |
+          make
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@c10b8064de6f491fea524254123dbe5e09572f13 #v4.35.1
+
+  actions:
+    name: CodeQL analysis (GitHub Actions)
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@c10b8064de6f491fea524254123dbe5e09572f13 #v4.35.1
+        with:
+          languages: actions
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@c10b8064de6f491fea524254123dbe5e09572f13 #v4.35.1

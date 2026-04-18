@@ -1,0 +1,452 @@
+//========================================================================
+//
+// pdftohtml.cc
+//
+//
+// Copyright 1999-2000 G. Ovtcharov
+//========================================================================
+
+//========================================================================
+//
+// Modified under the Poppler project - http://poppler.freedesktop.org
+//
+// All changes made under the Poppler project to this file are licensed
+// under GPL version 2 or later
+//
+// Copyright (C) 2007-2008, 2010, 2012, 2015-2020, 2022, 2024-2026 Albert Astals Cid <aacid@kde.org>
+// Copyright (C) 2010 Hib Eris <hib@hiberis.nl>
+// Copyright (C) 2010 Mike Slegeir <tehpola@yahoo.com>
+// Copyright (C) 2010, 2013 Suzuki Toshiya <mpsuzuki@hiroshima-u.ac.jp>
+// Copyright (C) 2010 OSSD CDAC Mumbai by Leena Chourey (leenac@cdacmumbai.in) and Onkar Potdar (onkar@cdacmumbai.in)
+// Copyright (C) 2011 Steven Murdoch <Steven.Murdoch@cl.cam.ac.uk>
+// Copyright (C) 2012 Igor Slepchin <igor.redhat@gmail.com>
+// Copyright (C) 2012 Ihar Filipau <thephilips@gmail.com>
+// Copyright (C) 2012 Luis Parravicini <lparravi@gmail.com>
+// Copyright (C) 2014 Pino Toscano <pino@kde.org>
+// Copyright (C) 2015 William Bader <williambader@hotmail.com>
+// Copyright (C) 2017, 2021 Adrian Johnson <ajohnson@redneon.com>
+// Copyright (C) 2018 Klarälvdalens Datakonsult AB, a KDAB Group company, <info@kdab.com>. Work sponsored by the LiMux project of the city of Munich
+// Copyright (C) 2018 Thibaut Brard <thibaut.brard@gmail.com>
+// Copyright (C) 2018 Adam Reichold <adam.reichold@t-online.de>
+// Copyright (C) 2019, 2021, 2024 Oliver Sander <oliver.sander@tu-dresden.de>
+// Copyright (C) 2021 Hubert Figuiere <hub@figuiere.net>
+// Copyright (C) 2024-2026 g10 Code GmbH, Author: Sune Stolborg Vuorela <sune@vuorela.dk>
+//
+// To see a description of the changes please see the Changelog file that
+// came with your tarball or type make ChangeLog if you are building from git
+//
+//========================================================================
+
+#include "config.h"
+#include <poppler-config.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include "parseargs.h"
+#include "goo/GooString.h"
+#include "goo/gbase64.h"
+#include "goo/gbasename.h"
+#include "Object.h"
+#include "Stream.h"
+#include "Dict.h"
+#include "XRef.h"
+#include "Catalog.h"
+#include "Page.h"
+#include "Outline.h"
+#include "PDFDoc.h"
+#include "PDFDocFactory.h"
+#include "HtmlOutputDev.h"
+#include "SplashOutputDev.h"
+#include "splash/SplashBitmap.h"
+#include "GlobalParams.h"
+#include "PDFDocEncoding.h"
+#include "Error.h"
+#include "DateInfo.h"
+#include "goo/gfile.h"
+#include "Win32Console.h"
+#include "InMemoryFile.h"
+#include "UTF.h"
+
+static int firstPage = 1;
+static int lastPage = 0;
+static bool rawOrder = true;
+bool printCommands = true;
+static bool printHelp = false;
+bool printHtml = false;
+bool complexMode = false;
+bool singleHtml = false; // singleHtml
+bool dataUrls = false;
+bool ignore = false;
+static char extension[5] = "png";
+static double scale = 1.5;
+bool noframes = false;
+bool stout = false;
+bool xml = false;
+bool noRoundedCoordinates = false;
+static bool errQuiet = false;
+static bool noDrm = false;
+double wordBreakThreshold = 10; // 10%, below converted into a coefficient - 0.1
+
+bool showHidden = false;
+bool noMerge = false;
+bool fontFullName = false;
+static char ownerPassword[33] = "";
+static char userPassword[33] = "";
+static bool printVersion = false;
+
+static std::unique_ptr<GooString> getInfoString(Dict *infoDict, const char *key);
+static std::optional<std::string> getInfoDate(Dict *infoDict, const char *key);
+
+static char textEncName[128] = "";
+
+static const ArgDesc argDesc[] = { { .arg = "-f", .kind = argInt, .val = &firstPage, .size = 0, .usage = "first page to convert" },
+                                   { .arg = "-l", .kind = argInt, .val = &lastPage, .size = 0, .usage = "last page to convert" },
+                                   /*{"-raw",    argFlag,     &rawOrder,      0,
+                                     "keep strings in content stream order"},*/
+                                   { .arg = "-q", .kind = argFlag, .val = &errQuiet, .size = 0, .usage = "don't print any messages or errors" },
+                                   { .arg = "-h", .kind = argFlag, .val = &printHelp, .size = 0, .usage = "print usage information" },
+                                   { .arg = "-?", .kind = argFlag, .val = &printHelp, .size = 0, .usage = "print usage information" },
+                                   { .arg = "-help", .kind = argFlag, .val = &printHelp, .size = 0, .usage = "print usage information" },
+                                   { .arg = "--help", .kind = argFlag, .val = &printHelp, .size = 0, .usage = "print usage information" },
+                                   { .arg = "-p", .kind = argFlag, .val = &printHtml, .size = 0, .usage = "exchange .pdf links by .html" },
+                                   { .arg = "-c", .kind = argFlag, .val = &complexMode, .size = 0, .usage = "generate complex document" },
+                                   { .arg = "-s", .kind = argFlag, .val = &singleHtml, .size = 0, .usage = "generate single document that includes all pages" },
+#ifdef HAVE_IN_MEMORY_FILE
+                                   { .arg = "-dataurls", .kind = argFlag, .val = &dataUrls, .size = 0, .usage = "use data URLs instead of external images in HTML" },
+#endif
+                                   { .arg = "-i", .kind = argFlag, .val = &ignore, .size = 0, .usage = "ignore images" },
+                                   { .arg = "-noframes", .kind = argFlag, .val = &noframes, .size = 0, .usage = "generate no frames" },
+                                   { .arg = "-stdout", .kind = argFlag, .val = &stout, .size = 0, .usage = "use standard output" },
+                                   { .arg = "-zoom", .kind = argFP, .val = &scale, .size = 0, .usage = "zoom the pdf document (default 1.5)" },
+                                   { .arg = "-xml", .kind = argFlag, .val = &xml, .size = 0, .usage = "output for XML post-processing" },
+                                   { .arg = "-noroundcoord", .kind = argFlag, .val = &noRoundedCoordinates, .size = 0, .usage = "do not round coordinates (with XML output only)" },
+                                   { .arg = "-hidden", .kind = argFlag, .val = &showHidden, .size = 0, .usage = "output hidden text" },
+                                   { .arg = "-nomerge", .kind = argFlag, .val = &noMerge, .size = 0, .usage = "do not merge paragraphs" },
+                                   { .arg = "-enc", .kind = argString, .val = textEncName, .size = sizeof(textEncName), .usage = "output text encoding name" },
+                                   { .arg = "-fmt", .kind = argString, .val = extension, .size = sizeof(extension), .usage = "image file format for Splash output (png or jpg)" },
+                                   { .arg = "-v", .kind = argFlag, .val = &printVersion, .size = 0, .usage = "print copyright and version info" },
+                                   { .arg = "-opw", .kind = argString, .val = ownerPassword, .size = sizeof(ownerPassword), .usage = "owner password (for encrypted files)" },
+                                   { .arg = "-upw", .kind = argString, .val = userPassword, .size = sizeof(userPassword), .usage = "user password (for encrypted files)" },
+                                   { .arg = "-nodrm", .kind = argFlag, .val = &noDrm, .size = 0, .usage = "override document DRM settings" },
+                                   { .arg = "-wbt", .kind = argFP, .val = &wordBreakThreshold, .size = 0, .usage = "word break threshold (default 10 percent)" },
+                                   { .arg = "-fontfullname", .kind = argFlag, .val = &fontFullName, .size = 0, .usage = "outputs font full name" },
+                                   {} };
+
+class SplashOutputDevNoText : public SplashOutputDev
+{
+public:
+    SplashOutputDevNoText(SplashColorMode colorModeA, int bitmapRowPadA, SplashColorPtr paperColorA, bool bitmapTopDownA = true) : SplashOutputDev(colorModeA, bitmapRowPadA, paperColorA, bitmapTopDownA) { }
+    ~SplashOutputDevNoText() override;
+
+    void drawChar(GfxState * /*state*/, double /*x*/, double /*y*/, double /*dx*/, double /*dy*/, double /*originX*/, double /*originY*/, CharCode /*code*/, int /*nBytes*/, const Unicode * /*u*/, int /*uLen*/) override { }
+    bool beginType3Char(GfxState * /*state*/, double /*x*/, double /*y*/, double /*dx*/, double /*dy*/, CharCode /*code*/, const Unicode * /*u*/, int /*uLen*/) override { return false; }
+    void endType3Char(GfxState * /*state*/) override { }
+    void beginTextObject(GfxState * /*state*/) override { }
+    void endTextObject(GfxState * /*state*/) override { }
+    bool interpretType3Chars() override { return false; }
+};
+
+SplashOutputDevNoText::~SplashOutputDevNoText() = default;
+
+int main(int argc, char *argv[])
+{
+    std::unique_ptr<PDFDoc> doc;
+    GooString *fileName = nullptr;
+    std::unique_ptr<GooString> docTitle;
+    std::unique_ptr<GooString> author;
+    std::unique_ptr<GooString> keywords;
+    std::unique_ptr<GooString> subject;
+    std::optional<std::string> date;
+    std::unique_ptr<GooString> htmlFileName;
+    HtmlOutputDev *htmlOut = nullptr;
+    SplashOutputDev *splashOut = nullptr;
+    bool doOutline;
+    bool ok;
+    std::optional<GooString> ownerPW, userPW;
+    Object info;
+    int exit_status = EXIT_FAILURE;
+
+    Win32Console win32Console(&argc, &argv);
+    // parse args
+    ok = parseArgs(argDesc, &argc, argv);
+    if (!ok || argc < 2 || argc > 3 || printHelp || printVersion) {
+        fprintf(stderr, "pdftohtml version %s\n", PACKAGE_VERSION);
+        fprintf(stderr, "%s\n", popplerCopyright);
+        fprintf(stderr, "%s\n", "Copyright 1999-2003 Gueorgui Ovtcharov and Rainer Dorsch");
+        fprintf(stderr, "%s\n\n", xpdfCopyright);
+        if (!printVersion) {
+            printUsage("pdftohtml", "<PDF-file> [<html-file> <xml-file>]", argDesc);
+        }
+        exit(printHelp || printVersion ? 0 : 1);
+    }
+
+    // init error file
+    // errorInit();
+
+    // read config file
+    globalParams = std::make_unique<GlobalParams>();
+
+    if (errQuiet) {
+        globalParams->setErrQuiet(errQuiet);
+        printCommands = false; // I'm not 100% what is the difference between them
+    }
+
+    if (textEncName[0]) {
+        globalParams->setTextEncoding(textEncName);
+        if (!globalParams->getTextEncoding()) {
+            goto error;
+        }
+    }
+
+    // convert from user-friendly percents into a coefficient
+    wordBreakThreshold /= 100.0;
+
+    // open PDF file
+    if (ownerPassword[0]) {
+        ownerPW = GooString(ownerPassword);
+    }
+    if (userPassword[0]) {
+        userPW = GooString(userPassword);
+    }
+
+    fileName = new GooString(argv[1]);
+
+    if (fileName->compare("-") == 0) {
+        delete fileName;
+        fileName = new GooString("fd://0");
+    }
+
+    doc = PDFDocFactory().createPDFDoc(*fileName, ownerPW, userPW);
+
+    if (!doc->isOk()) {
+        goto error;
+    }
+
+    // check for copy permission
+    if (!doc->okToCopy()) {
+        if (!noDrm) {
+            error(errNotAllowed, -1, "Copying of text from this document is not allowed.");
+            goto error;
+        }
+        fprintf(stderr, "Document has copy-protection bit set.\n");
+    }
+
+    // construct text file name
+    if (argc == 3) {
+        auto tmp = std::make_unique<GooString>(argv[2]);
+        if (!xml) {
+            if (tmp->size() >= 5) {
+                const char *p = tmp->c_str() + tmp->size() - 5;
+                if (!strcmp(p, ".html") || !strcmp(p, ".HTML")) {
+                    htmlFileName = std::make_unique<GooString>(tmp->c_str(), tmp->size() - 5);
+                }
+            }
+        } else {
+            if (tmp->size() >= 4) {
+                const char *p = tmp->c_str() + tmp->size() - 4;
+                if (!strcmp(p, ".xml") || !strcmp(p, ".XML")) {
+                    htmlFileName = std::make_unique<GooString>(tmp->c_str(), tmp->size() - 4);
+                }
+            }
+        }
+        if (!htmlFileName) {
+            htmlFileName = std::move(tmp);
+        }
+    } else if (fileName->compare("fd://0") == 0) {
+        error(errCommandLine, -1, "You have to provide an output filename when reading from stdin.");
+        goto error;
+    } else {
+        const char *p = fileName->c_str() + fileName->size() - 4;
+        if (!strcmp(p, ".pdf") || !strcmp(p, ".PDF")) {
+            htmlFileName = std::make_unique<GooString>(fileName->c_str(), fileName->size() - 4);
+        } else {
+            htmlFileName = fileName->copy();
+        }
+        //   htmlFileName->append(".html");
+    }
+
+    if (scale > 3.0) {
+        scale = 3.0;
+    }
+    if (scale < 0.5) {
+        scale = 0.5;
+    }
+
+    if (complexMode) {
+        // noframes=false;
+        stout = false;
+    }
+
+    if (stout) {
+        noframes = true;
+        complexMode = false;
+    }
+
+    if (xml) {
+        complexMode = true;
+        singleHtml = false;
+        noframes = true;
+        noMerge = true;
+    }
+
+    // get page range
+    if (firstPage < 1) {
+        firstPage = 1;
+    }
+    if (lastPage < 1 || lastPage > doc->getNumPages()) {
+        lastPage = doc->getNumPages();
+    }
+    if (lastPage < firstPage) {
+        error(errCommandLine, -1, "Wrong page range given: the first page ({0:d}) can not be after the last page ({1:d}).", firstPage, lastPage);
+        goto error;
+    }
+
+    info = doc->getDocInfo();
+    if (info.isDict()) {
+        docTitle = getInfoString(info.getDict(), "Title");
+        author = getInfoString(info.getDict(), "Author");
+        keywords = getInfoString(info.getDict(), "Keywords");
+        subject = getInfoString(info.getDict(), "Subject");
+        date = getInfoDate(info.getDict(), "ModDate");
+        if (!date) {
+            date = getInfoDate(info.getDict(), "CreationDate");
+        }
+    }
+    if (!docTitle) {
+        docTitle = htmlFileName->copy();
+    }
+
+    if (!singleHtml) {
+        rawOrder = complexMode; // todo: figure out what exactly rawOrder do :)
+    } else {
+        rawOrder = singleHtml;
+    }
+
+    doOutline = doc->getOutline()->getItems() != nullptr;
+    // write text file
+    htmlOut = new HtmlOutputDev(doc->getCatalog(), htmlFileName->c_str(), docTitle->c_str(), author ? author->c_str() : nullptr, keywords ? keywords->c_str() : nullptr, subject ? subject->c_str() : nullptr, date ? date->c_str() : nullptr,
+                                rawOrder, firstPage, doOutline);
+
+    if ((complexMode || singleHtml) && !xml && !ignore) {
+        // White paper color
+        SplashColor color;
+        color[0] = color[1] = color[2] = 255;
+        // If the user specified "jpg" use JPEG, otherwise PNG
+        SplashImageFileFormat format = strcmp(extension, "jpg") ? splashFormatPng : splashFormatJpeg;
+
+        splashOut = new SplashOutputDevNoText(splashModeRGB8, 4, color);
+        splashOut->startDoc(doc.get());
+
+        for (int pg = firstPage; pg <= lastPage; ++pg) {
+            InMemoryFile imf;
+            doc->displayPage(splashOut, pg, 72 * scale, 72 * scale, 0, true, false, false);
+            SplashBitmap *bitmap = splashOut->getBitmap();
+
+            const std::string imgFileName = GooString::format("{0:s}{1:03d}.{2:s}", htmlFileName->c_str(), pg, extension);
+            auto *f1 = dataUrls ? imf.open("wb") : fopen(imgFileName.c_str(), "wb");
+            if (!f1) {
+                fprintf(stderr, "Could not open %s\n", imgFileName.c_str());
+                continue;
+            }
+            bitmap->writeImgFile(format, f1, 72 * scale, 72 * scale);
+            fclose(f1);
+            if (dataUrls) {
+                htmlOut->addBackgroundImage(std::string((format == splashFormatJpeg) ? "data:image/jpeg;base64," : "data:image/png;base64,") + gbase64Encode(imf.getBuffer()));
+            } else {
+                htmlOut->addBackgroundImage(gbasename(imgFileName.c_str()));
+            }
+        }
+
+        delete splashOut;
+    }
+
+    if (htmlOut->isOk()) {
+        doc->displayPages(htmlOut, firstPage, lastPage, 72 * scale, 72 * scale, 0, true, false, false);
+        htmlOut->dumpDocOutline(doc.get());
+    }
+
+    delete htmlOut;
+
+    exit_status = EXIT_SUCCESS;
+
+    // clean up
+error:
+    delete fileName;
+
+    return exit_status;
+}
+
+static std::unique_ptr<GooString> getInfoString(Dict *infoDict, const char *key)
+{
+    Object obj;
+    // Value converted to unicode
+    Unicode *unicodeString;
+    int unicodeLength;
+    // Value HTML escaped and converted to desired encoding
+    std::unique_ptr<GooString> encodedString;
+    // Is rawString UCS2 (as opposed to pdfDocEncoding)
+    bool isUnicode;
+
+    obj = infoDict->lookup(key);
+    if (obj.isString()) {
+        const std::string &rawString = obj.getString();
+
+        // Convert rawString to unicode
+        if (hasUnicodeByteOrderMark(rawString)) {
+            isUnicode = true;
+            unicodeLength = (obj.getString().size() - 2) / 2;
+        } else {
+            isUnicode = false;
+            unicodeLength = obj.getString().size();
+        }
+        unicodeString = new Unicode[unicodeLength];
+
+        for (int i = 0; i < unicodeLength; i++) {
+            if (isUnicode) {
+                unicodeString[i] = ((rawString.at((i + 1) * 2) & 0xff) << 8) | (rawString.at(((i + 1) * 2) + 1) & 0xff);
+            } else {
+                unicodeString[i] = pdfDocEncoding[rawString.at(i) & 0xff];
+            }
+        }
+
+        // HTML escape and encode unicode
+        encodedString = HtmlFont::HtmlFilter(unicodeString, unicodeLength);
+        delete[] unicodeString;
+    }
+
+    return encodedString;
+}
+
+static std::optional<std::string> getInfoDate(Dict *infoDict, const char *key)
+{
+    Object obj;
+    int year, mon, day, hour, min, sec, tz_hour, tz_minute;
+    char tz;
+    struct tm tmStruct;
+    char buf[256];
+
+    obj = infoDict->lookup(key);
+    if (obj.isString()) {
+        const std::string &s = obj.getString();
+        // TODO do something with the timezone info
+        if (parseDateString(s, &year, &mon, &day, &hour, &min, &sec, &tz, &tz_hour, &tz_minute)) {
+            tmStruct.tm_year = year - 1900;
+            tmStruct.tm_mon = mon - 1;
+            tmStruct.tm_mday = day;
+            tmStruct.tm_hour = hour;
+            tmStruct.tm_min = min;
+            tmStruct.tm_sec = sec;
+            tmStruct.tm_wday = -1;
+            tmStruct.tm_yday = -1;
+            tmStruct.tm_isdst = -1;
+            mktime(&tmStruct); // compute the tm_wday and tm_yday fields
+            if (strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S+00:00", &tmStruct)) {
+                return std::string(buf);
+            }
+            return s;
+        }
+        return s;
+    }
+    return {};
+}

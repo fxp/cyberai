@@ -1,0 +1,133 @@
+//========================================================================
+//
+// JBIG2Stream.h
+//
+// Copyright 2002-2003 Glyph & Cog, LLC
+//
+//========================================================================
+
+//========================================================================
+//
+// Modified under the Poppler project - http://poppler.freedesktop.org
+//
+// All changes made under the Poppler project to this file are licensed
+// under GPL version 2 or later
+//
+// Copyright (C) 2009 David Benjamin <davidben@mit.edu>
+// Copyright (C) 2013 Adrian Johnson <ajohnson@redneon.com>
+// Copyright (C) 2015 Suzuki Toshiya <mpsuzuki@hiroshima-u.ac.jp>
+// Copyright (C) 2019-2021 Oliver Sander <oliver.sander@tu-dresden.de>
+// Copyright (C) 2019 Volker Krause <vkrause@kde.org>
+// Copyright (C) 2019, 2021, 2025, 2026 Albert Astals Cid <aacid@kde.org>
+// Copyright (C) 2019, 2020 Even Rouault <even.rouault@spatialys.com>
+// Copyright (C) 2025 Nelson Benítez León <nbenitezl@gmail.com>
+// Copyright (C) 2025, 2026 g10 Code GmbH, Author: Sune Stolborg Vuorela <sune@vuorela.dk>
+// Copyright (C) 2025 Arnav V <arnav0872@gmail.com>
+//
+// To see a description of the changes please see the Changelog file that
+// came with your tarball or type make ChangeLog if you are building from git
+//
+//========================================================================
+
+#ifndef JBIG2STREAM_H
+#define JBIG2STREAM_H
+
+#include "Object.h"
+#include "Stream.h"
+
+class JBIG2Segment;
+class JBIG2Bitmap;
+class JArithmeticDecoder;
+class JArithmeticDecoderStats;
+class JBIG2HuffmanDecoder;
+struct JBIG2HuffmanTable;
+class JBIG2MMRDecoder;
+
+//------------------------------------------------------------------------
+
+class JBIG2Stream : public OwnedFilterStream
+{
+public:
+    JBIG2Stream(std::unique_ptr<Stream> strA, Object &&globalsStreamA, Object *globalsStreamRefA);
+    ~JBIG2Stream() override;
+    StreamKind getKind() const override { return strJBIG2; }
+    [[nodiscard]] bool rewind() override;
+    void close() override;
+    Goffset getPos() override;
+    int getChar() override;
+    int lookChar() override;
+    std::optional<std::string> getPSFilter(int psLevel, const char *indent) override;
+    bool isBinary(bool last = true) const override;
+    virtual Object *getGlobalsStream() { return &globalsStream; }
+    virtual Ref getGlobalsStreamRef() { return globalsStreamRef; }
+
+private:
+    bool hasGetChars() override { return true; }
+    int getChars(int nChars, unsigned char *buffer) override;
+
+    [[nodiscard]] bool readSegments();
+    [[nodiscard]] bool readSymbolDictSeg(unsigned int segNum, const std::vector<unsigned int> &refSegs);
+    [[nodiscard]] bool readTextRegionSeg(unsigned int segNum, bool imm, const std::vector<unsigned int> &refSegs);
+    std::unique_ptr<JBIG2Bitmap> readTextRegion(bool huff, bool refine, int w, int h, unsigned int numInstances, unsigned int logStrips, unsigned int numSyms, const JBIG2HuffmanTable *symCodeTab, unsigned int symCodeLen,
+                                                const std::vector<JBIG2Bitmap *> &syms, unsigned int defPixel, unsigned int combOp, unsigned int transposed, unsigned int refCorner, int sOffset, const JBIG2HuffmanTable *huffFSTable,
+                                                const JBIG2HuffmanTable *huffDSTable, const JBIG2HuffmanTable *huffDTTable, const JBIG2HuffmanTable *huffRDWTable, const JBIG2HuffmanTable *huffRDHTable, const JBIG2HuffmanTable *huffRDXTable,
+                                                const JBIG2HuffmanTable *huffRDYTable, const JBIG2HuffmanTable *huffRSizeTable, unsigned int templ, int *atx, int *aty);
+    [[nodiscard]] bool readPatternDictSeg(unsigned int segNum, unsigned int length);
+    [[nodiscard]] bool readHalftoneRegionSeg(unsigned int segNum, bool imm, const std::vector<unsigned int> &refSegs);
+    [[nodiscard]] bool readGenericRegionSeg(unsigned int segNum, bool imm, unsigned int length);
+    void mmrAddPixels(int a1, int blackPixels, int *codingLine, int *a0i, int w);
+    void mmrAddPixelsNeg(int a1, int blackPixels, int *codingLine, int *a0i, int w);
+    std::unique_ptr<JBIG2Bitmap> readGenericBitmap(bool mmr, int w, int h, int templ, bool tpgdOn, bool useSkip, JBIG2Bitmap *skip, int *atx, int *aty, int mmrDataLength);
+    [[nodiscard]] bool readGenericRefinementRegionSeg(unsigned int segNum, bool imm, const std::vector<unsigned int> &refSegs);
+    std::unique_ptr<JBIG2Bitmap> readGenericRefinementRegion(int w, int h, int templ, bool tpgrOn, JBIG2Bitmap *refBitmap, int refDX, int refDY, int *atx, int *aty);
+    [[nodiscard]] bool readPageInfoSeg();
+    [[nodiscard]] bool readEndOfStripeSeg(unsigned int length);
+    [[nodiscard]] bool readProfilesSeg(unsigned int length);
+    [[nodiscard]] bool readCodeTableSeg(unsigned int segNum);
+    [[nodiscard]] bool readExtensionSeg(unsigned int length);
+    JBIG2Segment *findSegment(unsigned int segNum);
+    void discardSegment(unsigned int segNum);
+    void resetGenericStats(unsigned int templ, const JArithmeticDecoderStats *prevStats);
+    void resetRefinementStats(unsigned int templ, const JArithmeticDecoderStats *prevStats);
+    [[nodiscard]] bool resetIntStats(int symCodeLen);
+    [[nodiscard]] bool readUByte(unsigned int *x);
+    [[nodiscard]] bool readByte(int *x);
+    [[nodiscard]] bool readUWord(unsigned int *x);
+    [[nodiscard]] bool readULong(unsigned int *x);
+    [[nodiscard]] bool readLong(int *x);
+
+    Object globalsStream;
+    Ref globalsStreamRef;
+    unsigned int pageW, pageH, curPageH;
+    unsigned int pageDefPixel;
+    std::unique_ptr<JBIG2Bitmap> pageBitmap;
+    unsigned int defCombOp;
+    std::vector<std::unique_ptr<JBIG2Segment>> segments;
+    std::vector<std::unique_ptr<JBIG2Segment>> globalSegments;
+    Stream *curStr;
+    unsigned char *dataPtr;
+    unsigned char *dataEnd;
+    unsigned int byteCounter;
+
+    JArithmeticDecoder *arithDecoder;
+    std::unique_ptr<JArithmeticDecoderStats> genericRegionStats;
+    std::unique_ptr<JArithmeticDecoderStats> refinementRegionStats;
+    JArithmeticDecoderStats *iadhStats;
+    JArithmeticDecoderStats *iadwStats;
+    JArithmeticDecoderStats *iaexStats;
+    JArithmeticDecoderStats *iaaiStats;
+    JArithmeticDecoderStats *iadtStats;
+    JArithmeticDecoderStats *iaitStats;
+    JArithmeticDecoderStats *iafsStats;
+    JArithmeticDecoderStats *iadsStats;
+    JArithmeticDecoderStats *iardxStats;
+    JArithmeticDecoderStats *iardyStats;
+    JArithmeticDecoderStats *iardwStats;
+    JArithmeticDecoderStats *iardhStats;
+    JArithmeticDecoderStats *iariStats;
+    JArithmeticDecoderStats *iaidStats;
+    JBIG2HuffmanDecoder *huffDecoder;
+    JBIG2MMRDecoder *mmrDecoder;
+};
+
+#endif
