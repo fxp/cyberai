@@ -151,31 +151,50 @@
 
 ### 3.3 待验证候选 — MQTT 协议层
 
-#### ✅ CAND-008: property__read proplen 下溢 — 已验证（低实际影响）
-- **位置**: `lib/property_mosq.c` L24–105 `property__read`
-- **描述**: `proplen`（`uint32_t`）通过 `*len -= 1/2/4` 逐步消耗。若声明 `proplen=1`，读完 property identifier (`*len → 0`) 后再减 value 字节数（value 读成功）→ `*len = 0xFFFFFFFF`，`while(proplen > 0)` 继续执行 ~packet_size 次迭代后因 "Unsupported property type: 0" 提前返回
-- **攻击向量**: 任意 MQTT 5.0 客户端（**无需认证，remote**）发送特制 CONNECT/PUBLISH 包
-- **验证结果** (2026-04-18, Docker: eclipse-mosquitto:2.0.21, Python socket PoC):
-  - ✅ 下溢已确认：broker 读取了远超声明 proplen=1 的字节（实际读完全部 2+N padding 字节）
-  - ✅ Broker 日志: `"Unsupported property type: 0"` → `"Client disconnected due to malformed packet"`
-  - 📊 CPU 放大测试结果（10次平均，与 baseline=0.86ms 比较）：
-    | 填充量 | 包大小 | 幻影属性数 | 延迟 | 放大倍数 |
-    |--------|--------|-----------|------|---------|
-    | 0      | 34B    | 0         | 0.86ms | 1.0x |
-    | 1KB    | 1KB    | 512       | 0.56ms | 0.7x |
-    | 10KB   | 10KB   | 5,120     | 0.75ms | 0.9x |
-    | 100KB  | 100KB  | 51,200    | 0.54ms | **0.6x** |
-    | 512KB  | 500KB  | 256,000   | 0.68ms | **0.8x** |
-  - 200并发×100KB 洪水测试: 44ms 完成，仅1个连接错误，broker全程存活
-  - **关键发现**: 放大倍数始终 ≤ 1.0x（恶意包处理比正常 CONNECT 更快，因为 broker 在解析错误后跳过了会话创建等步骤）
-- **最终评级**: 🔵 **已确认协议解析 Bug，但 DoS 实际影响可忽略**
-  - 下溢真实存在（broker 跨越声明 proplen 边界读取数据）
-  - 无内存放大（每连接 <1KB 额外分配）
-  - 无 CPU 放大（处理时间不随填充量线性增长）
-  - broker 通过 "unsupported property type" 快速退出循环
-- **CVE 状态**: 未找到对应 CVE，CVE-2023-3592 是不同问题
-- **披露建议**: 仍建议向 `security@mosquitto.org` 报告，属于协议解析正确性问题（不符合 MQTT 5.0 规范的边界处理）
-- **PoC 位置**: `/tmp/mqtt_proplen_poc.py`, `/tmp/mqtt_proplen_poc_v2.py`
+#### ✅ CAND-008: property__read proplen 下溢 — 深度验证完成（CVSS 5.3 Medium）
+- **位置**: `lib/property_mosq.c` L24–105 `property__read` / `property__read_all`
+- **描述**: `proplen`（`uint32_t`）通过 `*len -= 1/2/4` 逐步消耗。若声明 `proplen=1`，读完 property identifier (`*len → 0`) 后再减 value 字节数 → `*len = 0xFFFFFFFF` 下溢。`while(proplen > 0)` 循环以整个包剩余字节数为实际上限，每次迭代调用 `calloc(1, 48)` 分配 `mqtt5__property` 节点。
+- **攻击向量 (双路)**:
+  - **A. CONNECT** (无需认证，任意远程客户端)：每次新连接可触发一次
+  - **B. PUBLISH** (任意 QoS 0)：broker 返回 `DISCONNECT 0x81 (MALFORMED_PACKET)` → 重连后可反复触发
+- **验证结果** (2026-04-18, Docker: eclipse-mosquitto:2.0.21):
+
+  **PUBLISH 向量处理延迟** (按包大小, 每种测 1 次, 均返回 `e0 01 81`):
+  | 填充量 | 包大小 | 幻影属性数 | 处理延迟 |
+  |--------|--------|-----------|---------|
+  | 0      | ~24B   | 0         | 0.2ms   |
+  | 10KB   | ~10KB  | 5,120     | 0.5ms   |
+  | 50KB   | ~50KB  | 25,600    | 1.6ms   |
+  | 100KB  | ~100KB | 51,200    | 2.5ms   |
+  | 512KB  | ~500KB | 256,000   | **13.3ms** |
+
+  **CONNECT 向量吞吐退化** (正常 CONNECT→CONNACK 延迟, 攻击期间 vs 基准 ~1ms):
+  | 攻击配置 | 正常延迟 mean | P99 | mean倍数 | P99倍数 |
+  |---------|-------------|-----|---------|--------|
+  | 10并发×512KB | 2.9ms | 2.9ms | 2.9× | 2.9× |
+  | 50并发×512KB | 6.8ms | 6.8ms | 6.8× | 6.8× |
+  | 100并发×512KB | 6.8ms | 25ms | 6.8× | **25×** |
+  | 50并发×5MB | 20ms | 33ms | **20×** | **33×** |
+
+  **内存影响**: VmRSS 零增长（48B 分配由 glibc tcache 内消化，不增长进程 RSS）
+
+  **Broker 日志**: `Unsupported property type: 0` → `Client disconnected due to malformed packet`
+
+- **内存放大机制** (理论/峰值，处理完成即释放):
+  - `mqtt5__property` struct = 48B；2B/属性 → 24× 内存放大比
+  - 512KB 包 → 256K 幻影属性 → ~12MB 峰值（处理完即释放，tcache 无 RSS 增长）
+
+- **最终评级**: 🟡 **P2 — 真实 DoS（CPU 吞吐退化），远程无认证可触发**
+  - ✅ 下溢已确认（broker 读取了远超 proplen=1 声明边界的数据）
+  - ✅ PUBLISH 向量已确认（0~512KB 均返回 MALFORMED_PACKET，无大小限制问题）
+  - ✅ 吞吐退化已量化：50并发×5MB → 正常请求延迟 20×/P99 33×
+  - ❌ 无崩溃、无内存泄漏、无持久影响（broker 保持运行）
+  - 根因：Mosquitto 单线程事件循环，大包解析占用 calloc/free 时间，饿死合法流量
+
+- **CVSS 3.1**: `AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L` = **5.3 (Medium)**
+- **CVE 状态**: 未找到对应 CVE，CVE-2023-3592 是不同问题（大包 OOM）
+- **披露草稿**: `/Users/xiaopingfeng/Projects/cyberai/research/disclosures/mosquitto_CAND-008_draft.md`
+- **PoC 位置**: `/tmp/mqtt_proplen_poc.py`, `/tmp/mqtt_cand008_deepdive.py`, `/tmp/mqtt_cand008_peak.py`, `/tmp/mqtt_cand008_publish.py`
 
 ---
 
@@ -197,7 +216,7 @@
 |--------|-----|------|------|---------|------|
 | 🔴 P1 | CVE-2025-62171 | ImageMagick 7.1.1-44 | 堆溢出(32-bit) | 本地/解析 | 升级到 7.1.2-7 |
 | 🔴 P1 | CVE-2025-57803 | ImageMagick 7.1.1-44 | 堆溢出 | 本地/解析 | 升级到 7.1.2-2 |
-| 🔵 P3 | CAND-008 | Mosquitto 2.0.21 | 协议解析Bug(proplen下溢) | **远程，无认证** | ✅已验证，建议披露 |
+| 🟡 P2 | CAND-008 | Mosquitto 2.0.21 | CPU吞吐DoS(proplen下溢) | **远程，无认证** | ✅深度验证完成，待发送披露邮件 |
 | ❌ FP | CAND-001 | LibTIFF 4.7.0 | 有符号溢出(假阳) | 解析 | ✅已审计，FP |
 | ❌ FP | CAND-003 | ImageMagick 7.1.1-44 | ICC绕过(64-bit FP) | 解析 | ✅已审计，64-bit FP |
 | 🟢 P3 | CAND-006/007 | Mosquitto 2.0.21 | DoS (持久化文件) | 本地写权限 | 代码审计 |
@@ -209,7 +228,7 @@
 
 ## 六、下一步行动
 
-1. **【✅ 已完成】** Mosquitto CAND-008 PoC 验证：下溢确认，无 DoS 放大，降级 P2→P3
+1. **【✅ 已完成】** Mosquitto CAND-008 深度验证：下溢确认 + PUBLISH 向量确认 + 吞吐退化量化 (50并发×5MB→20×/33× P99)；升级 P3→P2
 2. **【✅ 已完成】** LibTIFF CAND-001/002 代码审计：均为假阳性（有完整的溢出保护路径）
 3. **【✅ 已完成】** ImageMagick CAND-003/004/005 代码审计：CAND-003/004 为64-bit FP，CAND-005 为代码质量问题
 4. **【立即】** 向 `security@mosquitto.org` 发送 CAND-008 披露邮件（协议解析越界读，非DoS）
