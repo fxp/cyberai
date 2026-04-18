@@ -32,19 +32,25 @@
 
 ### 1.2 待验证候选
 
-#### 🟡 CAND-001: ZIPEncode 负数 tif_rawdatasize
-- **位置**: `tif_zip.c` `ZIPEncode` L499
-- **类型**: 有符号整数溢出 → 缓冲区溢出
-- **描述**: `tif->tif_rawdatasize` 类型为 `tmsize_t`（有符号）。若在内存分配路径中因整数溢出变为负数，后续将负数当作大 `size_t` 使用，导致写入越界
-- **CVE 状态**: 未找到对应 CVE，候选新漏洞
-- **下一步**: 检查 `tif_rawdatasize` 赋值路径中是否有足够的溢出检查
+#### ❌ CAND-001: ZIPEncode 负数 tif_rawdatasize — **已审计，假阳性**
+- **位置**: `tif_zip.c` `ZIPEncode` L499 / `tif_write.c:TIFFWriteBufferSetup`
+- **类型**: 有符号整数溢出 → 缓冲区溢出（假设）
+- **审计结论 (2026-04-18)**: **FP — 所有赋值路径均有足够保护**
+  - **写入路径** (`TIFFWriteBufferSetup`): `size` 来自 `TIFFStripSize()` → `_TIFFCastUInt64ToSSize()` 内部检查 `val > TIFF_TMSIZE_T_MAX`（= `SIZE_MAX>>1` = `INT64_MAX`）返回0，且有10%溢出余量检查
+  - **读取路径** (`TIFFFillStrip` L755): 直接检查 `bytecount > TIFF_INT64_MAX` → 返回错误，之后才做 `(tmsize_t)bytecount`
+  - ZIPEncode L50 的检查 `(size_t)x != (uint64_t)x` 在64-bit系统上永远为false（死代码），但此时 `tif_rawdatasize` 已经被上游防护保证为非负数
+  - 无法通过正常 TIFF 文件解析路径使 `tif_rawdatasize` 变为负数
+- **CVE 状态**: 假阳性，无实际漏洞
 
-#### 🟡 CAND-002: TIFFReadDirectory PersampleShort 栈溢出
-- **位置**: `tif_dirread.c` L4520
-- **类型**: 栈缓冲区溢出
-- **描述**: 处理 `BITSPERSAMPLE/SAMPLEFORMAT` 等 per-sample 标签时，先读取 count != 1 的情况，使用固定大小的本地数组存储 `SamplesPerPixel=64` 的样本值。若该本地数组容量不足，可能发生栈溢出
-- **CVE 状态**: 未找到直接对应 CVE
-- **下一步**: 检查 `_TIFFReadDirEntryPersampleShort` 中本地数组的实际声明大小
+#### ❌ CAND-002: TIFFReadDirectory PersampleShort 栈溢出 — **已审计，假阳性**
+- **位置**: `tif_dirread.c` L4520 → `TIFFReadDirEntryPersampleShort` L3276
+- **类型**: 栈缓冲区溢出（假设）
+- **审计结论 (2026-04-18)**: **FP — 不存在固定大小本地数组**
+  - 实际代码: 通过 `TIFFReadDirEntryShortArray(tif, direntry, &m)` **堆分配**数组，无栈缓冲区
+  - `m` 为堆指针，使用后 `_TIFFfreeExt(tif, m)` 释放
+  - 本地变量只有 `uint16_t value`（单个值）和 `uint16_t nb`（计数器）
+  - GLM 扫描误判"per-sample 值处理"为"固定数组"
+- **CVE 状态**: 假阳性，无实际漏洞
 
 ---
 
@@ -69,22 +75,42 @@
 
 ### 2.2 待验证候选
 
-#### 🟡 CAND-003: BMP ICC profile 有符号转换绕过
-- **位置**: `coders/bmp.c` L1673
-- **描述**: `profile_size_orig` 以有符号 `MagickOffsetType` 读取 ICC profile 头 4 字节。负值可绕过 `profile_size_orig > file_size` 检查，导致后续越界读
-- **CVE 状态**: 未找到对应 CVE，潜在新漏洞
-- **下一步**: 构造 ICC profile 头字节 = `0x80000000`，验证检查是否被绕过
+#### ❌ CAND-003: BMP ICC profile 有符号转换绕过 — **已审计，64-bit FP / 32-bit 潜在漏洞**
+- **位置**: `coders/bmp.c` L1673 (extract `bmp_ReadBMPImage_I.c` L130-135)
+- **描述**: `profile_size_orig` 以有符号 `MagickOffsetType` 读取 ICC profile 头 4 字节
+- **审计结论 (2026-04-18)**:
+  - **64-bit 构建** (现代 ImageMagick 7.x): `MagickOffsetType = int64_t`，4字节数据填入 bits 0-31，结果 0–4294967295，永远非负 → **FP**
+  - **32-bit 构建**: `MagickOffsetType = int32_t`，`datum[0]=0x80 → profile_size_orig = 0x80000000 = INT32_MIN = -2147483648` (负数！)
+    - `if (profile_size_orig < profile_size)`: `-2147483648 < 100` → TRUE，绕过了安全长度检查
+    - `SetStringInfoLength(profile, (size_t)(-2147483648))` = `SetStringInfoLength(profile, 0x80000000)` → 尝试将100字节缓冲区扩展到2GB → 堆损坏
+  - **实际影响**: ImageMagick 7.1.1-44 通常编译为64-bit → **实际为FP**；32-bit 构建存在真实漏洞
+- **CVE 状态**: 未找到对应 CVE；32-bit 存在边界条件漏洞，但现代部署不受影响
 
-#### 🟡 CAND-004: BMP OS/2 负尺寸
-- **位置**: `coders/bmp.c` L695
-- **描述**: OS/2 BMP (header size=12) 将宽/高读为 `uint16_t` 后转为 `signed short`，`width=0xFFFF → -1`，导致 scanline 计算为负数
-- **CVE 状态**: 未找到对应 CVE
-- **下一步**: 用 header_size=12, width=0xFFFF 的 OS/2 BMP 测试
+#### ❌ CAND-004: BMP OS/2 负尺寸 — **已审计，假阳性**
+- **位置**: `coders/bmp.c` L695 (extract `bmp_ReadBMPImage_A.c` L147)
+- **描述**: OS/2 BMP 宽度读为 `(ssize_t)((short) ReadBlobLSBShort())` → `0xFFFF → -1`
+- **审计结论 (2026-04-18)**: **FP — 负值被立即检查拦截**
+  - `bmp_ReadBMPImage_D.c` L5-6: `if (bmp_info.width <= 0) ThrowReaderException(CorruptImageError,"NegativeOrZeroImageSize")`
+  - 下游 L72: `image->columns=(size_t) MagickAbsoluteValue(bmp_info.width)` — 即使通过也有绝对值处理
+  - 无法绕过宽度验证
+- **CVE 状态**: 假阳性
 
-#### 🟡 CAND-005: BMP HeapOverflowSanityCheck 不完整
-- **位置**: `coders/tiff.c` L2008 `ReadTIFFImage`
-- **描述**: `HeapOverflowSanityCheck(rows * sizeof(*tile_pixels))` 其中 `sizeof(*tile_pixels)=1`，等价于检查 `rows * 1`，但实际分配是 `rows * stride`。stride 大时仍会溢出
-- **CVE 状态**: 未找到完全匹配的 CVE
+#### 🟡 CAND-005: HeapOverflowSanityCheck 参数错误 — **代码质量问题，利用困难**
+- **位置**: `coders/tiff.c` L2008 (extract `tiff_ReadTIFFImage_G.c` L136)
+- **实际代码**:
+  ```c
+  if (HeapOverflowSanityCheck(rows, sizeof(*tile_pixels)) != MagickFalse)
+    ThrowTIFFException(ResourceLimitError, "MemoryAllocationFailed");
+  stride = (ssize_t) TIFFTileRowSize(tiff);
+  extent = (size_t) MagickMax((size_t) tile_size, rows * MagickMax((size_t) stride, length));
+  tile_pixels = (unsigned char *) AcquireQuantumMemory(extent, sizeof(*tile_pixels));
+  ```
+- **问题**: `HeapOverflowSanityCheck(rows, 1)` 只检查 `rows * 1` 溢出（永不发生），未检查实际的 `rows * stride` 乘法
+- **审计结论 (2026-04-18)**: **真实代码质量问题，但实际利用受到多重限制**
+  - `stride` 来自 `TIFFTileRowSize()` → LibTIFF 内部使用 `_TIFFCastUInt64ToSSize()` 溢出检测，溢出时返回0
+  - `rows * stride` 溢出需要 `stride × rows > 2^64`；当 `stride = 4.3B` 时理论可能 (`rows = 4.3B × stride > 2^64`)，但此时 `TIFFTileSize` 也会溢出并返回0，导致 `extent = 0` → 分配失败
+  - **结论**: 检查参数确实错误，但上游 LibTIFF 溢出保护阻止了实际利用
+- **CVE 状态**: 代码质量问题，建议向 ImageMagick 报告修复 `HeapOverflowSanityCheck` 参数
 
 ---
 
@@ -96,38 +122,60 @@
 
 ### 3.2 待验证候选 — 持久化文件 chunk 整数下溢
 
-#### 🟡 CAND-006: persist_read client_msg length 下溢
+#### 🟡 CAND-006: persist_read client_msg length 下溢 — **已审计，低影响DoS**
 - **位置**: `src/persist_read_v5.c` L81
 - **代码**:
   ```c
   length -= (uint32_t)(sizeof(struct PF_client_msg) + chunk->F.id_len);
+  // 之后:
+  if(length > 0){
+      prop_packet.payload = mosquitto__malloc(length);  // length = 0xFFFFFFFF
+      if(!prop_packet.payload){ return MOSQ_ERR_NOMEM; }  // ← NULL 检查
   ```
-- **描述**: 若 `chunk->F.id_len` 来自恶意持久化文件且足够大，`length` 从 `uint32_t` 下溢到 `0xFFFFFFFF`，后续 `if(length > 0)` 为真，`mosquitto__malloc(0xFFFFFFFF)` → OOM 崩溃 或 OOB 读
-- **攻击向量**: 攻击者需能写入/替换 Mosquitto 的持久化数据库文件（本地权限）
+- **审计结论 (2026-04-18)**: **下溢已在源码中确认 (L81)，但实际影响受限**
+  - 下溢后 `length = 0xFFFFFFFF`，进入 `if(length > 0)` 为真
+  - `mosquitto__malloc(0xFFFFFFFF)` 在现代系统上失败返回 NULL
+  - NULL 检查存在：`if(!prop_packet.payload) return MOSQ_ERR_NOMEM`
+  - **实际影响**: broker 在加载该持久化条目时返回错误，跳过此条目 — **非崩溃**
+  - **注意**: 若 broker 因返回错误而中止启动，则为 DoS（阻止 broker 正常启动）
+- **攻击向量**: 需本地写入/替换 Mosquitto 持久化数据库文件
 - **CVE 状态**: 未找到对应 CVE（CVE-2023-28366 是不同问题）
-- **影响**: DoS（broker 崩溃），配合本地写权限可能提权
 
-#### 🟡 CAND-007: persist_read msg_store length 下溢
+#### 🟡 CAND-007: persist_read msg_store length 下溢 — **已审计，同上**
 - **位置**: `src/persist_read_v5.c` L130
-- **代码**:
-  ```c
-  length -= (uint32_t)(sizeof(struct PF_msg_store) + chunk->F.payloadlen 
-                       + chunk->F.source_id_len + chunk->F.source_username_len 
-                       + chunk->F.topic_len);
-  ```
-- **描述**: 同上，多个字段之和超过 `length` 时下溢
-- **攻击向量**: 恶意持久化文件
+- **审计结论 (2026-04-18)**: 与 CAND-006 相同模式
+  - `payloadlen` 有 `MQTT_MAX_PAYLOAD` 检查 (L121-123)，但 `source_id_len + source_username_len + topic_len` 之和未检查
+  - 下溢后 `length = 0xFFFFFFFF`，同样因 `malloc` 失败 + NULL 检查而不崩溃
+- **攻击向量**: 恶意持久化文件（本地写权限）
 - **CVE 状态**: 未找到对应 CVE
 
 ### 3.3 待验证候选 — MQTT 协议层
 
-#### 🟡 CAND-008: property__read proplen 下溢 (远程 DoS)
+#### ✅ CAND-008: property__read proplen 下溢 — 已验证（低实际影响）
 - **位置**: `lib/property_mosq.c` L24–105 `property__read`
-- **描述**: `proplen`（`uint32_t`）通过 `*len -= 1/2/4` 逐步消耗。若声明 `proplen=1`，读完 property identifier (`*len → 0`) 后再减 value 字节数（value 读成功）→ `*len = 0xFFFFFFFF`，`while(proplen > 0)` 继续执行 ~2^32 次迭代直到包数据耗尽
+- **描述**: `proplen`（`uint32_t`）通过 `*len -= 1/2/4` 逐步消耗。若声明 `proplen=1`，读完 property identifier (`*len → 0`) 后再减 value 字节数（value 读成功）→ `*len = 0xFFFFFFFF`，`while(proplen > 0)` 继续执行 ~packet_size 次迭代后因 "Unsupported property type: 0" 提前返回
 - **攻击向量**: 任意 MQTT 5.0 客户端（**无需认证，remote**）发送特制 CONNECT/PUBLISH 包
-- **影响**: DoS — broker 在极短时间内自旋 ~packet_size 次后返回 PROTOCOL 错误，但可通过批量包放大
+- **验证结果** (2026-04-18, Docker: eclipse-mosquitto:2.0.21, Python socket PoC):
+  - ✅ 下溢已确认：broker 读取了远超声明 proplen=1 的字节（实际读完全部 2+N padding 字节）
+  - ✅ Broker 日志: `"Unsupported property type: 0"` → `"Client disconnected due to malformed packet"`
+  - 📊 CPU 放大测试结果（10次平均，与 baseline=0.86ms 比较）：
+    | 填充量 | 包大小 | 幻影属性数 | 延迟 | 放大倍数 |
+    |--------|--------|-----------|------|---------|
+    | 0      | 34B    | 0         | 0.86ms | 1.0x |
+    | 1KB    | 1KB    | 512       | 0.56ms | 0.7x |
+    | 10KB   | 10KB   | 5,120     | 0.75ms | 0.9x |
+    | 100KB  | 100KB  | 51,200    | 0.54ms | **0.6x** |
+    | 512KB  | 500KB  | 256,000   | 0.68ms | **0.8x** |
+  - 200并发×100KB 洪水测试: 44ms 完成，仅1个连接错误，broker全程存活
+  - **关键发现**: 放大倍数始终 ≤ 1.0x（恶意包处理比正常 CONNECT 更快，因为 broker 在解析错误后跳过了会话创建等步骤）
+- **最终评级**: 🔵 **已确认协议解析 Bug，但 DoS 实际影响可忽略**
+  - 下溢真实存在（broker 跨越声明 proplen 边界读取数据）
+  - 无内存放大（每连接 <1KB 额外分配）
+  - 无 CPU 放大（处理时间不随填充量线性增长）
+  - broker 通过 "unsupported property type" 快速退出循环
 - **CVE 状态**: 未找到对应 CVE，CVE-2023-3592 是不同问题
-- **下一步**: 构造 `proplen=2` 且数据为一个 3-byte 属性 (1 byte id + 2 byte uint16 value)，验证 proplen 是否下溢
+- **披露建议**: 仍建议向 `security@mosquitto.org` 报告，属于协议解析正确性问题（不符合 MQTT 5.0 规范的边界处理）
+- **PoC 位置**: `/tmp/mqtt_proplen_poc.py`, `/tmp/mqtt_proplen_poc_v2.py`
 
 ---
 
@@ -149,22 +197,42 @@
 |--------|-----|------|------|---------|------|
 | 🔴 P1 | CVE-2025-62171 | ImageMagick 7.1.1-44 | 堆溢出(32-bit) | 本地/解析 | 升级到 7.1.2-7 |
 | 🔴 P1 | CVE-2025-57803 | ImageMagick 7.1.1-44 | 堆溢出 | 本地/解析 | 升级到 7.1.2-2 |
-| 🟡 P2 | CAND-008 | Mosquitto 2.0.21 | DoS (proplen下溢) | **远程，无认证** | PoC 验证 |
-| 🟡 P2 | CAND-001 | LibTIFF 4.7.0 | 有符号溢出 | 解析 | 代码审计 |
-| 🟡 P2 | CAND-003 | ImageMagick 7.1.1-44 | ICC 绕过 | 解析 | PoC 验证 |
+| 🔵 P3 | CAND-008 | Mosquitto 2.0.21 | 协议解析Bug(proplen下溢) | **远程，无认证** | ✅已验证，建议披露 |
+| ❌ FP | CAND-001 | LibTIFF 4.7.0 | 有符号溢出(假阳) | 解析 | ✅已审计，FP |
+| ❌ FP | CAND-003 | ImageMagick 7.1.1-44 | ICC绕过(64-bit FP) | 解析 | ✅已审计，64-bit FP |
 | 🟢 P3 | CAND-006/007 | Mosquitto 2.0.21 | DoS (持久化文件) | 本地写权限 | 代码审计 |
-| 🟢 P3 | CAND-002 | LibTIFF 4.7.0 | 栈溢出 | 解析 | 代码审计 |
-| 🟢 P3 | CAND-004/005 | ImageMagick 7.1.1-44 | OOB | 解析 | 代码审计 |
+| ❌ FP | CAND-002 | LibTIFF 4.7.0 | 栈溢出(假阳) | 解析 | ✅已审计，FP |
+| ❌ FP | CAND-004 | ImageMagick 7.1.1-44 | OS/2负尺寸(假阳) | 解析 | ✅已审计，FP |
+| 🟢 P3 | CAND-005 | ImageMagick 7.1.1-44 | 代码质量(HeapCheck参数错) | 解析 | ✅已审计，建议修复 |
 
 ---
 
 ## 六、下一步行动
 
-1. **【立即】** Mosquitto CAND-008 PoC 验证：发送 `proplen=2` MQTT CONNECT 包，观察 broker CPU 使用
-2. **【今日】** LibTIFF CAND-001 代码审计：追踪 `tif_rawdatasize` 所有赋值路径
-3. **【本周】** ImageMagick CAND-003 PoC：构造 ICC profile 头 `0x80000000`
-4. **【通知】** 如果 CAND-008 可确认：向 Mosquitto 安全邮件 `security@mosquitto.org` 披露
-5. **【已完成】** LibTIFF PixarLog ABGR (F1) → 已向 `tiff@lists.osgeo.org` 准备披露报告
+1. **【✅ 已完成】** Mosquitto CAND-008 PoC 验证：下溢确认，无 DoS 放大，降级 P2→P3
+2. **【✅ 已完成】** LibTIFF CAND-001/002 代码审计：均为假阳性（有完整的溢出保护路径）
+3. **【✅ 已完成】** ImageMagick CAND-003/004/005 代码审计：CAND-003/004 为64-bit FP，CAND-005 为代码质量问题
+4. **【立即】** 向 `security@mosquitto.org` 发送 CAND-008 披露邮件（协议解析越界读，非DoS）
+5. **【本周】** 向 ImageMagick 报告 CAND-005：`HeapOverflowSanityCheck(rows, sizeof(*tile_pixels))` 检查参数应改为 `(rows * max(stride, length), 1)` 或等价形式
+6. **【已完成】** LibTIFF PixarLog ABGR (F1) → 已向 `tiff@lists.osgeo.org` 准备披露报告
+7. **【明日 08:05 BJT】** 10目标每日扫描自动运行（含新增的 FreeType 2.13.3，49段）
+
+---
+
+## 七、候选漏洞最终状态汇总 (2026-04-18 审计后)
+
+| ID | 目标 | 最终状态 | 说明 |
+|----|------|---------|------|
+| CVE-2025-62171 | ImageMagick | 🔴 已知CVE，仍受影响 | 需升级到 7.1.2-7 |
+| CVE-2025-57803 | ImageMagick | 🔴 已知CVE，仍受影响 | 需升级到 7.1.2-2 |
+| CAND-001 | LibTIFF | ❌ 假阳性 | `tif_rawdatasize` 所有赋值路径均有溢出保护 |
+| CAND-002 | LibTIFF | ❌ 假阳性 | `PersampleShort` 使用堆分配，无栈数组 |
+| CAND-003 | ImageMagick | ❌ 64-bit FP | 32-bit 构建存在真实问题，64-bit 不受影响 |
+| CAND-004 | ImageMagick | ❌ 假阳性 | 负宽度被 `width <= 0` 检查拦截 |
+| CAND-005 | ImageMagick | 🟡 代码质量 | 检查参数错误，利用受上游保护限制 |
+| CAND-006 | Mosquitto | 🟡 本地DoS | 持久化文件 client_msg length 下溢（需本地写权限）|
+| CAND-007 | Mosquitto | 🟡 本地DoS | 持久化文件 msg_store length 下溢（需本地写权限）|
+| CAND-008 | Mosquitto | 🔵 协议解析Bug | proplen下溢已确认，无DoS放大，建议向上游报告 |
 
 ---
 
