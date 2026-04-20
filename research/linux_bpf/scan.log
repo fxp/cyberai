@@ -1,0 +1,790 @@
+/opt/homebrew/lib/python3.14/site-packages/zhipuai/core/_base_compat.py:48: UserWarning: Core Pydantic V1 functionality isn't compatible with Python 3.14 or greater.
+  from pydantic.v1.typing import (
+🔍 扫描目标: linux_bpf (260 个 extracts)
+📌 关注点: container escape, eBPF verifier bypass, out-of-bounds map access, speculative ex...
+  [  1/260] kernel_bpf_arena_A.c 🚨
+  [  2/260] kernel_bpf_arena_B.c 🚨
+  [  3/260] kernel_bpf_arena_C.c 🚨
+  [  4/260] kernel_bpf_arena_D.c 🚨
+  [  5/260] kernel_bpf_arena_E.c 🚨
+  [  6/260] kernel_bpf_arena_F.c 🚨
+  [  7/260] kernel_bpf_btf_A.c 🚨
+  [  8/260] kernel_bpf_btf_B.c 🚨
+  [  9/260] kernel_bpf_btf_C.c 🚨
+  [ 10/260] kernel_bpf_btf_D.c 🚨
+  [ 11/260] kernel_bpf_btf_E.c 🚨
+  [ 12/260] kernel_bpf_btf_F.c 🚨
+  [ 13/260] kernel_bpf_btf_G.c 🚨
+  [ 14/260] kernel_bpf_btf_H.c 🚨
+  [ 15/260] kernel_bpf_btf_I.c 🚨
+  [ 16/260] kernel_bpf_btf_J.c 🚨
+  [ 17/260] kernel_bpf_btf_K.c 🚨
+  [ 18/260] kernel_bpf_btf_L.c 🚨
+  [ 19/260] kernel_bpf_btf_M.c 🚨
+  [ 20/260] kernel_bpf_btf_N.c 🚨
+  [ 21/260] kernel_bpf_btf_O.c 🚨
+  [ 22/260] kernel_bpf_btf_P.c 🚨
+  [ 23/260] kernel_bpf_btf_Q.c 🚨
+  [ 24/260] kernel_bpf_btf_R.c 🚨
+  [ 25/260] kernel_bpf_btf_S.c 🚨
+  [ 26/260] kernel_bpf_btf_T.c 🚨
+  [ 27/260] kernel_bpf_btf_U.c 🚨
+  [ 28/260] kernel_bpf_btf_V.c 🚨
+  [ 29/260] kernel_bpf_btf_W.c 🚨
+  [ 30/260] kernel_bpf_btf_X.c 🚨
+  [ 31/260] kernel_bpf_btf_Y.c 🚨
+  [ 32/260] kernel_bpf_btf_Z.c 🚨
+  [ 33/260] kernel_bpf_btf_[.c 🚨
+  [ 34/260] kernel_bpf_btf_\.c 🚨
+  [ 35/260] kernel_bpf_btf_].c 🚨
+  [ 36/260] kernel_bpf_btf_^.c 🚨
+  [ 37/260] kernel_bpf_btf__.c 🚨
+  [ 38/260] kernel_bpf_btf_`.c 🚨
+  [ 39/260] kernel_bpf_core_A.c 🚨
+  [ 40/260] kernel_bpf_core_B.c 🚨
+  [ 41/260] kernel_bpf_core_C.c 🚨
+  [ 42/260] kernel_bpf_core_D.c 🚨
+  [ 43/260] kernel_bpf_core_E.c 🚨
+  [ 44/260] kernel_bpf_core_F.c 🚨
+  [ 45/260] kernel_bpf_core_G.c 🚨
+  [ 46/260] kernel_bpf_core_H.c 🚨
+  [ 47/260] kernel_bpf_core_I.c 🚨
+  [ 48/260] kernel_bpf_core_J.c 🚨
+  [ 49/260] kernel_bpf_core_K.c 🚨
+  [ 50/260] kernel_bpf_core_L.c 🚨
+  [ 51/260] kernel_bpf_core_M.c 🚨
+  [ 52/260] kernel_bpf_core_N.c 🚨
+  [ 53/260] kernel_bpf_core_O.c 🚨
+  [ 54/260] kernel_bpf_core_P.c 🚨
+  [ 55/260] kernel_bpf_core_Q.c 🚨
+  [ 56/260] kernel_bpf_core_R.c 🚨
+  [ 57/260] kernel_bpf_core_S.c 🚨
+  [ 58/260] kernel_bpf_core_T.c 🚨
+  [ 59/260] kernel_bpf_helpers_A.c 🚨
+  [ 60/260] kernel_bpf_helpers_B.c 🚨
+  [ 61/260] kernel_bpf_helpers_C.c 🚨
+  [ 62/260] kernel_bpf_helpers_D.c 🚨
+  [ 63/260] kernel_bpf_helpers_E.c 🚨
+  [ 64/260] kernel_bpf_helpers_F.c 🚨
+  [ 65/260] kernel_bpf_helpers_G.c 🚨
+  [ 66/260] kernel_bpf_helpers_H.c 🚨
+  [ 67/260] kernel_bpf_helpers_I.c 🚨
+  [ 68/260] kernel_bpf_helpers_J.c 🚨
+  [ 69/260] kernel_bpf_helpers_K.c 🚨
+  [ 70/260] kernel_bpf_helpers_L.c 🚨
+  [ 71/260] kernel_bpf_helpers_M.c 🚨
+  [ 72/260] kernel_bpf_helpers_N.c 🚨
+  [ 73/260] kernel_bpf_helpers_O.c 🚨
+  [ 74/260] kernel_bpf_helpers_P.c 🚨
+  [ 75/260] kernel_bpf_helpers_Q.c 🚨
+  [ 76/260] kernel_bpf_helpers_R.c 🚨
+  [ 77/260] kernel_bpf_helpers_S.c 🚨
+  [ 78/260] kernel_bpf_helpers_T.c 🚨
+  [ 79/260] kernel_bpf_helpers_U.c 🚨
+  [ 80/260] kernel_bpf_helpers_V.c 🚨
+  [ 81/260] kernel_bpf_helpers_W.c 🚨
+  [ 82/260] kernel_bpf_helpers_X.c 🚨
+  [ 83/260] kernel_bpf_helpers_Y.c 🚨
+  [ 84/260] kernel_bpf_helpers_Z.c 🚨
+  [ 85/260] kernel_bpf_helpers_[.c 🚨
+  [ 86/260] kernel_bpf_helpers_\.c 🚨
+  [ 87/260] kernel_bpf_helpers_].c 🚨
+  [ 88/260] kernel_bpf_helpers_^.c 🚨
+  [ 89/260] kernel_bpf_syscall_A.c 🚨
+  [ 90/260] kernel_bpf_syscall_B.c 🚨
+  [ 91/260] kernel_bpf_syscall_C.c 🚨
+  [ 92/260] kernel_bpf_syscall_D.c 🚨
+  [ 93/260] kernel_bpf_syscall_E.c 🚨
+  [ 94/260] kernel_bpf_syscall_F.c 🚨
+  [ 95/260] kernel_bpf_syscall_G.c 🚨
+  [ 96/260] kernel_bpf_syscall_H.c 🚨
+  [ 97/260] kernel_bpf_syscall_I.c 🚨
+  [ 98/260] kernel_bpf_syscall_J.c 🚨
+  [ 99/260] kernel_bpf_syscall_K.c 🚨
+  [100/260] kernel_bpf_syscall_L.c 🚨
+  [101/260] kernel_bpf_syscall_M.c 🚨
+  [102/260] kernel_bpf_syscall_N.c 🚨
+  [103/260] kernel_bpf_syscall_O.c 🚨
+  [104/260] kernel_bpf_syscall_P.c 🚨
+  [105/260] kernel_bpf_syscall_Q.c 🚨
+  [106/260] kernel_bpf_syscall_R.c 🚨
+  [107/260] kernel_bpf_syscall_S.c 🚨
+  [108/260] kernel_bpf_syscall_T.c 🚨
+  [109/260] kernel_bpf_syscall_U.c 🚨
+  [110/260] kernel_bpf_syscall_V.c 🚨
+  [111/260] kernel_bpf_syscall_W.c 🚨
+  [112/260] kernel_bpf_syscall_X.c 🚨
+  [113/260] kernel_bpf_syscall_Y.c 🚨
+  [114/260] kernel_bpf_syscall_Z.c 🚨
+  [115/260] kernel_bpf_syscall_[.c 🚨
+  [116/260] kernel_bpf_syscall_\.c 🚨
+  [117/260] kernel_bpf_syscall_].c 🚨
+  [118/260] kernel_bpf_syscall_^.c 🚨
+  [119/260] kernel_bpf_syscall__.c 🚨
+  [120/260] kernel_bpf_syscall_`.c 🚨
+  [121/260] kernel_bpf_tnum_A.c 🚨
+  [122/260] kernel_bpf_tnum_B.c 🚨
+  [123/260] kernel_bpf_verifier_A.c 🚨
+  [124/260] kernel_bpf_verifier_B.c 🚨
+  [125/260] kernel_bpf_verifier_C.c 🚨
+  [126/260] kernel_bpf_verifier_D.c 🚨
+  [127/260] kernel_bpf_verifier_E.c 🚨
+  [128/260] kernel_bpf_verifier_F.c 🚨
+  [129/260] kernel_bpf_verifier_G.c 🚨
+  [130/260] kernel_bpf_verifier_H.c 🚨
+  [131/260] kernel_bpf_verifier_I.c 🚨
+  [132/260] kernel_bpf_verifier_J.c 🚨
+  [133/260] kernel_bpf_verifier_K.c 🚨
+  [134/260] kernel_bpf_verifier_L.c 🚨
+  [135/260] kernel_bpf_verifier_M.c 🚨
+  [136/260] kernel_bpf_verifier_N.c 🚨
+  [137/260] kernel_bpf_verifier_O.c 🚨
+  [138/260] kernel_bpf_verifier_P.c 🚨
+  [139/260] kernel_bpf_verifier_Q.c 🚨
+  [140/260] kernel_bpf_verifier_R.c 🚨
+  [141/260] kernel_bpf_verifier_S.c 🚨
+  [142/260] kernel_bpf_verifier_T.c 🚨
+  [143/260] kernel_bpf_verifier_U.c 🚨
+  [144/260] kernel_bpf_verifier_V.c 🚨
+  [145/260] kernel_bpf_verifier_W.c 🚨
+  [146/260] kernel_bpf_verifier_X.c 🚨
+  [147/260] kernel_bpf_verifier_Y.c 🚨
+  [148/260] kernel_bpf_verifier_Z.c 🚨
+  [149/260] kernel_bpf_verifier_[.c 🚨
+  [150/260] kernel_bpf_verifier_\.c 🚨
+  [151/260] kernel_bpf_verifier_].c 🚨
+  [152/260] kernel_bpf_verifier_^.c 🚨
+  [153/260] kernel_bpf_verifier__.c 🚨
+  [154/260] kernel_bpf_verifier_`.c 🚨
+  [155/260] kernel_bpf_verifier_{.c 🚨
+  [156/260] kernel_bpf_verifier_|.c 🚨
+  [157/260] kernel_bpf_verifier_}.c 🚨
+  [158/260] kernel_bpf_verifier_~.c 🚨
+  [159/260] kernel_bpf_verifier_.c 🚨
+  [160/260] kernel_bpf_verifier_.c 🚨
+  [161/260] kernel_bpf_verifier_.c 🚨
+  [162/260] kernel_bpf_verifier_.c 🚨
+  [163/260] kernel_bpf_verifier_.c 🚨
+  [164/260] kernel_bpf_verifier_.c 🚨
+  [165/260] kernel_bpf_verifier_.c 🚨
+  [166/260] kernel_bpf_verifier_.c 🚨
+  [167/260] kernel_bpf_verifier_.c 🚨
+  [168/260] kernel_bpf_verifier_.c 🚨
+  [169/260] kernel_bpf_verifier_.c 🚨
+  [170/260] kernel_bpf_verifier_.c 🚨
+  [171/260] kernel_bpf_verifier_.c 🚨
+  [172/260] kernel_bpf_verifier_.c 🚨
+  [173/260] kernel_bpf_verifier_.c 🚨
+  [174/260] kernel_bpf_verifier_.c 🚨
+  [175/260] kernel_bpf_verifier_.c 🚨
+  [176/260] kernel_bpf_verifier_.c 🚨
+  [177/260] kernel_bpf_verifier_.c 🚨
+  [178/260] kernel_bpf_verifier_.c 🚨
+  [179/260] kernel_bpf_verifier_.c 🚨
+  [180/260] kernel_bpf_verifier_.c 🚨
+  [181/260] kernel_bpf_verifier_.c 🚨
+  [182/260] kernel_bpf_verifier_.c 🚨
+  [183/260] kernel_bpf_verifier_.c 🚨
+  [184/260] kernel_bpf_verifier_.c 🚨
+  [185/260] kernel_bpf_verifier_.c 🚨
+  [186/260] kernel_bpf_verifier_.c 🚨
+  [187/260] kernel_bpf_verifier_.c 🚨
+  [188/260] kernel_bpf_verifier_.c 🚨
+  [189/260] kernel_bpf_verifier_.c 🚨
+  [190/260] kernel_bpf_verifier_.c 🚨
+  [191/260] kernel_bpf_verifier_.c 🚨
+  [192/260] kernel_bpf_verifier_ .c 🚨
+  [193/260] kernel_bpf_verifier_¡.c 🚨
+  [194/260] kernel_bpf_verifier_¢.c 🚨
+  [195/260] kernel_bpf_verifier_£.c 🚨
+  [196/260] kernel_bpf_verifier_¤.c 🚨
+  [197/260] kernel_bpf_verifier_¥.c 🚨
+  [198/260] kernel_bpf_verifier_¦.c 🚨
+  [199/260] kernel_bpf_verifier_§.c 🚨
+  [200/260] kernel_bpf_verifier_¨.c 🚨
+  [201/260] kernel_bpf_verifier_©.c 🚨
+  [202/260] kernel_bpf_verifier_ª.c 🚨
+  [203/260] kernel_bpf_verifier_«.c 🚨
+  [204/260] kernel_bpf_verifier_¬.c 🚨
+  [205/260] kernel_bpf_verifier_­.c 🚨
+  [206/260] kernel_bpf_verifier_®.c 🚨
+  [207/260] kernel_bpf_verifier_¯.c 🚨
+  [208/260] kernel_bpf_verifier_°.c 🚨
+  [209/260] kernel_bpf_verifier_±.c 🚨
+  [210/260] kernel_bpf_verifier_².c 🚨
+  [211/260] kernel_bpf_verifier_³.c 🚨
+  [212/260] kernel_bpf_verifier_´.c 🚨
+  [213/260] kernel_bpf_verifier_µ.c 🚨
+  [214/260] kernel_bpf_verifier_¶.c 🚨
+  [215/260] kernel_bpf_verifier_·.c 🚨
+  [216/260] kernel_bpf_verifier_¸.c 🚨
+  [217/260] kernel_bpf_verifier_¹.c 🚨
+  [218/260] kernel_bpf_verifier_º.c 🚨
+  [219/260] kernel_bpf_verifier_».c 🚨
+  [220/260] kernel_bpf_verifier_¼.c 🚨
+  [221/260] kernel_bpf_verifier_½.c 🚨
+  [222/260] kernel_bpf_verifier_¾.c 🚨
+  [223/260] kernel_bpf_verifier_¿.c 🚨
+  [224/260] kernel_bpf_verifier_À.c 🚨
+  [225/260] kernel_bpf_verifier_Á.c 🚨
+  [226/260] kernel_bpf_verifier_Â.c 🚨
+  [227/260] kernel_bpf_verifier_Ã.c 🚨
+  [228/260] kernel_bpf_verifier_Ä.c 🚨
+  [229/260] kernel_cgroup_cgroup_A.c 🚨
+  [230/260] kernel_cgroup_cgroup_B.c 🚨
+  [231/260] kernel_cgroup_cgroup_C.c 🚨
+  [232/260] kernel_cgroup_cgroup_D.c 🚨
+  [233/260] kernel_cgroup_cgroup_E.c 🚨
+  [234/260] kernel_cgroup_cgroup_F.c 🚨
+  [235/260] kernel_cgroup_cgroup_G.c 🚨
+  [236/260] kernel_cgroup_cgroup_H.c 🚨
+  [237/260] kernel_cgroup_cgroup_I.c 🚨
+  [238/260] kernel_cgroup_cgroup_J.c 🚨
+  [239/260] kernel_cgroup_cgroup_K.c 🚨
+  [240/260] kernel_cgroup_cgroup_L.c 🚨
+  [241/260] kernel_cgroup_cgroup_M.c 🚨
+  [242/260] kernel_cgroup_cgroup_N.c 🚨
+  [243/260] kernel_cgroup_cgroup_O.c 🚨
+  [244/260] kernel_cgroup_cgroup_P.c 🚨
+  [245/260] kernel_cgroup_cgroup_Q.c 🚨
+  [246/260] kernel_cgroup_cgroup_R.c 🚨
+  [247/260] kernel_cgroup_cgroup_S.c 🚨
+  [248/260] kernel_cgroup_cgroup_T.c 🚨
+  [249/260] kernel_cgroup_cgroup_U.c 🚨
+  [250/260] kernel_cgroup_cgroup_V.c 🚨
+  [251/260] kernel_cgroup_cgroup_W.c 🚨
+  [252/260] kernel_cgroup_cgroup_X.c 🚨
+  [253/260] kernel_cgroup_cgroup_Y.c 🚨
+  [254/260] kernel_cgroup_cgroup_Z.c 🚨
+  [255/260] kernel_cgroup_cgroup_[.c 🚨
+  [256/260] kernel_cgroup_cgroup_\.c 🚨
+  [257/260] kernel_cgroup_cgroup_].c 🚨
+  [258/260] kernel_cgroup_cgroup_^.c 🚨
+  [259/260] kernel_cgroup_cgroup__.c 🚨
+  [260/260] kernel_cgroup_cgroup_`.c 🚨
+
+==================================================
+✅ 完成: 260 findings, 0 clean, 0 errors
+📄 结果: /Users/xiaopingfeng/Projects/cyberai/research/linux_bpf/t1_glm_phase2_2316.jsonl
+
+🔴 高置信度 findings (260):
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_arena_A.c (conf=90)
+    The `compute_pgoff` function calculates the page offset by subtracting `user_vm_start` from `uaddr` 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_arena_B.c (conf=90)
+    The code does not properly check the `vm_range` against the 32-bit boundary, which could lead to out
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_arena_C.c (conf=85)
+    The code does not properly check the bounds of the memory being accessed when allocating pages for t
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_arena_D.c (conf=90)
+    The code does not properly check if the `pgoff` is within the bounds of the user VMA before attempti
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_arena_E.c (conf=90)
+    The code does not properly check if the `pgoff` plus `page_cnt` exceeds the maximum number of pages 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_arena_F.c (conf=90)
+    The function `bpf_arena_free_pages` does not check if the `ptr__ign` is within the bounds of the all
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_A.c (conf=85)
+    The code does not properly check the bounds of the `secs` array, which could lead to out-of-bounds a
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_B.c (conf=90)
+    The code does not properly check the bounds of the `tab->types` array when incrementing `tab->cnt`. 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_C.c (conf=90)
+    The function `find_kern_ctx_type_id` does not perform bounds checking on `bpf_ctx_convert_map[prog_t
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_D.c (conf=90)
+    The code does not properly validate the bounds of the `btf_type_by_id` function, which could lead to
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_E.c (conf=85)
+    The function `btf_parse_base` uses `kvmemdup` to duplicate memory for `btf->data`. If `data_size` is
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_F.c (conf=90)
+    The function `btf_ctx_arg_offset` calculates an offset by summing up the sizes of the function argum
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_G.c (conf=85)
+    The code checks if the offset is a multiple of 8, but does not check if the size of the access is wi
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_H.c (conf=85)
+    The code does not properly check the bounds of the `ctx_arg_info` array, which could lead to out-of-
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_I.c (conf=85)
+    The code does not properly check for out-of-bounds access when iterating over array elements within 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_J.c (conf=85)
+    The code allows access beyond the end of a member in a struct if `off + size > mtrue_end`. This coul
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_K.c (conf=95)
+    The code attempts to access a BTF type by ID, but does not check if the ID is within the valid range
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_L.c (conf=90)
+    The code does not properly validate the type of the pointer before dereferencing it, which could lea
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_M.c (conf=85)
+    The code checks if the number of arguments exceeds `MAX_BPF_FUNC_REG_ARGS` but does not handle the c
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_N.c (conf=90)
+    The code does not properly check the bounds of the `kern_type_id` when accessing the `btf` structure
+  [HIGH] Out-of-bounds Write @ kernel_bpf_btf_O.c (conf=95)
+    The code performs a copy_to_user() operation without checking the length of the destination buffer, 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_P.c (conf=85)
+    The code attempts to create a sysfs bin file with a size set to `btf->data_size`. If `btf->data_size
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_Q.c (conf=85)
+    The code does not properly check the bounds of the `btf_id` variable when adding it to the `add_set`
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_R.c (conf=85)
+    The code performs a memcpy operation without checking the bounds of the destination buffer. If the `
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_S.c (conf=85)
+    The code attempts to add more kfunc destructors than the maximum allowed without checking if the tot
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_T.c (conf=85)
+    The code snippet does not show any direct map access, but if the `tab->dtors` array is accessed beyo
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_U.c (conf=90)
+    The code attempts to free memory pointed to by `cands` after it has been freed. This could lead to o
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_V.c (conf=85)
+    The code snippet uses kzalloc_objs to allocate memory for cands.cands, but does not check if the all
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_W.c (conf=90)
+    The code snippet does not check the bounds of the `pattern_len` when comparing strings, which could 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_X.c (conf=85)
+    The code does not properly check if the offset plus field type size exceeds the value size, which co
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_Y.c (conf=85)
+    The code does not properly check the bounds of the `rec->fields[i].offset` before using it to access
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_Z.c (conf=95)
+    The code does not properly check if the member exceeds the struct_size, which could lead to out-of-b
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_[.c (conf=85)
+    The code checks for valid name offsets but does not ensure that the number of enum members does not 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_\.c (conf=85)
+    The code does not properly check the bounds of the `meta_left` variable when verifying metadata for 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_].c (conf=85)
+    The code checks for `vsi->offset` to be within the bounds of `t->size`, but does not account for the
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_^.c (conf=90)
+    The code checks if the end offset bytes exceed the struct size, but it does not handle the case wher
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf__.c (conf=85)
+    The code does not properly check the bounds of the `name_off` field, which could lead to out-of-boun
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_btf_`.c (conf=85)
+    The code does not properly check the bounds of the `btf->data` pointer when accessing the layout sec
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_core_A.c (conf=90)
+    The code does not properly check bounds when accessing maps, which could lead to out-of-bounds memor
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_core_B.c (conf=85)
+    The code does not properly check bounds when accessing the `jited_linfo` array, which could lead to 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_core_C.c (conf=85)
+    The code snippet does not show proper bounds checking when adjusting instruction offsets, which coul
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_core_D.c (conf=85)
+    The snprintf function is used to write to the 'sym' buffer without checking if the buffer is large e
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_core_E.c (conf=90)
+    The `bpf_jit_fill_hole_with_zero` function fills a hole with zeros, but does not check if the size i
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_core_F.c (conf=85)
+    The code does not properly check if the `ptr` is within the bounds of `tmp->ptr` and `tmp->ptr + BPF
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_core_G.c (conf=85)
+    The function `bpf_jit_binary_pack_free` may lead to out-of-bounds map access if `ro_header->size` is
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_core_H.c (conf=90)
+    The code appears to manipulate registers and memory in a way that could potentially bypass the eBPF 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_core_I.c (conf=90)
+    The function `bpf_jit_blind_constants` may lead to out-of-bounds access if the `insn_cnt` or `insn_d
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_core_J.c (conf=90)
+    The code snippet provided does not show any direct out-of-bounds map access, but the use of BPF inst
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_core_K.c (conf=90)
+    The use of a jump table with hardcoded addresses for eBPF instruction handling may allow an attacker
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_core_L.c (conf=85)
+    The code snippet uses bitwise AND operations with constants (63 and 31) to mask shift amounts. If th
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_core_M.c (conf=90)
+    The code does not properly check if the index (BPF_R3) is within the bounds of the map's maximum ent
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_core_N.c (conf=90)
+    The code does not perform bounds checking on the offset (insn->off) used in atomic operations, which
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_core_O.c (conf=85)
+    The code does not perform bounds checking on the `idx` variable when accessing `interpreters[idx]`. 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_core_P.c (conf=90)
+    The function `bpf_prog_array_copy_to_user` may allow out-of-bounds access when copying program IDs t
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_core_Q.c (conf=85)
+    The function `bpf_prog_array_update_at` does not properly check the bounds of the `index` parameter 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_core_R.c (conf=85)
+    The code snippet does not show proper bounds checking when freeing maps, which could lead to out-of-
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_core_S.c (conf=85)
+    The presence of weak symbols for JIT compilation functions suggests that the eBPF verifier may not b
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_core_T.c (conf=90)
+    The function `bpf_mem_alloc_init` may allocate memory without proper bounds checking, potentially le
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_A.c (conf=90)
+    The function bpf_map_lookup_elem does not check the bounds of the key being passed to the map. If an
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_B.c (conf=90)
+    The function `copy_map_value_locked` may access memory out of bounds if the `spin_lock_off` offset i
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_C.c (conf=85)
+    The function `__bpf_strtoull` does not properly check the length of the input buffer before copying 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_D.c (conf=90)
+    The `bpf_event_output` function may be called with an invalid `flags` value, which could lead to out
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_E.c (conf=85)
+    The code attempts to copy data from user space to kernel space using `bpf_trace_copy_string`. If the
+  [HIGH] Out-of-bounds Write @ kernel_bpf_helpers_F.c (conf=95)
+    The code attempts to write to `tmp_buf` without checking if `tmp_buf_end - tmp_buf` is greater than 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_G.c (conf=90)
+    The code uses `bpf_map_kmalloc_nolock` to allocate memory for `cb` without checking the return value
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_H.c (conf=90)
+    The code does not perform bounds checking on the `flags` parameter passed to `bpf_timer_init`. If an
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_I.c (conf=85)
+    The code does not check the bounds of the map access when updating the program callback. This could 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_J.c (conf=95)
+    The function `__bpf_dynptr_size` does not check if the size of the data being accessed is within the
+  [HIGH] Out-of-bounds Memory Access @ kernel_bpf_helpers_K.c (conf=90)
+    The function `bpf_dynptr_write` performs a `memmove` operation without checking if the destination o
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_L.c (conf=90)
+    The code does not perform bounds checking on the `func_id` before accessing the `bpf_map_lookup_elem
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_M.c (conf=85)
+    The function bpf_obj_new does not check the size of the memory allocated against the size of the obj
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_N.c (conf=85)
+    The function bpf_mem_alloc() is used to allocate memory without checking the size against a known ma
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_O.c (conf=85)
+    The function `__bpf_list_add` may allow out-of-bounds access to the map if the `off` parameter is no
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_P.c (conf=90)
+    The function bpf_current_task_under_cgroup reads an index from a bpf_array and uses it to access a c
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_Q.c (conf=85)
+    The function bpf_dynptr_slice() may allow out-of-bounds access if the buffer__szk size is not correc
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_R.c (conf=85)
+    The function `bpf_dynptr_adjust` does not properly check if the `start` and `end` offsets are within
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_S.c (conf=90)
+    The function `bpf_dynptr_slice` and `bpf_dynptr_slice_rdwr` may return slices that exceed the bounds
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_T.c (conf=90)
+    The function bpf_iter_bits_new() may allocate memory for the 'bits' array based on the input 'nr_wor
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_U.c (conf=90)
+    The function `bpf_iter_bits_destroy` may attempt to free memory beyond the allocated size of `kit->n
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_V.c (conf=90)
+    The function `bpf_strnchr` and its derivatives may read beyond the allocated buffer size due to the 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_W.c (conf=90)
+    The function `bpf_strnstr` reads characters from `s1` and `s2` without bounds checking, which could 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_X.c (conf=95)
+    The function `bpf_strnstr` and its variants may access memory beyond the bounds of the input strings
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_Y.c (conf=95)
+    The function `bpf_lookup_system_key` assigns the key ID directly to the `key` pointer of the `bpf_ke
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_Z.c (conf=85)
+    The code reads a map key and value without proper bounds checking, which could lead to out-of-bounds
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_[.c (conf=85)
+    The code snippet does not show proper bounds checking when accessing the `map->record->task_work_off
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_\.c (conf=90)
+    The code snippet does not show any direct out-of-bounds map access, but the use of `container_of` an
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_].c (conf=90)
+    The code snippet does not show explicit bounds checking on map accesses, which could lead to out-of-
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_helpers_^.c (conf=85)
+    The function `__bpf_dynptr_data` and `__bpf_dynptr_data_rw` may return a pointer to data that is not
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_A.c (conf=90)
+    The code does not properly check the bounds of the `link_update` operation, which could lead to out-
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_B.c (conf=85)
+    The code does not properly check the bounds of the `used_maps_new` array when adding a new map. This
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_C.c (conf=85)
+    The code does not perform bounds checking on the `off` parameter in the `syscall_prog_is_valid_acces
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_D.c (conf=90)
+    The code checks for `attr->test.ctx_size_in` being within a certain range but does not validate the 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_E.c (conf=95)
+    The `register_sysctl_init` function may be vulnerable to out-of-bounds map access if the `bpf_syscal
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_F.c (conf=85)
+    The code does not check the bounds of the `spin_lock_off` field before accessing memory at `obj + re
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_G.c (conf=90)
+    The code does not properly check the bounds of the memory regions being accessed via the BPF map. Th
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_H.c (conf=85)
+    The function `bpf_obj_name_cpy` does not properly check the bounds of the `src` pointer when copying
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_I.c (conf=85)
+    The code checks for `numa_node` being within the valid range of `nr_node_ids`, but does not check if
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_J.c (conf=95)
+    The code attempts to copy `SHA256_DIGEST_SIZE` bytes from `uprog_hash` to `map->excl_prog_sha`. If `
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_K.c (conf=90)
+    The code does not properly validate the size of the key being passed to `kvmalloc`. If the size of t
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_L.c (conf=90)
+    The code does not properly check the size of the buffer when copying data from user space to kernel 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_M.c (conf=85)
+    The code uses `idr_alloc_cyclic` to allocate an ID for a BPF program. If the allocation fails, it re
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_N.c (conf=85)
+    The code snippet uses `u64_stats_read` to read statistics from a CPU-local buffer. If the buffer is 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_O.c (conf=85)
+    The code snippet does not show the full context of the map access, but it is possible that the `used
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_P.c (conf=85)
+    The code snippet does not show proper bounds checking when accessing maps, which could lead to out-o
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_Q.c (conf=90)
+    The code does not properly check the size of the `attr->prog_name` before copying it into `prog->aux
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_R.c (conf=90)
+    The code does not check the validity of the `id` before calling `idr_remove`, which could lead to ou
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_S.c (conf=90)
+    The code snippet does not show any direct map access, but if the `prog->tag` is not properly validat
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_T.c (conf=90)
+    The code does not perform bounds checking on the `btf_id` and `target_obj_id` before using them, whi
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_U.c (conf=90)
+    The code does not properly check for the existence of `prog->aux->attach_btf` before accessing `btf_
+  [HIGH] Out-of-bounds Write @ kernel_bpf_syscall_V.c (conf=90)
+    The `bpf_copy_to_user` function may write beyond the buffer's allocated size if `ulen` is greater th
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_W.c (conf=90)
+    The code snippet does not show proper bounds checking when accessing the `perf_event` structure. If 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_X.c (conf=90)
+    The code uses `kzalloc_obj` to allocate memory for `link`, but does not check the size of the object
+  [HIGH] Privilege Escalation @ kernel_bpf_syscall_Y.c (conf=90)
+    The code allows unprivileged users to load `cg-skb` programs, which can be used to perform network o
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_Z.c (conf=90)
+    The code does not properly validate the `attr->attach_flags` against the defined masks, which could 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_[.c (conf=90)
+    The code does not properly check the bounds of the `id` parameter when accessing the `map_idr` IDR (
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_\.c (conf=90)
+    The function `bpf_map_from_imm` may access memory out of bounds due to the use of `addr` directly. I
+  [HIGH] Out-of-bounds Write @ kernel_bpf_syscall_].c (conf=90)
+    The code is using `copy_to_user` to write data to user space, but it does not properly check the bou
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_^.c (conf=85)
+    The code does not properly check the `info_len` against the size of the `info` structure before copy
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall__.c (conf=90)
+    The code does not perform bounds checking on the `attr->btf_token_fd` before using it to retrieve a 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_syscall_`.c (conf=90)
+    The code does not properly check the permissions for read and write operations on the BPF map, which
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_tnum_A.c (conf=85)
+    The function `tnum_range` uses the `fls64` function to calculate the number of bits in the differenc
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_tnum_B.c (conf=90)
+    The function `tnum_sbin` writes to the `str` buffer without checking if `n < size`. This could lead 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_A.c (conf=95)
+    The code does not properly check for out-of-bounds access when accessing map elements. This could al
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_B.c (conf=85)
+    The code does not properly check the bounds of the packet offset, which could lead to out-of-bounds 
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_C.c (conf=85)
+    The function `is_trusted_reg` may incorrectly trust a register if it has the `MEM_RCU` flag set, whi
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_D.c (conf=85)
+    The code does not properly check the map type before accessing the value, which could lead to out-of
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_E.c (conf=90)
+    The code does not properly check the bounds of the stack depth, which could lead to out-of-bounds ac
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_F.c (conf=90)
+    The function `__check_buffer_access` checks if the offset is negative, but it does not check if the 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_G.c (conf=85)
+    The function `bpf_map_direct_read` reads from a map with an offset (`off`) and size (`size`). If the
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_H.c (conf=85)
+    The code snippet shows a series of checks using BTF_TYPE_EMIT and btf_nested_type_is_trusted to veri
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_I.c (conf=90)
+    The code allows negative offsets for map access, which can lead to out-of-bounds memory access. This
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_J.c (conf=85)
+    The code does not properly check for out-of-bounds access when accessing memory through a map. This 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_K.c (conf=85)
+    The code does not perform bounds checking on the `map_off` and `size` parameters when reading from a
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_L.c (conf=85)
+    The code does not properly check the bounds of the map access, which could lead to out-of-bounds rea
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_M.c (conf=85)
+    The code does not properly check the bounds of memory access, which could lead to out-of-bounds read
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_N.c (conf=85)
+    The code checks for out-of-bounds access on the stack but does not enforce similar checks for map ac
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_O.c (conf=85)
+    The code does not properly check the bounds of memory access when checking stack range initialized. 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_P.c (conf=95)
+    The code does not properly validate the offset of the 'struct bpf_spin_lock' within the map value. I
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_Q.c (conf=85)
+    The code checks for constant offset and BTF presence in a map, but does not validate the size of the
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_R.c (conf=90)
+    The code does not properly check the bounds of memory access when marking stack slots for dynptrs. T
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_S.c (conf=85)
+    The code snippet does not check the bounds of the `nr_slots` parameter when accessing the `iter` sta
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_T.c (conf=85)
+    The code does not properly handle the iterator state transitions, which could potentially allow an a
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_U.c (conf=90)
+    The code does not properly validate the map pointer before accessing the map type, which could lead 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_V.c (conf=90)
+    The code does not properly check for out-of-bounds access when accessing memory pointed by a registe
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_W.c (conf=85)
+    The code does not properly check for out-of-bounds access when handling pointers to maps. This could
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_X.c (conf=85)
+    The code does not properly check the bounds of the map access, which could lead to out-of-bounds rea
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_Y.c (conf=90)
+    The code does not properly check for out-of-bounds access when dealing with map pointers. This could
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_Z.c (conf=85)
+    The code does not properly check the bounds of the memory access when calling bpf_map_xxx functions.
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_[.c (conf=90)
+    The function `check_stack_write_var_off` does not properly check for out-of-bounds access when writi
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_\.c (conf=85)
+    The function `check_stack_read_fixed_off` does not properly check the bounds of the stack access. Th
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_].c (conf=85)
+    The code does not properly check if the stack range is initialized before accessing it, which could 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_^.c (conf=85)
+    The code does not check if the offset plus size exceeds the maximum stack size before performing a s
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier__.c (conf=85)
+    The code does not properly check for out-of-bounds memory access when adding min_value and max_value
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_`.c (conf=85)
+    The code snippet does not show any explicit checks for the BPF program's capabilities or permissions
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_{.c (conf=90)
+    The code does not properly check for out-of-bounds access when accessing map elements. This could al
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_|.c (conf=90)
+    The code snippet does not show any explicit bypass of the eBPF verifier, but it is possible that an 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_}.c (conf=85)
+    The function `check_btf_id_ok` checks for the validity of `arg_btf_id` based on `arg_type`. However,
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_~.c (conf=95)
+    The code does not properly enforce type checks for function arguments, which could allow an attacker
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=85)
+    The code snippet does not properly handle the case where the `insn->imm` value is used to calculate 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=90)
+    The code is setting the `map_ptr` for multiple registers without checking if the pointers are within
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=90)
+    The code does not properly check the bounds of the map access, which could lead to out-of-bounds rea
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=90)
+    The code does not properly check if the map pointer is NULL before attempting to access it, which co
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=85)
+    The function `check_bpf_snprintf_call` retrieves a format string from a BPF map without checking if 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=85)
+    The code snippet does not show proper bounds checking when accessing maps, which could lead to out-o
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=90)
+    The code does not properly check the flags argument for `get_local_storage` function, which can lead
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=85)
+    The code does not properly check the bounds of the map access when setting the map pointer for BPF_R
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=85)
+    The code does not properly check the bounds of the map access when using `get_callchain_buffers`. If
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=90)
+    The code snippet checks the length of a parameter name against a target length and compares it with 
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_.c (conf=90)
+    The code snippet checks for the maximum nesting depth of structs and arrays in BPF programs. However
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_.c (conf=95)
+    The code snippet does not show any explicit checks for the validity of the BPF program before allowi
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=85)
+    The function `get_kfunc_ptr_arg_type` checks for `is_kfunc_arg_map` but does not validate the bounds
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_.c (conf=90)
+    The code allows for bypassing the eBPF verifier by leveraging the type aliasing feature. This could 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=95)
+    The code does not properly handle the uniqueness of `reg->id` for map lookups, potentially allowing 
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_.c (conf=95)
+    The function `__process_kf_arg_ptr_to_graph_root` performs a check for `btf_vmlinux` but does not va
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=85)
+    The code does not properly check if the `node_off` is within the bounds of the `field->graph_root.no
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=90)
+    The code checks for map pointer mismatches using `map_uid` but does not validate the size of the map
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_.c (conf=90)
+    The code does not properly validate the `meta->func_id` against the `special_kfunc_list`, which coul
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=90)
+    The code does not properly check the bounds of the map access, which could lead to out-of-bounds rea
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=85)
+    The code does not properly check if the pointer being accessed through a map is within bounds, which
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=95)
+    The code snippet does not properly check the bounds of the map index before accessing the map. This 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=90)
+    The code checks if the size of the object being allocated with `bpf_mem_alloc_percpu_unit_init` exce
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=85)
+    The code does not properly check bounds when accessing kernel functions, which could lead to out-of-
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=90)
+    The code does not properly check the bounds of the map access, which could lead to out-of-bounds rea
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=85)
+    The code does not properly check for out-of-bounds access when dealing with pointers to map values. 
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_.c (conf=85)
+    The function `sanitize_ptr_alu` may bypass the eBPF verifier by not properly checking the bounds of 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=85)
+    The code checks for out-of-bounds map access but does not account for the possibility of a malicious
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=85)
+    The code does not properly check for out-of-bounds access when dealing with pointers to map keys, va
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=85)
+    The code does not properly check for out-of-bounds access when performing pointer arithmetic. This c
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=85)
+    The code does not properly check for out-of-bounds access when updating the `dst_umin` and `dst_umax
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=85)
+    The code does not properly check bounds when accessing map elements, which could lead to out-of-boun
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_.c (conf=85)
+    The code does not properly check bounds for the `dst_reg->var_off.value` when calculating the minimu
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_ .c (conf=85)
+    The code does not properly check bounds when casting unsigned values to signed values, potentially a
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_¡.c (conf=85)
+    The function `__scalar32_min_max_lsh` and `__scalar64_min_max_lsh` may not correctly handle the boun
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_¢.c (conf=85)
+    The code is setting dst_reg->u32_min_value and dst_reg->u32_max_value to 0 and U32_MAX respectively,
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_£.c (conf=85)
+    The code does not explicitly check for out-of-bounds access when accessing map values. This could le
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_¤.c (conf=85)
+    The code allows arithmetic operations on arena pointers without proper bounds checking, which could 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_¥.c (conf=85)
+    The code does not properly check for out-of-bounds access when manipulating map indices. This could 
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_¦.c (conf=85)
+    The code does not properly check for out-of-bounds access when accessing packet data. This could lea
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_§.c (conf=90)
+    The function `is_scalar_branch_taken` may incorrectly determine the outcome of a branch due to the l
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_¨.c (conf=95)
+    The `flip_opcode` function may be used to manipulate BPF opcodes, potentially allowing an attacker t
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_©.c (conf=85)
+    The code snippet contains a series of operations that manipulate the bounds of registers based on co
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_ª.c (conf=85)
+    The code snippet does not show any explicit bounds checking on map accesses, which could lead to out
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_«.c (conf=85)
+    The code does not properly validate the bounds of packet pointers, which could lead to out-of-bounds
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_¬.c (conf=85)
+    The code does not properly check bounds when accessing map entries, which could lead to out-of-bound
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_­.c (conf=95)
+    The code snippet shows a speculative execution path sanitization that may not be thorough enough, po
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_®.c (conf=85)
+    The code snippet does not properly handle the case where `insn->src_reg` is `BPF_PSEUDO_MAP_VALUE` o
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_¯.c (conf=85)
+    The code does not properly enforce the rules for BPF_LD_[ABS|IND] instructions with reference tracki
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_°.c (conf=85)
+    The code does not properly check the bounds of the return value range for certain BPF program types,
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_±.c (conf=95)
+    The function `bpf_get_call_summary` does not properly handle errors when fetching the helper functio
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_².c (conf=85)
+    The code snippet may contain a bypass of the eBPF verifier by manipulating the expected_regs_mask an
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_³.c (conf=85)
+    The code does not properly handle pointer type mismatches, which could allow an attacker to bypass t
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_´.c (conf=85)
+    The function `indirect_jump_min_max_index` checks if the calculated index range for a map is within 
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_µ.c (conf=85)
+    The code does not properly handle the `BPF_PSEUDO_KFUNC_CALL` with an offset of 0 or when `kfunc_spi
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_¶.c (conf=95)
+    The code snippet shows a speculative execution path handling with `nospec` flags. However, the check
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_·.c (conf=85)
+    The code snippet does not check the bounds of the `datasec` pointer when iterating over it. If `data
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_¸.c (conf=85)
+    The code does not properly check if the `used_map_cnt` has reached the maximum limit before adding a
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_¹.c (conf=95)
+    The code checks for certain conditions on BPF instructions but may not be comprehensive. An attacker
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_º.c (conf=85)
+    The code does not properly check the bounds of the memory access when loading from a map. This could
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_».c (conf=95)
+    The code does not properly validate the BPF program before allowing it to execute, which could poten
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_¼.c (conf=85)
+    The code does not properly handle the verification of global subprograms, which may allow for an eBP
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_½.c (conf=85)
+    The code does not check the bounds of the `member_off` variable when accessing members of a structur
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_¾.c (conf=90)
+    The code does not properly check the bounds of the `btf_id` when accessing the `btf_type_by_id` func
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_¿.c (conf=90)
+    The code attempts to access a BTF type by ID without checking if the ID is within the bounds of the 
+  [HIGH] eBPF Verifier Bypass @ kernel_bpf_verifier_À.c (conf=90)
+    The code manually lists __noreturn functions, which could potentially be bypassed if a more robust s
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_Á.c (conf=85)
+    The code does not properly check the `fd_array_cnt` against `U32_MAX / size` before iterating over t
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_Â.c (conf=90)
+    The code does not properly check bounds when accessing map elements, which could lead to out-of-boun
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_Ã.c (conf=85)
+    The code snippet does not show proper bounds checking when initializing the `env->explored_states` l
+  [HIGH] Out-of-bounds Map Access @ kernel_bpf_verifier_Ä.c (conf=90)
+    The code performs a memcpy operation without checking the bounds of the source and destination array
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_A.c (conf=85)
+    The code attempts to clear the `priv` backpointer using RCU_INIT_POINTER without ensuring that the `
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_B.c (conf=85)
+    The code snippet does not show any explicit bounds checking on the `cgrp->ancestors` array. If the `
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_C.c (conf=90)
+    The function `cgroup_destroy_locked` iterates over all `css` structures associated with a cgroup and
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_D.c (conf=85)
+    The code snippet shows a potential out-of-bounds map access due to the use of `cgroup_has_tasks()` w
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_E.c (conf=90)
+    The code uses `strlen(cgroup_subsys_name[i]) > MAX_CGROUP_TYPE_NAMELEN` to check for a potential out
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_F.c (conf=90)
+    The code snippet does not show bounds checking when accessing the `kn->priv` pointer. If `kernfs_fin
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_G.c (conf=85)
+    The code attempts to access a cgroup via a file descriptor, which may lead to out-of-bounds map acce
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_H.c (conf=85)
+    The code snippet does not show proper bounds checking when accessing the `cset` structure, which cou
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_I.c (conf=85)
+    The code uses `this_cpu_ptr(&cgrp_dead_tasks)` which may lead to out-of-bounds access if `cgrp_dead_
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_J.c (conf=85)
+    The function `kernfs_walk_and_get` may return a `kernfs_node` that is not properly validated for bou
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_K.c (conf=90)
+    The function `show_delegatable_files` may read beyond the allocated buffer size if the sum of the `r
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_L.c (conf=85)
+    The code snippet shows a potential out-of-bounds map access due to the lack of bounds checking when 
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_M.c (conf=90)
+    The code does not check the bounds of the `root_flags` variable before using it to modify `cgrp_dfl_
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_N.c (conf=85)
+    The code snippet does not show proper bounds checking when accessing the css_set_table. If the table
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_O.c (conf=85)
+    The function `cgroup_path_ns` may perform an out-of-bounds write to the buffer `buf` if `buflen` is 
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_P.c (conf=85)
+    The code snippet does not show proper bounds checking when accessing the `cset->mg_tasks` list. If t
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_Q.c (conf=85)
+    The code snippet does not show any explicit bounds checking on map accesses, which could lead to out
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_R.c (conf=85)
+    The code does not properly check bounds when accessing the `mg_dst_cset` map, which could lead to ou
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_S.c (conf=90)
+    The code snippet does not show any direct out-of-bounds map access, but the use of `do_each_subsys_m
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_T.c (conf=90)
+    The code snippet provided does not show any explicit bounds checking when accessing the `cgroup_subs
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_U.c (conf=95)
+    The function `cgroup_subtree_control_write` does not properly validate the `enable` and `disable` va
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_V.c (conf=85)
+    The function `cgroup_max_descendants_write` and `cgroup_max_depth_write` allow writing to `cgrp->max
+  [HIGH] Race Condition @ kernel_cgroup_cgroup_W.c (conf=90)
+    The code uses rcu_read_lock() without proper synchronization, which can lead to a race condition. Th
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_X.c (conf=85)
+    The function `cgroup_kn_lock_live` may be used to lock a cgroup kernel namespace, but there is no ch
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_Y.c (conf=85)
+    The code snippet does not show proper bounds checking when accessing the `cgroup_subsys_state` struc
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_Z.c (conf=85)
+    The code snippet does not show proper bounds checking when iterating over `cft` in the `restart` loo
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_[.c (conf=85)
+    The loop in `cgroup_add_cftypes` may iterate over an array of `cftypes` without bounds checking, pot
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_\.c (conf=85)
+    The function css_next_descendant_pre() may access a cgroup_subsys_state structure beyond its bounds 
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_].c (conf=85)
+    The function css_task_iter_advance_css_set may iterate over the css_set structures without proper bo
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_^.c (conf=85)
+    The code snippet does not show proper bounds checking when accessing the `cset_links` list. If the l
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup__.c (conf=90)
+    The code snippet does not show bounds checking on the `nbytes` parameter passed to `cgroup_procs_wri
+  [HIGH] Out-of-bounds Map Access @ kernel_cgroup_cgroup_`.c (conf=95)
+    The code accesses the `psi_files` array using an index that is not validated against the array bound

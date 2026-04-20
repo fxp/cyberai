@@ -1,0 +1,100 @@
+/opt/homebrew/lib/python3.14/site-packages/zhipuai/core/_base_compat.py:48: UserWarning: Core Pydantic V1 functionality isn't compatible with Python 3.14 or greater.
+  from pydantic.v1.typing import (
+🔍 扫描目标: libxml2 (32 个 extracts)
+📌 关注点: supply chain attack, XML/XPath parsing OOB, integer overflow, use-after-free, bi...
+  [  1/32] entities_A.c 🚨
+  [  2/32] entities_B.c 🚨
+  [  3/32] entities_C.c 🚨
+  [  4/32] entities_D.c ✓
+  [  5/32] entities_E.c 🚨
+  [  6/32] entities_F.c 🚨
+  [  7/32] parser_att_A.c ✓
+  [  8/32] parser_att_B.c ✓
+  [  9/32] parser_chardata.c 🚨
+  [ 10/32] parser_charref.c 🚨
+  [ 11/32] parser_entdecl_A.c 🚨
+  [ 12/32] parser_entdecl_B.c 🚨
+  [ 13/32] parser_entity_val_A.c 🚨
+  [ 14/32] parser_entity_val_B.c 🚨
+  [ 15/32] parser_entity_val_C.c 🚨
+  [ 16/32] parser_name_A.c 🚨
+  [ 17/32] parser_tag2_A.c 🚨
+  [ 18/32] parser_tag2_B.c 🚨
+  [ 19/32] parser_tag2_C.c 🚨
+  [ 20/32] parser_tag2_D.c 🚨
+  [ 21/32] parser_tag2_E.c 🚨
+  [ 22/32] xpath_axis_A.c 🚨
+  [ 23/32] xpath_comp_A.c 🚨
+  [ 24/32] xpath_compare_A.c 🚨
+  [ 25/32] xpath_equality.c 🚨
+  [ 26/32] xpath_filter.c 🚨
+  [ 27/32] xpath_name_A.c 🚨
+  [ 28/32] xpath_name_B.c 🚨
+  [ 29/32] xpath_nodeset_A.c 🚨
+  [ 30/32] xpath_nodeset_B.c 🚨
+  [ 31/32] xpath_string_A.c 🚨
+  [ 32/32] xpath_string_B.c 🚨
+
+==================================================
+✅ 完成: 29 findings, 0 clean, 0 errors
+📄 结果: /Users/xiaopingfeng/Projects/cyberai/research/libxml2/t1_glm_phase2_2316.jsonl
+
+🔴 高置信度 findings (29):
+  [HIGH] XML/XPath Parsing Out-of-Bounds @ entities_A.c (conf=95)
+    The `xmlCreateEntity` function may allocate memory based on the length of `name`, `ExternalID`, `Sys
+  [HIGH] Use-After-Free @ entities_B.c (conf=95)
+    The `xmlFreeEntity(ret)` call is made before checking if `ret` is still in use. If `ret` is used aft
+  [HIGH] XML External Entity (XXE) @ entities_C.c (conf=95)
+    The code does not properly handle XML external entities, which can lead to XXE attacks. The `xmlAddD
+  [HIGH] Buffer Overflow @ entities_E.c (conf=95)
+    The function `growBufferReentrant()` is called when `indx + 100 > buffer_size`, which may lead to a 
+  [HIGH] Use-After-Free @ entities_F.c (conf=95)
+    The function `xmlFreeEntityWrapper` may deallocate an entity that is still in use, leading to a use-
+  [HIGH] XML External Entity (XXE) Injection @ parser_chardata.c (conf=95)
+    The function xmlParseCharDataInternal does not properly handle XML external entities, which could le
+  [HIGH] Integer Overflow @ parser_charref.c (conf=95)
+    The variable `val` is used to accumulate the value of a numeric character reference. It is not prope
+  [HIGH] XML External Entity Injection @ parser_entdecl_A.c (conf=95)
+    The code does not properly sanitize the URI provided in the external entity declaration, which can l
+  [HIGH] XML External Entity (XXE) @ parser_entdecl_B.c (conf=95)
+    The code does not properly handle external entity references, which can lead to XXE attacks. The pre
+  [HIGH] XML/XPath Parsing OOB @ parser_entity_val_A.c (conf=85)
+    The code does not properly check for buffer overflows when parsing entity values. The `xmlSBuf` buff
+  [HIGH] XML/XPath Parsing OOB @ parser_entity_val_B.c (conf=85)
+    The code does not properly handle the depth of entity nesting, which can lead to an out-of-bounds re
+  [HIGH] XML/XPath Parsing Out-of-Bounds Read @ parser_entity_val_C.c (conf=95)
+    The code does not properly check the length of the string being added to the buffer, which could lea
+  [HIGH] XML/XPath Parsing Out-of-Bounds @ parser_name_A.c (conf=95)
+    The code does not properly check the length of the input name before accessing memory, which could l
+  [HIGH] XML/XPath Parsing Out-of-Bounds @ parser_tag2_A.c (conf=95)
+    The code does not properly check the length of the attribute value before using it, which could lead
+  [HIGH] XML/XPath Parsing Out-of-Bounds @ parser_tag2_B.c (conf=95)
+    The code does not properly check the length of the URI string before using it, which could lead to o
+  [HIGH] Use-After-Free @ parser_tag2_C.c (conf=95)
+    The code attempts to free `attvalue` after it has been reassigned to `NULL` in the `next_attr` label
+  [HIGH] XML/XPath Parsing Out-of-Bounds @ parser_tag2_D.c (conf=95)
+    The code does not properly handle the case where `nsIndex` is not `NS_INDEX_EMPTY` or `NS_INDEX_XML`
+  [HIGH] XML/XPath Parsing Out-of-Bounds Read @ parser_tag2_E.c (conf=95)
+    The code snippet uses a fixed-size array `atts` to store attribute information. The loop that popula
+  [HIGH] Use-After-Free @ xpath_axis_A.c (conf=95)
+    The function `xmlXPathNextAncestor` does not check if the `cur` pointer is still valid after returni
+  [HIGH] XPath Injection @ xpath_comp_A.c (conf=95)
+    The function `xmlXPathCompPathExpr` does not properly sanitize input, potentially allowing XPath inj
+  [HIGH] Use-After-Free @ xpath_compare_A.c (conf=95)
+    The function xmlXPathCompareValues does not properly release the XPath objects before returning, pot
+  [HIGH] Use-After-Free @ xpath_equality.c (conf=95)
+    The code may be vulnerable to use-after-free if `xmlNodeGetContent` returns a pointer that is freed 
+  [HIGH] XPath Injection @ xpath_filter.c (conf=95)
+    The function xmlXPathNodeSetFilter does not properly sanitize input for XPath expressions, potential
+  [HIGH] XML/XPath Parsing Out-of-Bounds (OOB) Read @ xpath_name_A.c (conf=95)
+    The function `xmlXPathCurrentChar` does not properly check the bounds of the UTF-8 sequence length, 
+  [HIGH] XML/XPath Parsing Out-of-Bounds Read @ xpath_name_B.c (conf=95)
+    The code does not properly check the length of the input string when parsing XML names. This can lea
+  [HIGH] XML/XPath Parsing Out-of-Bounds Read @ xpath_nodeset_A.c (conf=95)
+    The function `xmlXPathNodeSetMerge` does not properly check for the maximum length of the node set b
+  [HIGH] Use-After-Free @ xpath_nodeset_B.c (conf=95)
+    The function `xmlXPathNodeSetMergeAndClear` and `xmlXPathNodeSetMergeAndClearNoDupls` modify the `no
+  [HIGH] XPath Parsing Out-of-Bounds (OOB) @ xpath_string_A.c (conf=95)
+    The function xmlXPathSubstringFunction does not properly check the bounds of the substring operation
+  [HIGH] XPath Injection @ xpath_string_B.c (conf=95)
+    The xmlXPathNormalizeFunction does not properly validate input, potentially allowing an attacker to 

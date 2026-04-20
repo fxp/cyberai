@@ -1,0 +1,1303 @@
+/opt/homebrew/lib/python3.14/site-packages/zhipuai/core/_base_compat.py:48: UserWarning: Core Pydantic V1 functionality isn't compatible with Python 3.14 or greater.
+  from pydantic.v1.typing import (
+🔍 扫描目标: imagemagick (431 个 extracts)
+📌 关注点: out-of-bounds read/write, heap buffer overflow, integer overflow in image decodi...
+  [  1/431] MagickCore_cache_A.c 🚨
+  [  2/431] MagickCore_cache_B.c 🚨
+  [  3/431] MagickCore_cache_C.c 🚨
+  [  4/431] MagickCore_cache_D.c 🚨
+  [  5/431] MagickCore_cache_E.c 🚨
+  [  6/431] MagickCore_cache_F.c 🚨
+  [  7/431] MagickCore_cache_G.c 🚨
+  [  8/431] MagickCore_cache_H.c 🚨
+  [  9/431] MagickCore_cache_I.c 🚨
+  [ 10/431] MagickCore_cache_J.c 🚨
+  [ 11/431] MagickCore_cache_K.c 🚨
+  [ 12/431] MagickCore_cache_L.c 🚨
+  [ 13/431] MagickCore_cache_M.c 🚨
+  [ 14/431] MagickCore_cache_N.c 🚨
+  [ 15/431] MagickCore_cache_O.c 🚨
+  [ 16/431] MagickCore_cache_P.c 🚨
+  [ 17/431] MagickCore_cache_Q.c 🚨
+  [ 18/431] MagickCore_cache_R.c 🚨
+  [ 19/431] MagickCore_cache_S.c 🚨
+  [ 20/431] MagickCore_cache_T.c 🚨
+  [ 21/431] MagickCore_cache_U.c 🚨
+  [ 22/431] MagickCore_cache_V.c 🚨
+  [ 23/431] MagickCore_cache_W.c 🚨
+  [ 24/431] MagickCore_cache_X.c 🚨
+  [ 25/431] MagickCore_cache_Y.c 🚨
+  [ 26/431] MagickCore_cache_Z.c 🚨
+  [ 27/431] MagickCore_cache_[.c 🚨
+  [ 28/431] MagickCore_cache_\.c 🚨
+  [ 29/431] MagickCore_cache_].c 🚨
+  [ 30/431] MagickCore_cache_^.c 🚨
+  [ 31/431] MagickCore_cache__.c 🚨
+  [ 32/431] MagickCore_cache_`.c 🚨
+  [ 33/431] MagickCore_compress_A.c 🚨
+  [ 34/431] MagickCore_compress_B.c 🚨
+  [ 35/431] MagickCore_compress_C.c 🚨
+  [ 36/431] MagickCore_compress_D.c 🚨
+  [ 37/431] MagickCore_compress_E.c 🚨
+  [ 38/431] MagickCore_compress_F.c 🚨
+  [ 39/431] MagickCore_compress_G.c 🚨
+  [ 40/431] MagickCore_compress_H.c 🚨
+  [ 41/431] MagickCore_compress_I.c 🚨
+  [ 42/431] MagickCore_compress_J.c 🚨
+  [ 43/431] MagickCore_compress_K.c 🚨
+  [ 44/431] MagickCore_constitute_A.c 🚨
+  [ 45/431] MagickCore_constitute_B.c 🚨
+  [ 46/431] MagickCore_constitute_C.c 🚨
+  [ 47/431] MagickCore_constitute_D.c 🚨
+  [ 48/431] MagickCore_constitute_E.c 🚨
+  [ 49/431] MagickCore_constitute_F.c 🚨
+  [ 50/431] MagickCore_constitute_G.c 🚨
+  [ 51/431] MagickCore_constitute_H.c 🚨
+  [ 52/431] MagickCore_constitute_I.c 🚨
+  [ 53/431] MagickCore_constitute_J.c 🚨
+  [ 54/431] MagickCore_constitute_K.c 🚨
+  [ 55/431] MagickCore_constitute_L.c 🚨
+  [ 56/431] MagickCore_constitute_M.c 🚨
+  [ 57/431] MagickCore_constitute_N.c 🚨
+  [ 58/431] MagickCore_constitute_O.c 🚨
+  [ 59/431] MagickCore_pixel_A.c 🚨
+  [ 60/431] MagickCore_pixel_B.c 🚨
+  [ 61/431] MagickCore_pixel_C.c 🚨
+  [ 62/431] MagickCore_pixel_D.c 🚨
+  [ 63/431] MagickCore_pixel_E.c 🚨
+  [ 64/431] MagickCore_pixel_F.c 🚨
+  [ 65/431] MagickCore_pixel_G.c 🚨
+  [ 66/431] MagickCore_pixel_H.c 🚨
+  [ 67/431] MagickCore_pixel_I.c 🚨
+  [ 68/431] MagickCore_pixel_J.c 🚨
+  [ 69/431] MagickCore_pixel_K.c 🚨
+  [ 70/431] MagickCore_pixel_L.c 🚨
+  [ 71/431] MagickCore_pixel_M.c 🚨
+  [ 72/431] MagickCore_pixel_N.c 🚨
+  [ 73/431] MagickCore_pixel_O.c 🚨
+  [ 74/431] MagickCore_pixel_P.c 🚨
+  [ 75/431] MagickCore_pixel_Q.c 🚨
+  [ 76/431] MagickCore_pixel_R.c 🚨
+  [ 77/431] MagickCore_pixel_S.c 🚨
+  [ 78/431] MagickCore_pixel_T.c 🚨
+  [ 79/431] MagickCore_pixel_U.c 🚨
+  [ 80/431] MagickCore_pixel_V.c 🚨
+  [ 81/431] MagickCore_pixel_W.c 🚨
+  [ 82/431] MagickCore_pixel_X.c 🚨
+  [ 83/431] MagickCore_pixel_Y.c 🚨
+  [ 84/431] MagickCore_pixel_Z.c 🚨
+  [ 85/431] MagickCore_pixel_[.c 🚨
+  [ 86/431] MagickCore_pixel_\.c 🚨
+  [ 87/431] MagickCore_pixel_].c 🚨
+  [ 88/431] MagickCore_pixel_^.c 🚨
+  [ 89/431] MagickCore_pixel__.c 🚨
+  [ 90/431] MagickCore_pixel_`.c 🚨
+  [ 91/431] MagickCore_pixel_{.c 🚨
+  [ 92/431] MagickCore_quantum-export_A.c 🚨
+  [ 93/431] MagickCore_quantum-export_B.c 🚨
+  [ 94/431] MagickCore_quantum-export_C.c 🚨
+  [ 95/431] MagickCore_quantum-export_D.c 🚨
+  [ 96/431] MagickCore_quantum-export_E.c 🚨
+  [ 97/431] MagickCore_quantum-export_F.c 🚨
+  [ 98/431] MagickCore_quantum-export_G.c 🚨
+  [ 99/431] MagickCore_quantum-export_H.c 🚨
+  [100/431] MagickCore_quantum-export_I.c 🚨
+  [101/431] MagickCore_quantum-export_J.c 🚨
+  [102/431] MagickCore_quantum-export_K.c 🚨
+  [103/431] MagickCore_quantum-export_L.c 🚨
+  [104/431] MagickCore_quantum-export_M.c 🚨
+  [105/431] MagickCore_quantum-export_N.c 🚨
+  [106/431] MagickCore_quantum-export_O.c 🚨
+  [107/431] MagickCore_quantum-export_P.c 🚨
+  [108/431] MagickCore_quantum-export_Q.c 🚨
+  [109/431] MagickCore_quantum-export_R.c 🚨
+  [110/431] MagickCore_quantum-export_S.c 🚨
+  [111/431] MagickCore_quantum-export_T.c 🚨
+  [112/431] MagickCore_quantum-export_U.c 🚨
+  [113/431] MagickCore_quantum-export_V.c 🚨
+  [114/431] MagickCore_quantum-export_W.c 🚨
+  [115/431] MagickCore_quantum-export_X.c 🚨
+  [116/431] MagickCore_quantum-export_Y.c 🚨
+  [117/431] MagickCore_quantum-export_Z.c 🚨
+  [118/431] MagickCore_quantum-export_[.c 🚨
+  [119/431] MagickCore_quantum-export_\.c 🚨
+  [120/431] MagickCore_quantum-export_].c 🚨
+  [121/431] MagickCore_quantum-export_^.c 🚨
+  [122/431] MagickCore_quantum-import_A.c 🚨
+  [123/431] MagickCore_quantum-import_B.c 🚨
+  [124/431] MagickCore_quantum-import_C.c 🚨
+  [125/431] MagickCore_quantum-import_D.c 🚨
+  [126/431] MagickCore_quantum-import_E.c 🚨
+  [127/431] MagickCore_quantum-import_F.c 🚨
+  [128/431] MagickCore_quantum-import_G.c 🚨
+  [129/431] MagickCore_quantum-import_H.c 🚨
+  [130/431] MagickCore_quantum-import_I.c 🚨
+  [131/431] MagickCore_quantum-import_J.c 🚨
+  [132/431] MagickCore_quantum-import_K.c 🚨
+  [133/431] MagickCore_quantum-import_L.c 🚨
+  [134/431] MagickCore_quantum-import_M.c 🚨
+  [135/431] MagickCore_quantum-import_N.c 🚨
+  [136/431] MagickCore_quantum-import_O.c 🚨
+  [137/431] MagickCore_quantum-import_P.c 🚨
+  [138/431] MagickCore_quantum-import_Q.c 🚨
+  [139/431] MagickCore_quantum-import_R.c 🚨
+  [140/431] MagickCore_quantum-import_S.c 🚨
+  [141/431] MagickCore_quantum-import_T.c 🚨
+  [142/431] MagickCore_quantum-import_U.c 🚨
+  [143/431] MagickCore_quantum-import_V.c 🚨
+  [144/431] MagickCore_quantum-import_W.c 🚨
+  [145/431] MagickCore_quantum-import_X.c 🚨
+  [146/431] MagickCore_quantum-import_Y.c 🚨
+  [147/431] MagickCore_quantum-import_Z.c 🚨
+  [148/431] MagickCore_quantum-import_[.c 🚨
+  [149/431] MagickCore_quantum-import_\.c 🚨
+  [150/431] MagickCore_quantum-import_].c 🚨
+  [151/431] MagickCore_quantum-import_^.c 🚨
+  [152/431] MagickCore_quantum-import__.c 🚨
+  [153/431] MagickCore_quantum-import_`.c 🚨
+  [154/431] coders_bmp_A.c 🚨
+  [155/431] coders_bmp_B.c 🚨
+  [156/431] coders_bmp_C.c 🚨
+  [157/431] coders_bmp_D.c 🚨
+  [158/431] coders_bmp_E.c 🚨
+  [159/431] coders_bmp_F.c 🚨
+  [160/431] coders_bmp_G.c 🚨
+  [161/431] coders_bmp_H.c 🚨
+  [162/431] coders_bmp_I.c 🚨
+  [163/431] coders_bmp_J.c 🚨
+  [164/431] coders_bmp_K.c 🚨
+  [165/431] coders_bmp_L.c 🚨
+  [166/431] coders_bmp_M.c 🚨
+  [167/431] coders_bmp_N.c 🚨
+  [168/431] coders_bmp_O.c 🚨
+  [169/431] coders_bmp_P.c 🚨
+  [170/431] coders_bmp_Q.c 🚨
+  [171/431] coders_bmp_R.c 🚨
+  [172/431] coders_bmp_S.c 🚨
+  [173/431] coders_bmp_T.c 🚨
+  [174/431] coders_bmp_U.c 🚨
+  [175/431] coders_bmp_V.c 🚨
+  [176/431] coders_bmp_W.c 🚨
+  [177/431] coders_bmp_X.c 🚨
+  [178/431] coders_gif_A.c 🚨
+  [179/431] coders_gif_B.c 🚨
+  [180/431] coders_gif_C.c 🚨
+  [181/431] coders_gif_D.c 🚨
+  [182/431] coders_gif_E.c 🚨
+  [183/431] coders_gif_F.c 🚨
+  [184/431] coders_gif_G.c 🚨
+  [185/431] coders_gif_H.c 🚨
+  [186/431] coders_gif_I.c 🚨
+  [187/431] coders_gif_J.c 🚨
+  [188/431] coders_gif_K.c 🚨
+  [189/431] coders_gif_L.c 🚨
+  [190/431] coders_gif_M.c 🚨
+  [191/431] coders_gif_N.c 🚨
+  [192/431] coders_gif_O.c 🚨
+  [193/431] coders_gif_P.c 🚨
+  [194/431] coders_gif_Q.c 🚨
+  [195/431] coders_gif_R.c 🚨
+  [196/431] coders_heic_A.c 🚨
+  [197/431] coders_heic_B.c 🚨
+  [198/431] coders_heic_C.c 🚨
+  [199/431] coders_heic_D.c 🚨
+  [200/431] coders_heic_E.c 🚨
+  [201/431] coders_heic_F.c 🚨
+  [202/431] coders_heic_G.c 🚨
+  [203/431] coders_heic_H.c 🚨
+  [204/431] coders_heic_I.c 🚨
+  [205/431] coders_heic_J.c 🚨
+  [206/431] coders_heic_K.c 🚨
+  [207/431] coders_heic_L.c 🚨
+  [208/431] coders_heic_M.c 🚨
+  [209/431] coders_heic_N.c 🚨
+  [210/431] coders_heic_O.c 🚨
+  [211/431] coders_heic_P.c 🚨
+  [212/431] coders_heic_Q.c 🚨
+  [213/431] coders_jp2_A.c 🚨
+  [214/431] coders_jp2_B.c 🚨
+  [215/431] coders_jp2_C.c 🚨
+  [216/431] coders_jp2_D.c 🚨
+  [217/431] coders_jp2_E.c 🚨
+  [218/431] coders_jp2_F.c 🚨
+  [219/431] coders_jp2_G.c 🚨
+  [220/431] coders_jp2_H.c 🚨
+  [221/431] coders_jp2_I.c 🚨
+  [222/431] coders_jp2_J.c 🚨
+  [223/431] coders_jp2_K.c 🚨
+  [224/431] coders_jpeg_A.c 🚨
+  [225/431] coders_jpeg_B.c 🚨
+  [226/431] coders_jpeg_C.c 🚨
+  [227/431] coders_jpeg_D.c 🚨
+  [228/431] coders_jpeg_E.c 🚨
+  [229/431] coders_jpeg_F.c 🚨
+  [230/431] coders_jpeg_G.c 🚨
+  [231/431] coders_jpeg_H.c 🚨
+  [232/431] coders_jpeg_I.c 🚨
+  [233/431] coders_jpeg_J.c 🚨
+  [234/431] coders_jpeg_K.c 🚨
+  [235/431] coders_jpeg_L.c 🚨
+  [236/431] coders_jpeg_M.c 🚨
+  [237/431] coders_jpeg_N.c 🚨
+  [238/431] coders_jpeg_O.c 🚨
+  [239/431] coders_jpeg_P.c 🚨
+  [240/431] coders_jpeg_Q.c 🚨
+  [241/431] coders_jpeg_R.c 🚨
+  [242/431] coders_jpeg_S.c 🚨
+  [243/431] coders_jpeg_T.c 🚨
+  [244/431] coders_jpeg_U.c 🚨
+  [245/431] coders_jpeg_V.c 🚨
+  [246/431] coders_jpeg_W.c 🚨
+  [247/431] coders_jpeg_X.c 🚨
+  [248/431] coders_jxl_A.c 🚨
+  [249/431] coders_jxl_B.c 🚨
+  [250/431] coders_jxl_C.c 🚨
+  [251/431] coders_jxl_D.c 🚨
+  [252/431] coders_jxl_E.c 🚨
+  [253/431] coders_jxl_F.c 🚨
+  [254/431] coders_jxl_G.c 🚨
+  [255/431] coders_jxl_H.c 🚨
+  [256/431] coders_jxl_I.c 🚨
+  [257/431] coders_jxl_J.c 🚨
+  [258/431] coders_jxl_K.c 🚨
+  [259/431] coders_pdf_A.c 🚨
+  [260/431] coders_pdf_B.c 🚨
+  [261/431] coders_pdf_C.c 🚨
+  [262/431] coders_pdf_D.c 🚨
+  [263/431] coders_pdf_E.c 🚨
+  [264/431] coders_pdf_F.c 🚨
+  [265/431] coders_pdf_G.c 🚨
+  [266/431] coders_pdf_H.c 🚨
+  [267/431] coders_pdf_I.c 🚨
+  [268/431] coders_pdf_J.c 🚨
+  [269/431] coders_pdf_K.c 🚨
+  [270/431] coders_pdf_L.c 🚨
+  [271/431] coders_pdf_M.c 🚨
+  [272/431] coders_pdf_N.c 🚨
+  [273/431] coders_pdf_O.c 🚨
+  [274/431] coders_pdf_P.c 🚨
+  [275/431] coders_pdf_Q.c 🚨
+  [276/431] coders_pdf_R.c 🚨
+  [277/431] coders_pdf_S.c 🚨
+  [278/431] coders_pdf_T.c 🚨
+  [279/431] coders_pdf_U.c 🚨
+  [280/431] coders_pdf_V.c 🚨
+  [281/431] coders_pdf_W.c 🚨
+  [282/431] coders_pdf_X.c 🚨
+  [283/431] coders_pdf_Y.c 🚨
+  [284/431] coders_pdf_Z.c 🚨
+  [285/431] coders_pdf_[.c 🚨
+  [286/431] coders_pdf_\.c 🚨
+  [287/431] coders_pdf_].c 🚨
+  [288/431] coders_pdf_^.c 🚨
+  [289/431] coders_png_A.c 🚨
+  [290/431] coders_png_B.c 🚨
+  [291/431] coders_png_C.c 🚨
+  [292/431] coders_png_D.c 🚨
+  [293/431] coders_png_E.c 🚨
+  [294/431] coders_png_F.c 🚨
+  [295/431] coders_png_G.c 🚨
+  [296/431] coders_png_H.c 🚨
+  [297/431] coders_png_I.c 🚨
+  [298/431] coders_png_J.c 🚨
+  [299/431] coders_png_K.c 🚨
+  [300/431] coders_png_L.c 🚨
+  [301/431] coders_png_M.c 🚨
+  [302/431] coders_png_N.c 🚨
+  [303/431] coders_png_O.c 🚨
+  [304/431] coders_png_P.c 🚨
+  [305/431] coders_png_Q.c 🚨
+  [306/431] coders_png_R.c 🚨
+  [307/431] coders_png_S.c 🚨
+  [308/431] coders_png_T.c 🚨
+  [309/431] coders_png_U.c 🚨
+  [310/431] coders_png_V.c 🚨
+  [311/431] coders_png_W.c 🚨
+  [312/431] coders_png_X.c 🚨
+  [313/431] coders_png_Y.c 🚨
+  [314/431] coders_png_Z.c 🚨
+  [315/431] coders_png_[.c 🚨
+  [316/431] coders_png_\.c 🚨
+  [317/431] coders_png_].c 🚨
+  [318/431] coders_png_^.c 🚨
+  [319/431] coders_png__.c 🚨
+  [320/431] coders_png_`.c 🚨
+  [321/431] coders_png_{.c 🚨
+  [322/431] coders_png_|.c 🚨
+  [323/431] coders_png_}.c 🚨
+  [324/431] coders_png_~.c 🚨
+  [325/431] coders_png_.c 🚨
+  [326/431] coders_png_.c 🚨
+  [327/431] coders_png_.c 🚨
+  [328/431] coders_png_.c 🚨
+  [329/431] coders_png_.c 🚨
+  [330/431] coders_png_.c 🚨
+  [331/431] coders_png_.c 🚨
+  [332/431] coders_png_.c 🚨
+  [333/431] coders_png_.c 🚨
+  [334/431] coders_png_.c 🚨
+  [335/431] coders_png_.c 🚨
+  [336/431] coders_png_.c 🚨
+  [337/431] coders_png_.c 🚨
+  [338/431] coders_png_.c 🚨
+  [339/431] coders_png_.c 🚨
+  [340/431] coders_png_.c 🚨
+  [341/431] coders_png_.c 🚨
+  [342/431] coders_png_.c 🚨
+  [343/431] coders_png_.c 🚨
+  [344/431] coders_png_.c 🚨
+  [345/431] coders_png_.c 🚨
+  [346/431] coders_png_.c 🚨
+  [347/431] coders_png_.c 🚨
+  [348/431] coders_png_.c 🚨
+  [349/431] coders_png_.c 🚨
+  [350/431] coders_png_.c 🚨
+  [351/431] coders_png_.c 🚨
+  [352/431] coders_png_.c 🚨
+  [353/431] coders_png_.c 🚨
+  [354/431] coders_png_.c 🚨
+  [355/431] coders_png_.c 🚨
+  [356/431] coders_png_.c 🚨
+  [357/431] coders_svg_A.c 🚨
+  [358/431] coders_svg_B.c 🚨
+  [359/431] coders_svg_C.c 🚨
+  [360/431] coders_svg_D.c 🚨
+  [361/431] coders_svg_E.c 🚨
+  [362/431] coders_svg_F.c 🚨
+  [363/431] coders_svg_G.c 🚨
+  [364/431] coders_svg_H.c 🚨
+  [365/431] coders_svg_I.c 🚨
+  [366/431] coders_svg_J.c 🚨
+  [367/431] coders_svg_K.c 🚨
+  [368/431] coders_svg_L.c 🚨
+  [369/431] coders_svg_M.c 🚨
+  [370/431] coders_svg_N.c 🚨
+  [371/431] coders_svg_O.c 🚨
+  [372/431] coders_svg_P.c 🚨
+  [373/431] coders_svg_Q.c 🚨
+  [374/431] coders_svg_R.c 🚨
+  [375/431] coders_svg_S.c 🚨
+  [376/431] coders_svg_T.c 🚨
+  [377/431] coders_svg_U.c 🚨
+  [378/431] coders_svg_V.c 🚨
+  [379/431] coders_svg_W.c 🚨
+  [380/431] coders_svg_X.c 🚨
+  [381/431] coders_svg_Y.c 🚨
+  [382/431] coders_svg_Z.c 🚨
+  [383/431] coders_svg_[.c 🚨
+  [384/431] coders_svg_\.c 🚨
+  [385/431] coders_svg_].c 🚨
+  [386/431] coders_svg_^.c 🚨
+  [387/431] coders_svg__.c 🚨
+  [388/431] coders_svg_`.c 🚨
+  [389/431] coders_tiff_A.c 🚨
+  [390/431] coders_tiff_B.c 🚨
+  [391/431] coders_tiff_C.c 🚨
+  [392/431] coders_tiff_D.c 🚨
+  [393/431] coders_tiff_E.c 🚨
+  [394/431] coders_tiff_F.c 🚨
+  [395/431] coders_tiff_G.c 🚨
+  [396/431] coders_tiff_H.c 🚨
+  [397/431] coders_tiff_I.c 🚨
+  [398/431] coders_tiff_J.c 🚨
+  [399/431] coders_tiff_K.c 🚨
+  [400/431] coders_tiff_L.c 🚨
+  [401/431] coders_tiff_M.c 🚨
+  [402/431] coders_tiff_N.c 🚨
+  [403/431] coders_tiff_O.c 🚨
+  [404/431] coders_tiff_P.c 🚨
+  [405/431] coders_tiff_Q.c 🚨
+  [406/431] coders_tiff_R.c 🚨
+  [407/431] coders_tiff_S.c 🚨
+  [408/431] coders_tiff_T.c 🚨
+  [409/431] coders_tiff_U.c 🚨
+  [410/431] coders_tiff_V.c 🚨
+  [411/431] coders_tiff_W.c 🚨
+  [412/431] coders_tiff_X.c 🚨
+  [413/431] coders_tiff_Y.c 🚨
+  [414/431] coders_tiff_Z.c 🚨
+  [415/431] coders_tiff_[.c 🚨
+  [416/431] coders_tiff_\.c 🚨
+  [417/431] coders_tiff_].c 🚨
+  [418/431] coders_tiff_^.c 🚨
+  [419/431] coders_tiff__.c 🚨
+  [420/431] coders_tiff_`.c 🚨
+  [421/431] coders_webp_A.c 🚨
+  [422/431] coders_webp_B.c 🚨
+  [423/431] coders_webp_C.c 🚨
+  [424/431] coders_webp_D.c 🚨
+  [425/431] coders_webp_E.c 🚨
+  [426/431] coders_webp_F.c 🚨
+  [427/431] coders_webp_G.c 🚨
+  [428/431] coders_webp_H.c 🚨
+  [429/431] coders_webp_I.c 🚨
+  [430/431] coders_webp_J.c 🚨
+  [431/431] coders_webp_K.c 🚨
+
+==================================================
+✅ 完成: 431 findings, 0 clean, 0 errors
+📄 结果: /Users/xiaopingfeng/Projects/cyberai/research/imagemagick/t1_glm_phase2_2317.jsonl
+
+🔴 高置信度 findings (431):
+  [HIGH] Heap Buffer Overflow @ MagickCore_cache_A.c (conf=90)
+    The `WritePixelCacheRegion` function writes to a file using `pwrite` with an offset that is not chec
+  [HIGH] Out-of-bounds Read @ MagickCore_cache_B.c (conf=90)
+    The code does not properly check the bounds of the `image->columns` and `image->rows` before accessi
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_cache_C.c (conf=90)
+    The code is performing an out-of-bounds read/write by adding `cache_info->number_channels*number_pix
+  [HIGH] Buffer Overflow @ MagickCore_cache_D.c (conf=90)
+    The code attempts to allocate memory for `length` which is calculated as `number_pixels*(cache_info-
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_cache_E.c (conf=95)
+    The code attempts to read or write pixel data using `cache_info->pixels` without checking if it is N
+  [HIGH] Heap Buffer Overflow @ MagickCore_cache_F.c (conf=90)
+    The `clone_info` pointer is allocated with `AcquireMagickResource` but not checked for NULL before b
+  [HIGH] Out-of-bounds Read @ MagickCore_cache_G.c (conf=85)
+    The code performs an out-of-bounds check on `x` and `y` against `cache_info->columns` and `cache_inf
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_cache_H.c (conf=90)
+    The function `QueueAuthenticPixels` may read or write pixels outside the bounds of the image if the 
+  [HIGH] Out-of-bounds Read @ MagickCore_cache_I.c (conf=85)
+    The function `ReadPixelCacheRegion` reads data from the file using `read` or `pread` without checkin
+  [HIGH] Out-of-bounds Read @ MagickCore_cache_J.c (conf=95)
+    The code does not check if the `offset` is within the bounds of `cache_info->metacontent_extent`, wh
+  [HIGH] Out-of-bounds Read @ MagickCore_cache_K.c (conf=90)
+    The code performs an out-of-bounds read when copying pixels from memory to the cache. The condition 
+  [HIGH] Out-of-bounds Read @ MagickCore_cache_L.c (conf=85)
+    The loop increments `q` by `cache_info->number_channels * nexus_info->region.width` without checking
+  [HIGH] Out-of-bounds Read @ MagickCore_cache_M.c (conf=85)
+    The `assert(image->cache != (void *) NULL)` check does not ensure that the `image->cache` pointer is
+  [HIGH] Out-of-bounds Read @ MagickCore_cache_N.c (conf=95)
+    The code does not check if the `x`, `y`, `width`, and `height` parameters are within the bounds of t
+  [HIGH] Integer Overflow @ MagickCore_cache_O.c (conf=85)
+    The expression `(size_t) length` may cause an integer overflow if `length` is large enough to exceed
+  [HIGH] Out-of-bounds Read @ MagickCore_cache_P.c (conf=95)
+    The code does not properly check if the pixel offset is valid before accessing the pixel data. This 
+  [HIGH] Out-of-bounds Read @ MagickCore_cache_Q.c (conf=90)
+    The function `SetPixelCacheVirtualMethod` does not check the bounds of the `image->columns` and `ima
+  [HIGH] Out-of-bounds Read @ MagickCore_cache_R.c (conf=85)
+    The function `SyncAuthenticPixelsCache` performs an assertion `assert(id < (int) cache_info->number_
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_cache_S.c (conf=90)
+    The code writes meta-content to the pixel cache without checking if the `nexus_info->region.y` is wi
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_cache_T.c (conf=85)
+    The code does not check if `offset` is within the bounds of `cache_info->metacontent`. If `offset` i
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_cache_U.c (conf=90)
+    The code writes pixel data to the cache without checking if the `rows` variable is within the bounds
+  [HIGH] Out-of-bounds Read @ MagickCore_cache_V.c (conf=85)
+    The function `GetPixelCacheTileSize` may read out of bounds if the `image` pointer is not properly v
+  [HIGH] Integer Overflow @ MagickCore_cache_W.c (conf=85)
+    The calculation of `*width` may cause an integer overflow if `cache_info->number_channels` is large 
+  [HIGH] Out-of-bounds Read @ MagickCore_cache_X.c (conf=90)
+    The function `GetVirtualMetacontentFromNexus` returns `nexus_info->metacontent` without checking if 
+  [HIGH] Out-of-bounds Read @ MagickCore_cache_Y.c (conf=95)
+    The function `GetVirtualPixelCacheNexus` may read pixels outside the bounds of the image if the `x`,
+  [HIGH] Out-of-bounds Read @ MagickCore_cache_Z.c (conf=85)
+    The code checks if the offset and length are within the bounds of the pixel cache, but does not acco
+  [HIGH] Heap Buffer Overflow @ MagickCore_cache_[.c (conf=90)
+    The `virtual_metacontent` buffer is allocated with `AcquireQuantumMemory` but is not checked for siz
+  [HIGH] Out-of-bounds Read @ MagickCore_cache_\.c (conf=90)
+    The code does not properly check the bounds of the `virtual_pixel_method` switch case, which could l
+  [HIGH] Out-of-bounds Read @ MagickCore_cache_].c (conf=95)
+    The code attempts to read pixels from the cache using `GetVirtualPixelCacheNexus` without proper bou
+  [HIGH] Out-of-bounds Read @ MagickCore_cache_^.c (conf=95)
+    The function `GetVirtualPixelCacheNexus` may read pixels outside the bounds of the image if the `id`
+  [HIGH] Out-of-bounds Read @ MagickCore_cache__.c (conf=95)
+    The function `GetVirtualPixelCacheNexus` may read out-of-bounds if the `id` is equal to or greater t
+  [HIGH] Out-of-bounds Read @ MagickCore_cache_`.c (conf=95)
+    The function `GetAuthenticPixelCacheNexus` may return a pointer that is out of bounds if the region 
+  [HIGH] Heap Buffer Overflow @ MagickCore_compress_A.c (conf=90)
+    The `MBTable` array contains HuffmanTable structures with a `buffer` field of size 10 bytes. If the 
+  [HIGH] Integer Overflow @ MagickCore_compress_B.c (conf=95)
+    The integer overflow occurs due to the multiplication of the HuffmanTable's `length` and `size` fiel
+  [HIGH] Buffer Overflow @ MagickCore_compress_C.c (conf=95)
+    The Ascii85Tuple function performs arithmetic operations on the `code` variable, which is derived fr
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_compress_D.c (conf=95)
+    The code writes to `image->ascii85->buffer` without checking if `image->ascii85->offset` is within t
+  [HIGH] Out-of-bounds Read @ MagickCore_compress_E.c (conf=90)
+    The code attempts to read from `image->columns` bytes into `scanline`, but does not check if `image-
+  [HIGH] Out-of-bounds Read @ MagickCore_compress_F.c (conf=90)
+    The variable `x` is used to index into `scanline` and is incremented by `count`. If `count` is not p
+  [HIGH] Integer Overflow @ MagickCore_compress_G.c (conf=90)
+    The loop condition `mask != 0` combined with the right shift operation `mask>>=1` can lead to an int
+  [HIGH] Heap Buffer Overflow @ MagickCore_compress_H.c (conf=95)
+    The `pixels` parameter is used to compress an image, but there is no check to ensure that the `lengt
+  [HIGH] Integer Overflow @ MagickCore_compress_I.c (conf=85)
+    The variable `code_width` is incremented in a loop that does not check for overflow. If `code_width`
+  [HIGH] Heap Buffer Overflow @ MagickCore_compress_J.c (conf=85)
+    The variable `count` is used to store the number of consecutive pixels that are the same, but it is 
+  [HIGH] Heap Buffer Overflow @ MagickCore_compress_K.c (conf=90)
+    The variable `compress_packets` is calculated using `1.001*length+12`, which may result in integer o
+  [HIGH] Out-of-bounds Read @ MagickCore_constitute_A.c (conf=90)
+    The code does not check the bounds of the input data when reading from a blob, which could lead to a
+  [HIGH] Heap Buffer Overflow @ MagickCore_constitute_B.c (conf=95)
+    The function `ConstituteImage` does not check if the `pixels` pointer is NULL before dereferencing i
+  [HIGH] Out-of-bounds Read @ MagickCore_constitute_C.c (conf=85)
+    The `strlen(map)` function is used to determine the length of the `map` string, which is then used i
+  [HIGH] Out-of-bounds Read @ MagickCore_constitute_D.c (conf=85)
+    The function `CopyMagickString` may copy more characters than the buffer can hold if the input strin
+  [HIGH] Out-of-bounds Read @ MagickCore_constitute_E.c (conf=90)
+    The loop that iterates over `read_info->scene` to `read_info->scene + read_info->number_scenes` may 
+  [HIGH] Out-of-bounds Read @ MagickCore_constitute_F.c (conf=90)
+    The code reads image properties without bounds checking, which could lead to out-of-bounds reads if 
+  [HIGH] Out-of-bounds Read @ MagickCore_constitute_G.c (conf=90)
+    The code reads the filename into `read_info->filename` without checking the length of the input, whi
+  [HIGH] Heap Buffer Overflow @ MagickCore_constitute_H.c (conf=85)
+    The code attempts to copy the filename into `image->filename` without checking the size of `image->f
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_constitute_I.c (conf=90)
+    The code snippet uses CopyMagickString without checking the length of the source string, which could
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_constitute_J.c (conf=85)
+    The code attempts to set image properties using `SetImageProperty` without checking the size of the 
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_constitute_K.c (conf=90)
+    The code reads an image filename into `read_filename` without bounds checking, which could lead to o
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_constitute_L.c (conf=90)
+    The loop that copies filename to `read_info->filename` does not check for buffer overflows. If the f
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_constitute_M.c (conf=90)
+    The code snippet does not show any explicit bounds checking when accessing `image->filename` and `im
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_constitute_N.c (conf=95)
+    The code snippet does not show any bounds checking when copying strings using CopyMagickString. If t
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_constitute_O.c (conf=90)
+    The function `CopyMagickString` may be called with a size parameter that is not validated against th
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_pixel_A.c (conf=90)
+    The loop that iterates over `roi->width` may read or write beyond the bounds of the authentic pixels
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_pixel_B.c (conf=95)
+    The code reads pixels from `image` using `GetAuthenticPixels` and writes to `p` without checking if 
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_pixel_C.c (conf=85)
+    The loop iterates over `length` elements, but does not check if `p` or `q` pointers are within the b
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_pixel_D.c (conf=90)
+    The code reads pixel data from `pixels` and writes to `image` using `SetPixel*` functions. If `roi->
+  [HIGH] Heap Buffer Overflow @ MagickCore_pixel_E.c (conf=85)
+    The loop that iterates over `roi->width` and `length` may cause a heap buffer overflow if `pixels` i
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_pixel_F.c (conf=95)
+    The code does not check the bounds of the `map` string when assigning values to `quantum_map`. If `m
+  [HIGH] Integer Overflow @ MagickCore_pixel_G.c (conf=95)
+    The `floor` function is used to convert `x` and `y` to `ssize_t` before casting to `size_t` for `Get
+  [HIGH] Out-of-bounds Read @ MagickCore_pixel_H.c (conf=90)
+    The code attempts to read pixel data using `GetCacheViewVirtualPixels`, but does not check if the `x
+  [HIGH] Out-of-bounds Read @ MagickCore_pixel_I.c (conf=95)
+    The code attempts to read 16 pixels from the cache view, but does not check if the requested pixels 
+  [HIGH] Out-of-bounds Read @ MagickCore_pixel_J.c (conf=95)
+    The code attempts to read pixel data from `p` using `p[i*(ssize_t) GetPixelChannels(image) + GetPixe
+  [HIGH] Out-of-bounds Read @ MagickCore_pixel_K.c (conf=85)
+    The code attempts to read 16 pixels from the cache view at coordinates (x_offset-1, y_offset-1). If 
+  [HIGH] Out-of-bounds Read @ MagickCore_pixel_L.c (conf=90)
+    The code reads a fixed number of pixels from the source image based on the `count` variable, which i
+  [HIGH] Out-of-bounds Read @ MagickCore_pixel_M.c (conf=85)
+    The code reads pixel data using the expression `p[j*(ssize_t) GetPixelChannels(source)+i]`. If `GetP
+  [HIGH] Out-of-bounds Read @ MagickCore_pixel_N.c (conf=90)
+    The code reads pixel data using the expression `p[j*(ssize_t) GetPixelChannels(source)+i]`. If `GetP
+  [HIGH] Out-of-bounds Read @ MagickCore_pixel_O.c (conf=90)
+    The code reads pixel values from the source image using an index that is not validated against the a
+  [HIGH] Out-of-bounds Read @ MagickCore_pixel_P.c (conf=95)
+    The code reads pixel data using the expression `p[j*(ssize_t) GetPixelChannels(source)+i]`. If `i` i
+  [HIGH] Out-of-bounds Read @ MagickCore_pixel_Q.c (conf=90)
+    The code does not check if the calculated `x_offset` and `y_offset` are within the bounds of the ima
+  [HIGH] Out-of-bounds Read @ MagickCore_pixel_R.c (conf=90)
+    The code attempts to read pixel data using `GetCacheViewVirtualPixels` with a fixed size of 2x2 pixe
+  [HIGH] Out-of-bounds Read @ MagickCore_pixel_S.c (conf=95)
+    The code attempts to read 16 pixels from the image cache starting at coordinates (x_offset-1, y_offs
+  [HIGH] Out-of-bounds Read @ MagickCore_pixel_T.c (conf=90)
+    The code attempts to read pixel data from `image` using `GetPixelLuma` and `GetPixelChannels`, but d
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_pixel_U.c (conf=90)
+    The function `GetCacheViewVirtualPixels` is used to retrieve pixel data from an image view. If the c
+  [HIGH] Out-of-bounds Read @ MagickCore_pixel_V.c (conf=85)
+    The loop iterates over pixel channels using GetPixelChannels(image), which may return an incorrect n
+  [HIGH] Integer Overflow @ MagickCore_pixel_W.c (conf=90)
+    The calculation of `distance` and `scale` can potentially cause integer overflow due to the multipli
+  [HIGH] Integer Overflow @ MagickCore_pixel_X.c (conf=85)
+    The line `image->number_meta_channels >= (size_t) (MaxPixelChannels-MetaPixelChannels)` may cause an
+  [HIGH] Out-of-bounds Read @ MagickCore_pixel_Y.c (conf=85)
+    The variable `channel_name` is used to store the result of `FormatLocaleString`, which is not checke
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_pixel_Z.c (conf=95)
+    The loop iterates over pixel channels using the value returned by GetPixelChannels(image), which may
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_pixel_[.c (conf=85)
+    The code reads pixel data from `q` without checking if it is within the bounds of the image. This co
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_pixel_\.c (conf=95)
+    The code reads pixel data from `pixels` and writes to `image` without bounds checking. If `roi->heig
+  [HIGH] Out-of-bounds Read @ MagickCore_pixel_].c (conf=90)
+    The loop that iterates over `roi->height` does not check if `roi->height` is within the bounds of th
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_pixel_^.c (conf=90)
+    The loop that processes pixel data does not check if the pointer `p` has reached the end of the pixe
+  [HIGH] Heap Buffer Overflow @ MagickCore_pixel__.c (conf=85)
+    The loop that iterates over `length` may read or write beyond the allocated buffer for `pixels` if `
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_pixel_`.c (conf=95)
+    The code reads pixel data from `image` using `GetAuthenticPixels` and writes to `image` using `SetPi
+  [HIGH] Heap Buffer Overflow @ MagickCore_pixel_{.c (conf=90)
+    The `memcpy` function is used to swap pixel data without checking if the destination buffer is large
+  [HIGH] Heap Buffer Overflow @ MagickCore_quantum-export_A.c (conf=95)
+    The function ExportQuantumPixels() may not properly check the size of the user-supplied buffer, lead
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-export_B.c (conf=95)
+    The function `PopQuantumDoublePixel` writes 8 bytes to the `pixels` buffer without checking if the p
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-export_C.c (conf=90)
+    The loop that processes pixel data does not check if `p` and `q` pointers are within the bounds of t
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-export_D.c (conf=90)
+    The loop that processes pixels may read or write beyond the bounds of the image buffer if `number_pi
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-export_E.c (conf=95)
+    The loop that processes pixels may read or write beyond the bounds of the image data if `number_pixe
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-export_F.c (conf=85)
+    The loop iterates over 'number_pixels' without bounds checking for the 'p' pointer, which is increme
+  [HIGH] Out-of-bounds Read @ MagickCore_quantum-export_G.c (conf=90)
+    The loop that processes pixels does not check if `number_pixels` is within the bounds of the image d
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-export_H.c (conf=90)
+    The code reads pixel values from the image and writes to the output buffer without checking if the p
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-export_I.c (conf=90)
+    The loop that processes pixels does not check if `number_pixels` is within the bounds of the image d
+  [HIGH] Out-of-bounds Read @ MagickCore_quantum-export_J.c (conf=85)
+    The code reads pixel values without checking if the pointer `p` is within the bounds of the image da
+  [HIGH] Out-of-bounds Read @ MagickCore_quantum-export_K.c (conf=85)
+    The loop that processes pixels in `ExportCMYKQuantum` function reads pixel values without checking i
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-export_L.c (conf=85)
+    The loop iterates over 'number_pixels' without checking if 'p' is within the bounds of the image dat
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-export_M.c (conf=95)
+    The loop iterates over 'number_pixels' without bounds checking, which could lead to reading or writi
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-export_N.c (conf=90)
+    The code writes to the `q` pointer without checking if it has reached the end of the buffer. This co
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-export_O.c (conf=85)
+    The loop increments the pointer `p` by `GetPixelChannels(image)` without checking if it goes out of 
+  [HIGH] Out-of-bounds Read @ MagickCore_quantum-export_P.c (conf=90)
+    The loop condition `x < ((ssize_t) number_pixels-2)` may allow an out-of-bounds read if `number_pixe
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-export_Q.c (conf=95)
+    The code writes to the `*q` pointer without checking if `q` is within the bounds of the allocated bu
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-export_R.c (conf=85)
+    The code reads pixel data without checking if the pointer `p` is within the bounds of the image data
+  [HIGH] Out-of-bounds Read @ MagickCore_quantum-export_S.c (conf=85)
+    The code reads pixel values using GetPixelIndex without checking if the pixel index is within the bo
+  [HIGH] Out-of-bounds Read @ MagickCore_quantum-export_T.c (conf=90)
+    The loop that processes pixels may read beyond the allocated buffer if `number_pixels` is not a mult
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-export_U.c (conf=90)
+    The code iterates over `number_pixels` without checking if `p` is within the bounds of the image dat
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-export_V.c (conf=85)
+    The code reads pixel data from `image` and writes to `q` without bounds checking. If `number_pixels`
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-export_W.c (conf=85)
+    The code iterates over `number_pixels` and reads pixel values using `GetPixelRed`, `GetPixelGreen`, 
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-export_X.c (conf=85)
+    The loop that processes pixels may read or write beyond the bounds of the image data if `number_pixe
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-export_Y.c (conf=85)
+    The loop iterates over 'number_pixels' without bounds checking on the pointer 'p'. If 'number_pixels
+  [HIGH] Out-of-bounds Read @ MagickCore_quantum-export_Z.c (conf=90)
+    The loop iterates over 'number_pixels' without bounds checking on the 'p' pointer, which is incremen
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-export_[.c (conf=90)
+    The code reads pixel values from an image and writes to a buffer without checking if the number of p
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-export_\.c (conf=90)
+    The loop iterates over 'number_pixels' without bounds checking, which could lead to reading or writi
+  [HIGH] Out-of-bounds Read @ MagickCore_quantum-export_].c (conf=90)
+    The code reads pixel values without checking if the pointer `p` is within the bounds of the image da
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-export_^.c (conf=95)
+    The loop that iterates over `number_pixels` does not check if `r` is within the bounds of the pixel 
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_A.c (conf=95)
+    The loop that processes pixel data does not check if `number_pixels` is within the bounds of the ima
+  [HIGH] Out-of-bounds Read @ MagickCore_quantum-import_B.c (conf=95)
+    The function PushColormapIndex does not check if the index is within the bounds of the image's color
+  [HIGH] Integer Overflow @ MagickCore_quantum-import_C.c (conf=85)
+    The loop in `ImportPixelChannel` function may cause an integer overflow when `quantum_bits` is large
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_D.c (conf=90)
+    The loop that processes pixels does not check if `number_pixels` is within the bounds of the image d
+  [HIGH] Heap Buffer Overflow @ MagickCore_quantum-import_E.c (conf=85)
+    The loop that processes pixels may read or write beyond the allocated buffer if `number_pixels` is n
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_F.c (conf=85)
+    The loop that processes pixels may read or write beyond the bounds of the image buffer if `number_pi
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_G.c (conf=95)
+    The loop that processes pixels does not check if `number_pixels` is within the bounds of the image d
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_H.c (conf=95)
+    The loop iterates over 'number_pixels' without checking if 'p' or 'q' pointers are within the bounds
+  [HIGH] Integer Overflow @ MagickCore_quantum-import_I.c (conf=90)
+    Integer overflow in the calculation of `quantum` due to the shift operation with a constant value of
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_J.c (conf=85)
+    The loop iterates over 'number_pixels' without checking if 'p' or 'q' pointers are within the bounds
+  [HIGH] Out-of-bounds Read @ MagickCore_quantum-import_K.c (conf=90)
+    The loop `for (x=0; x < ((ssize_t) number_pixels-3); x+=4)` reads pixel data up to `number_pixels-3`
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_L.c (conf=85)
+    The loop iterates over 'number_pixels' without checking if 'p' or 'q' pointers are within the bounds
+  [HIGH] Integer Overflow @ MagickCore_quantum-import_M.c (conf=95)
+    Integer overflow may occur in the loop that processes pixels due to the multiplication of QuantumRan
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_N.c (conf=85)
+    The loop iterates over 'number_pixels' without bounds checking on the pointer 'p'. If 'number_pixels
+  [HIGH] Integer Overflow @ MagickCore_quantum-import_O.c (conf=85)
+    Integer overflow may occur in the loop that processes pixels due to the multiplication of QuantumRan
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_P.c (conf=90)
+    The loop iterates over `number_pixels` without bounds checking, which could lead to reading or writi
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_Q.c (conf=85)
+    The loop that writes pixel data to the image may read/write beyond the bounds of the pixel buffer if
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_R.c (conf=85)
+    The loop iterates over 'number_pixels' without checking if 'p' or 'q' goes out of bounds. If 'number
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_S.c (conf=90)
+    The loop iterates over 'number_pixels' without bounds checking on the pointer 'p'. If 'number_pixels
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_T.c (conf=90)
+    The loop that processes pixels may read or write beyond the allocated memory for the image if `numbe
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_U.c (conf=85)
+    The loop iterates over 'number_pixels' without checking if 'p' or 'q' is within the bounds of the im
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_V.c (conf=95)
+    The loop that processes pixel data does not check if the `number_pixels` is within the bounds of the
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_W.c (conf=85)
+    The loop iterates over 'number_pixels' without bounds checking on 'p' and 'q'. If 'number_pixels' is
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_X.c (conf=85)
+    The loop that processes pixels may read or write beyond the allocated buffer if `number_pixels` is n
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_Y.c (conf=85)
+    The loop iterates over 'number_pixels' without bounds checking, which could lead to reading or writi
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_Z.c (conf=90)
+    The loop that processes pixels does not check if `x` is within the bounds of `number_pixels`. If `nu
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_[.c (conf=90)
+    The code reads pixels from an image buffer without checking if the index is within the bounds of the
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_\.c (conf=90)
+    The loop iterates over 'number_pixels' without bounds checking, which could lead to reading or writi
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_].c (conf=90)
+    The loop iterates over 'number_pixels' without bounds checking, which could lead to reading or writi
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_^.c (conf=85)
+    The loop iterates over 'number_pixels' without bounds checking, which could lead to reading or writi
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import__.c (conf=90)
+    The loop iterates over 'number_pixels' without bounds checking, which could lead to reading or writi
+  [HIGH] Out-of-bounds Read/Write @ MagickCore_quantum-import_`.c (conf=90)
+    The loop iterates over 'number_pixels' without bounds checking, which could lead to reading or writi
+  [HIGH] Heap Buffer Overflow @ coders_bmp_A.c (conf=90)
+    The BMP decoder may not properly validate the size of the bitmap file when allocating memory for the
+  [HIGH] Out-of-bounds Read @ coders_bmp_B.c (conf=90)
+    The variable `y` is used to iterate over `image->rows`, but there is no check to ensure that `y` doe
+  [HIGH] Out-of-bounds Read @ coders_bmp_C.c (conf=85)
+    The code does not properly check the bounds of the `p` pointer when reading bytes from the `image`. 
+  [HIGH] Out-of-bounds Read/Write @ coders_bmp_D.c (conf=85)
+    The loop that runs to encode pixels does not check if the index 'i' exceeds the 'bytes_per_line' whe
+  [HIGH] Out-of-bounds Read @ coders_bmp_E.c (conf=90)
+    The code reads a fixed number of bytes from the blob without checking if the blob size is sufficient
+  [HIGH] Out-of-bounds Read @ coders_bmp_F.c (conf=90)
+    The code reads 'bmp_info.file_size' and 'bmp_info.offset_bits' without checking if the read operatio
+  [HIGH] Integer Overflow @ coders_bmp_G.c (conf=90)
+    The code reads a long integer from the image blob and divides it by a constant without checking for 
+  [HIGH] Out-of-bounds Read @ coders_bmp_H.c (conf=95)
+    The code reads the `bmp_info` structure without bounds checking, which could lead to reading memory 
+  [HIGH] Integer Overflow @ coders_bmp_I.c (conf=90)
+    The expression `one << bmp_info.bits_per_pixel` may cause an integer overflow if `bmp_info.bits_per_
+  [HIGH] Out-of-bounds Read @ coders_bmp_J.c (conf=85)
+    The code reads 'packet_size*image->colors' bytes from the BMP file into 'bmp_colormap' without check
+  [HIGH] Out-of-bounds Read @ coders_bmp_K.c (conf=95)
+    The loop iterates over the image rows and columns, but the condition `y >= 0` does not account for t
+  [HIGH] Out-of-bounds Read @ coders_bmp_L.c (conf=95)
+    The loop that calculates `shift.red`, `shift.green`, `shift.blue`, and `shift.alpha` does not check 
+  [HIGH] Out-of-bounds Read @ coders_bmp_M.c (conf=90)
+    The loop that processes the PseudoColor scanline does not check if the `image->rows` is negative, wh
+  [HIGH] Out-of-bounds Read @ coders_bmp_N.c (conf=85)
+    The loop that processes the 16-bit PseudoColor scanline reads pixel values from memory without check
+  [HIGH] Out-of-bounds Read/Write @ coders_bmp_O.c (conf=95)
+    The code reads pixel data from `pixels` without checking if the calculated pointer `p` is within the
+  [HIGH] Out-of-bounds Read @ coders_bmp_P.c (conf=85)
+    The code reads 'profile_size' bytes from the blob without checking if it exceeds the blob size. This
+  [HIGH] Heap Buffer Overflow @ coders_bmp_Q.c (conf=95)
+    The function `WriteBMPImage` may write beyond the allocated buffer if the image data exceeds the exp
+  [HIGH] Integer Overflow @ coders_bmp_R.c (conf=95)
+    The expression (image->columns << 3) and (image->rows << 3) may cause an integer overflow if image->
+  [HIGH] Integer Overflow @ coders_bmp_S.c (conf=90)
+    The expression (type > 3) && (image->alpha_trait != UndefinedPixelTrait) ? 32 : 24 may cause an inte
+  [HIGH] Out-of-bounds Read/Write @ coders_bmp_T.c (conf=95)
+    The code reads pixels from `image` using `GetVirtualPixels` and writes them to `pixels`. The loop it
+  [HIGH] Out-of-bounds Read/Write @ coders_bmp_U.c (conf=90)
+    The code writes pixel data to the 'pixels' buffer without checking if the 'x' index is within the bo
+  [HIGH] Heap Buffer Overflow @ coders_bmp_V.c (conf=90)
+    The `AcquireVirtualMemory` function is used to allocate memory for `rle_info`, but the calculation o
+  [HIGH] Integer Overflow @ coders_bmp_W.c (conf=90)
+    Multiplying floating-point values with a constant and casting to an unsigned integer without checkin
+  [HIGH] Buffer Overflow @ coders_bmp_X.c (conf=90)
+    The loop that writes the colormap to memory does not check if the index `i` exceeds the number of co
+  [HIGH] Heap Buffer Overflow @ coders_gif_A.c (conf=90)
+    The variable `buffer` in the `LZWCodeInfo` struct is used to store LZW codes, but there is no check 
+  [HIGH] Heap Buffer Overflow @ coders_gif_B.c (conf=90)
+    The function `AcquireQuantumMemory` is used to allocate memory for `lzw_info->table[0]` and `lzw_inf
+  [HIGH] Out-of-bounds Read/Write @ coders_gif_C.c (conf=85)
+    The code reads data from `lzw_info->code_info.buffer` using `lzw_info->code_info.bit/8` as an index,
+  [HIGH] Buffer Overflow @ coders_gif_D.c (conf=85)
+    The variable `x` is incremented in the loop, but not checked against `image->columns` before accessi
+  [HIGH] Out-of-bounds Read @ coders_gif_E.c (conf=85)
+    The code is using `image->rows` without checking if it is within the bounds of the image data. If `i
+  [HIGH] Out-of-bounds Read @ coders_gif_F.c (conf=85)
+    The variable `offset` is incremented based on the `interlace` setting without bounds checking. If `o
+  [HIGH] Out-of-bounds Read @ coders_gif_G.c (conf=90)
+    The function `ReadBlobBlock` reads a specified number of bytes into the `data` buffer without checki
+  [HIGH] Out-of-bounds Read @ coders_gif_H.c (conf=85)
+    The code reads 6 bytes from the blob into the 'buffer' array without checking if the buffer is large
+  [HIGH] Heap Buffer Overflow @ coders_gif_I.c (conf=90)
+    The code attempts to read a block of data into a buffer without checking if the buffer is large enou
+  [HIGH] Out-of-bounds Read @ coders_gif_J.c (conf=90)
+    The code reads a short value from the blob without checking if it is within the bounds of the blob d
+  [HIGH] Out-of-bounds Read @ coders_gif_K.c (conf=90)
+    The code reads 'image->colors' into a loop without checking if it is within the bounds of the colorm
+  [HIGH] Out-of-bounds Read @ coders_gif_L.c (conf=85)
+    The code snippet does not show any direct out-of-bounds read, but the GIF image format processing co
+  [HIGH] Out-of-bounds Read/Write @ coders_gif_M.c (conf=85)
+    The function `WriteGIFImage` writes an image to a file in the Compuserve Graphics image format. If t
+  [HIGH] Heap Buffer Overflow @ coders_gif_N.c (conf=85)
+    The code uses AcquireQuantumMemory to allocate memory for the colormap, but does not check the retur
+  [HIGH] Out-of-bounds Read/Write @ coders_gif_O.c (conf=90)
+    The loop that sets `opacity` may read or write beyond the bounds of `image->colormap` if `image->col
+  [HIGH] Out-of-bounds Read/Write @ coders_gif_P.c (conf=90)
+    The code writes to `image` without checking the bounds of the data being written. This could lead to
+  [HIGH] Heap Buffer Overflow @ coders_gif_Q.c (conf=90)
+    The code writes a fixed-size string to the image blob without checking if the string length exceeds 
+  [HIGH] Heap Buffer Overflow @ coders_gif_R.c (conf=90)
+    The code writes `block_length` bytes to `WriteBlob(image, (size_t) block_length, datum + offset);` w
+  [HIGH] Heap Buffer Overflow @ coders_heic_A.c (conf=90)
+    The code may contain a heap buffer overflow vulnerability due to improper bounds checking when proce
+  [HIGH] Out-of-bounds Read @ coders_heic_B.c (conf=85)
+    The function HEICSecurityLimits() may read beyond the bounds of the 'heif_context' structure if the 
+  [HIGH] Integer Overflow @ coders_heic_C.c (conf=90)
+    The multiplication of `width_limit` and `height_limit` may cause an integer overflow if either is cl
+  [HIGH] Out-of-bounds Read @ coders_heic_D.c (conf=90)
+    The code does not check if the `offset` is within the bounds of `GetStringInfoLength(exif_profile)`.
+  [HIGH] Out-of-bounds Read @ coders_heic_E.c (conf=85)
+    The code reads image dimensions using heif_image_handle_get_ispe_width and heif_image_handle_get_isp
+  [HIGH] Out-of-bounds Read @ coders_heic_F.c (conf=85)
+    The code reads pixel data from `pixels` without checking if `x` is within the bounds of `image->colu
+  [HIGH] Out-of-bounds Read @ coders_heic_G.c (conf=90)
+    The code reads pixel data from `pixels` without checking if the index `x` is within the bounds of th
+  [HIGH] Out-of-bounds Read @ coders_heic_H.c (conf=90)
+    The function `heif_image_handle_get_list_of_depth_image_IDs` may return an incorrect number of image
+  [HIGH] Out-of-bounds Read @ coders_heic_I.c (conf=85)
+    The loop that iterates over `ids` does not check if `i` is within the bounds of `count`. If `count` 
+  [HIGH] Out-of-bounds Read @ coders_heic_J.c (conf=85)
+    The code does not check the bounds of the input data before accessing it, which could lead to out-of
+  [HIGH] Heap Buffer Overflow @ coders_heic_K.c (conf=85)
+    The loop that writes to `q_cb` and `q_cr` planes may overflow the buffer if `image->columns` and `im
+  [HIGH] Out-of-bounds Read @ coders_heic_L.c (conf=85)
+    The loop that processes the image pixels does not check if the calculated `q` pointer exceeds the bo
+  [HIGH] Integer Overflow @ coders_heic_M.c (conf=90)
+    The variable `timescale` is assigned a value based on `image->ticks_per_second`, which is cast to `u
+  [HIGH] Out-of-bounds Read @ coders_heic_N.c (conf=85)
+    The code does not check if the `image->columns` and `image->rows` are within the bounds of the actua
+  [HIGH] Out-of-bounds Read/Write @ coders_heic_O.c (conf=85)
+    The code does not check the bounds of the image data when accessing pixel traits, which could lead t
+  [HIGH] Integer Overflow @ coders_heic_P.c (conf=85)
+    The line `cicp.rho=(double) nclx_profile->color_primaries;` may cause an integer overflow if `nclx_p
+  [HIGH] Out-of-bounds Read @ coders_heic_Q.c (conf=90)
+    The `heif_context_write` function may read data beyond the bounds of the buffer if the `image` point
+  [HIGH] Heap Buffer Overflow @ coders_jp2_A.c (conf=95)
+    The code does not properly check the size of the input buffer before writing to it, which may lead t
+  [HIGH] Out-of-bounds Read @ coders_jp2_B.c (conf=85)
+    The `IsJP2()` function does not check for the correct length of the magick string before comparing i
+  [HIGH] Heap Buffer Overflow @ coders_jp2_C.c (conf=90)
+    The function `WriteBlob` may write beyond the allocated buffer if the `length` parameter is not prop
+  [HIGH] Heap Buffer Overflow @ coders_jp2_D.c (conf=90)
+    The `opj_create_decompress` function may allocate memory on the heap. If the size of the allocated m
+  [HIGH] Out-of-bounds Read @ coders_jp2_E.c (conf=95)
+    The code does not properly check the bounds of the `jp2_image->comps` array when accessing `jp2_imag
+  [HIGH] Out-of-bounds Read/Write @ coders_jp2_F.c (conf=95)
+    The code calculates the index for accessing pixel data using `index = comps_info[i].y_index/jp2_imag
+  [HIGH] Out-of-bounds Read @ coders_jp2_G.c (conf=90)
+    The code does not check the length of the `version` string before assigning it to `entry->version`. 
+  [HIGH] Integer Overflow @ coders_jp2_H.c (conf=95)
+    The function `CalculateNumResolutions` uses a loop that may cause an integer overflow if the width o
+  [HIGH] Integer Overflow @ coders_jp2_I.c (conf=90)
+    The `StringToInteger` function may cause an integer overflow when converting the string `option` to 
+  [HIGH] Out-of-bounds Read @ coders_jp2_J.c (conf=90)
+    The code reads `image->columns` and `image->rows` without bounds checking, which could lead to out-o
+  [HIGH] Out-of-bounds Read @ coders_jp2_K.c (conf=90)
+    The code attempts to read pixel data using `GetPixelRed`, `GetPixelGreen`, `GetPixelBlue`, and `GetP
+  [HIGH] Heap Buffer Overflow @ coders_jpeg_A.c (conf=95)
+    The code does not properly check the bounds of the buffer when processing JPEG images, which could l
+  [HIGH] Out-of-bounds Read @ coders_jpeg_B.c (conf=85)
+    The `FillInputBuffer` function reads a blob into `source->buffer` without checking if the read size 
+  [HIGH] Out-of-bounds Read @ coders_jpeg_C.c (conf=85)
+    The `GetCharacter` function decrements `jpeg_info->src->bytes_in_buffer` but does not check if it go
+  [HIGH] Out-of-bounds Read @ coders_jpeg_D.c (conf=85)
+    The code reads data from `jpeg_info` into a buffer pointed to by `p` without checking if `index` is 
+  [HIGH] Out-of-bounds Read @ coders_jpeg_E.c (conf=90)
+    The code reads 'length' characters from 'jpeg_info' without checking if it exceeds the buffer size, 
+  [HIGH] Integer Overflow @ coders_jpeg_F.c (conf=95)
+    The sum variable is used to accumulate the quantization values and is not checked for overflow. The 
+  [HIGH] Integer Overflow @ coders_jpeg_G.c (conf=90)
+    The calculation of `qvalue` uses multiple additions of values from `jpeg_info->quant_tbl_ptrs[0]->qu
+  [HIGH] Out-of-bounds Read/Write @ coders_jpeg_H.c (conf=85)
+    The code does not check the bounds of `jpeg_info->comp_info` before accessing its elements, which co
+  [HIGH] Out-of-bounds Read @ coders_jpeg_I.c (conf=90)
+    The code checks if the file size is at least 107 bytes before proceeding with JPEG decoding. If the 
+  [HIGH] Integer Overflow @ coders_jpeg_J.c (conf=95)
+    The line `jpeg_info->scale_num=(unsigned int) (8.0/scale_factor+0.5);` may cause an integer overflow
+  [HIGH] Heap Buffer Overflow @ coders_jpeg_K.c (conf=95)
+    The code does not check if `jpeg_info->actual_number_of_colors` is within the bounds of `image->colo
+  [HIGH] Out-of-bounds Read @ coders_jpeg_L.c (conf=95)
+    The code reads a scanline from a JPEG image without checking if the `number_scanlines` is within the
+  [HIGH] Out-of-bounds Read @ coders_jpeg_M.c (conf=85)
+    The code reads data from `buffer` without checking if `i` is within the bounds of the buffer. This c
+  [HIGH] Out-of-bounds Read/Write @ coders_jpeg_N.c (conf=90)
+    The code does not check the length of the string being copied into `version` before using it. If an 
+  [HIGH] Out-of-bounds Read @ coders_jpeg_O.c (conf=90)
+    The function `DestroyQuantizationTable` does not check the size of `table->slot` before attempting t
+  [HIGH] Out-of-bounds Read @ coders_jpeg_P.c (conf=90)
+    The code reads the filename into a string without bounds checking, which could lead to out-of-bounds
+  [HIGH] Out-of-bounds Read @ coders_jpeg_Q.c (conf=85)
+    The loop that assigns values to `table->levels` does not check if `i` is within the bounds of `table
+  [HIGH] Buffer Overflow @ coders_jpeg_R.c (conf=90)
+    The loop that writes to `p` does not check if the `length` exceeds the buffer size of `p`. This coul
+  [HIGH] Out-of-bounds Read @ coders_jpeg_S.c (conf=95)
+    The code does not check the validity of `image_info` before dereferencing it, which could lead to an
+  [HIGH] Integer Overflow @ coders_jpeg_T.c (conf=90)
+    The calculation of `length` may cause an integer overflow if `jpeg_info->input_components`, `image->
+  [HIGH] Integer Overflow @ coders_jpeg_U.c (conf=90)
+    The loop condition `minimum < maximum` does not prevent integer overflow when calculating `minimum` 
+  [HIGH] Out-of-bounds Read/Write @ coders_jpeg_V.c (conf=90)
+    The loop that sets the sampling factors for JPEG components does not check if the `factors` array is
+  [HIGH] Out-of-bounds Read/Write @ coders_jpeg_W.c (conf=90)
+    The loop that sets `jpeg_info->comp_info[i].quant_tbl_no` does not check if `i` is less than the act
+  [HIGH] Buffer Overflow @ coders_jpeg_X.c (conf=90)
+    The loop `for (i=0; i < (ssize_t) length; i+=65533L)` may cause a heap buffer overflow if `value` is
+  [HIGH] Heap Buffer Overflow @ coders_jxl_A.c (conf=95)
+    The code may contain a heap buffer overflow vulnerability due to improper bounds checking when handl
+  [HIGH] Out-of-bounds Read @ coders_jxl_B.c (conf=90)
+    The function `IsJXL` performs a check on the `signature` variable without ensuring it does not excee
+  [HIGH] Out-of-bounds Read @ coders_jxl_C.c (conf=85)
+    The function `JXLPatchExifProfile` reads up to 4 bytes from the `exif_profile` StringInfo structure 
+  [HIGH] Heap Buffer Overflow @ coders_jxl_D.c (conf=85)
+    The `AcquireQuantumMemory` function may allocate memory that is not properly checked for size before
+  [HIGH] Out-of-bounds Read @ coders_jxl_E.c (conf=90)
+    The code reads `color_encoding.white_point_xy[0]` and `color_encoding.white_point_xy[1]` without che
+  [HIGH] Heap Buffer Overflow @ coders_jxl_F.c (conf=90)
+    The `AcquireQuantumMemory` function may allocate memory based on the `extent` variable, which is set
+  [HIGH] Out-of-bounds Read @ coders_jxl_G.c (conf=90)
+    The code reads a size from `JxlDecoderGetBoxSizeRaw` and then subtracts 8 from it before using it to
+  [HIGH] Out-of-bounds Read @ coders_jxl_H.c (conf=90)
+    The function UnregisterJXLImage() calls UnregisterMagickInfo() with a string that is not validated f
+  [HIGH] Out-of-bounds Read @ coders_jxl_I.c (conf=90)
+    The code does not check the bounds of the image when iterating through the image list. If the image 
+  [HIGH] Heap Buffer Overflow @ coders_jxl_J.c (conf=90)
+    The `BlobToStringInfo` function is used to create a `StringInfo` object from a blob of data. If the 
+  [HIGH] Out-of-bounds Read @ coders_jxl_K.c (conf=90)
+    The code reads image pixel data using `ExportImagePixels` without checking if the pixel coordinates 
+  [HIGH] Out-of-bounds Read @ coders_pdf_A.c (conf=90)
+    The codebase may contain out-of-bounds reads due to incorrect handling of buffer sizes when processi
+  [HIGH] Out-of-bounds Read @ coders_pdf_B.c (conf=90)
+    The function `IsPDF` checks if the image format is PDF by comparing a string pattern. If the `offset
+  [HIGH] Out-of-bounds Read @ coders_pdf_C.c (conf=90)
+    The variable `version` is being read from a buffer without bounds checking. If the input string exce
+  [HIGH] Out-of-bounds Read @ coders_pdf_D.c (conf=90)
+    The variable `i` is used to index into the `name` buffer, but there is no check to ensure that `i` d
+  [HIGH] Integer Overflow @ coders_pdf_E.c (conf=90)
+    The line `page.width=(size_t) ((ssize_t) ceil((double) (page.width*image->resolution.x/delta.x)-0.5)
+  [HIGH] Out-of-bounds Read/Write @ coders_pdf_F.c (conf=90)
+    The code writes a single byte to a file resource without checking if the file pointer is at the end 
+  [HIGH] Out-of-bounds Read @ coders_pdf_G.c (conf=90)
+    The code attempts to interpret image filenames in a loop without bounds checking, which could lead t
+  [HIGH] Out-of-bounds Read/Write @ coders_pdf_H.c (conf=85)
+    The loop that clones images does not check if the `image_info->scene` is within the bounds of the al
+  [HIGH] Heap Buffer Overflow @ coders_pdf_I.c (conf=85)
+    The function `ReadPDFImage` may read past the end of a buffer if the input data is malformed or if t
+  [HIGH] Heap Buffer Overflow @ coders_pdf_J.c (conf=90)
+    The code does not properly check the length of the source string before copying it into the destinat
+  [HIGH] Out-of-bounds Read @ coders_pdf_K.c (conf=90)
+    The loop that appends images to the `pages` list does not check if `pages` has enough capacity befor
+  [HIGH] Out-of-bounds Read @ coders_pdf_L.c (conf=90)
+    The code does not check the length of the `utf16` buffer before writing to `image`. If `length` is l
+  [HIGH] Heap Buffer Overflow @ coders_pdf_M.c (conf=90)
+    The `buffer` array is declared with a fixed size of `MagickPathExtent`, which may not be sufficient 
+  [HIGH] Integer Overflow @ coders_pdf_N.c (conf=90)
+    The `StringToDouble` function can potentially cause an integer overflow when converting a string to 
+  [HIGH] Heap Buffer Overflow @ coders_pdf_O.c (conf=90)
+    The ResizeQuantumMemory function may allocate less memory than requested if the allocation fails, le
+  [HIGH] Out-of-bounds Read/Write @ coders_pdf_P.c (conf=90)
+    The code does not check the bounds of `image_info->compression` before assigning it to `compression`
+  [HIGH] Integer Overflow @ coders_pdf_Q.c (conf=90)
+    Integer overflow in the calculation of `object+4` and `object+5` due to the lack of bounds checking 
+  [HIGH] Integer Overflow @ coders_pdf_R.c (conf=90)
+    The line `if ((4*number_pixels) != (MagickSizeType) ((size_t) (4*number_pixels)))` may cause an inte
+  [HIGH] Heap Buffer Overflow @ coders_pdf_S.c (conf=90)
+    The `InjectImageBlob` function may write past the end of the buffer if the input data is malformed o
+  [HIGH] Out-of-bounds Read @ coders_pdf_T.c (conf=90)
+    The loop that processes pixels may read beyond the allocated memory if `image->rows` or `image->colu
+  [HIGH] Out-of-bounds Read @ coders_pdf_U.c (conf=85)
+    The loop that copies pixel data from `GetVirtualPixels` to `pixels` does not check if `image->column
+  [HIGH] Out-of-bounds Read @ coders_pdf_V.c (conf=85)
+    The loop that reads pixels from `image` does not check if `image->rows` and `image->columns` are wit
+  [HIGH] Integer Overflow @ coders_pdf_W.c (conf=90)
+    The use of `(double) object+1` in the `FormatLocaleString` function may cause an integer overflow if
+  [HIGH] Out-of-bounds Read/Write @ coders_pdf_X.c (conf=90)
+    The `LocaleCompare` function is used to compare the `CCITTParam` string with the literal string "0".
+  [HIGH] Out-of-bounds Read @ coders_pdf_Y.c (conf=90)
+    The loop that processes pixels (`for (x=0; x < (ssize_t) tile_image->columns; x++)`) does not check 
+  [HIGH] Out-of-bounds Read @ coders_pdf_Z.c (conf=90)
+    The loop that copies pixel data from `GetVirtualPixels` to `pixels` does not check if `tile_image->r
+  [HIGH] Out-of-bounds Read @ coders_pdf_[.c (conf=85)
+    The loop that reads pixels from `tile_image` does not check if `x` exceeds `tile_image->columns`. Th
+  [HIGH] Out-of-bounds Read/Write @ coders_pdf_\.c (conf=90)
+    The code snippet reads the blue component of the colormap without checking if the index `i` is withi
+  [HIGH] Out-of-bounds Read @ coders_pdf_].c (conf=90)
+    The loop that processes pixels (`for (x=0; x < (ssize_t) image->columns; x++)`) does not check if `i
+  [HIGH] Out-of-bounds Read/Write @ coders_pdf_^.c (conf=90)
+    The loop iterates over `object` elements and writes to the `image` blob. If `object` is not properly
+  [HIGH] Heap Buffer Overflow @ coders_png_A.c (conf=90)
+    The variable `length` is assigned the result of `ReadBlobMSBLong(image)` which is expected to be a 3
+  [HIGH] Integer Overflow @ coders_png_B.c (conf=95)
+    The line `if (mng_iterations == PNG_UINT_31_MAX) mng_iterations=0;` may lead to integer overflow whe
+  [HIGH] Out-of-bounds Read/Write @ coders_png_C.c (conf=90)
+    The code reads data into `mng_info->global_plte` without checking if the length of the chunk is a mu
+  [HIGH] Out-of-bounds Read @ coders_png_D.c (conf=90)
+    The code reads multiple long integers from a buffer without checking if the buffer is large enough t
+  [HIGH] Out-of-bounds Read @ coders_png_E.c (conf=90)
+    The code reads a box structure from memory without checking if the pointer is within the bounds of t
+  [HIGH] Out-of-bounds Read @ coders_png_F.c (conf=90)
+    The code reads data from the buffer `p` without bounds checking, which can lead to out-of-bounds rea
+  [HIGH] Integer Overflow @ coders_png_G.c (conf=90)
+    The code does not properly check the length of the input data before performing bit shifts and assig
+  [HIGH] Out-of-bounds Read/Write @ coders_png_H.c (conf=85)
+    The code reads the global_sbit values from the buffer without checking if the length is exactly 4 by
+  [HIGH] Heap Buffer Overflow @ coders_png_I.c (conf=95)
+    The code does not properly check the bounds of the `mng_info->mng_width` and `mng_info->mng_height` 
+  [HIGH] Integer Overflow @ coders_png_J.c (conf=90)
+    Integer overflow in the calculation of `magnified_width` and `magnified_height` due to the lack of b
+  [HIGH] Out-of-bounds Read @ coders_png_K.c (conf=90)
+    The loop that scales pixels to unsigned shorts may read beyond the allocated buffer if `magn_methx !
+  [HIGH] Out-of-bounds Read @ coders_png_L.c (conf=90)
+    The loop iterates over `image->columns` but does not check if `pixels` is within the bounds of the i
+  [HIGH] Integer Overflow @ coders_png_M.c (conf=90)
+    Integer overflow in the calculation of `m` due to the multiplication of `i` with `GetPixelAlpha(imag
+  [HIGH] Integer Overflow @ coders_png_N.c (conf=90)
+    Integer overflow in the calculation of `i` due to the left shift operation `(m+1) << 1`. This could 
+  [HIGH] Integer Overflow @ coders_png_O.c (conf=85)
+    The calculation of `crop_info.width` and `crop_info.height` may cause an integer overflow if the dif
+  [HIGH] Out-of-bounds Read @ coders_png_P.c (conf=95)
+    The code attempts to set the `image->columns`, `image->rows`, `image->page.width`, `image->page.heig
+  [HIGH] Out-of-bounds Read @ coders_png_Q.c (conf=85)
+    The loop `while (GetNextImageInList(image) != (Image *) NULL)` does not check the size of the image 
+  [HIGH] Heap Buffer Overflow @ coders_png_R.c (conf=90)
+    The code does not check the bounds of the `version` string before assigning it to `entry->version`. 
+  [HIGH] Out-of-bounds Read @ coders_png_S.c (conf=85)
+    The function UnregisterPNGImage() calls UnregisterMagickInfo() multiple times without checking the r
+  [HIGH] Buffer Overflow @ coders_png_T.c (conf=85)
+    The function `png_set_text` may be called with an `allocated_length` that is not properly validated 
+  [HIGH] Integer Overflow @ coders_png_U.c (conf=90)
+    The code does not properly check for integer overflow when incrementing `year`, `month`, `day`, `hou
+  [HIGH] Out-of-bounds Read @ coders_png_V.c (conf=85)
+    The variable `ping_pixels` is used without checking if it is within the bounds of the allocated memo
+  [HIGH] Buffer Overflow @ coders_png_W.c (conf=90)
+    The code snippet provided does not show the full context, but based on the snippet, there is a poten
+  [HIGH] Out-of-bounds Read @ coders_png_X.c (conf=95)
+    The loop that processes pixels does not check if the index `x` is within the bounds of `image->colum
+  [HIGH] Out-of-bounds Read @ coders_png_Y.c (conf=90)
+    The loop that prints the colormap entries does not check if the index `i` is within the bounds of th
+  [HIGH] Out-of-bounds Read/Write @ coders_png_Z.c (conf=90)
+    The code attempts to read pixel information using an index that is incremented without bounds checki
+  [HIGH] Heap Buffer Overflow @ coders_png_[.c (conf=90)
+    The code reads a chunk of data into a buffer without checking if the length of the chunk is within t
+  [HIGH] Integer Overflow @ coders_png_\.c (conf=95)
+    The line `if ((jng_width > 65535) || (jng_height > 65535) || (MagickSizeType) jng_width > GetMagickR
+  [HIGH] Heap Buffer Overflow @ coders_png_].c (conf=90)
+    The `WriteBlob` function is used to write data to `alpha_image->blob` without checking if the data s
+  [HIGH] Out-of-bounds Read @ coders_png_^.c (conf=90)
+    The code reads data from the 'p' pointer without checking if it is within the bounds of the allocate
+  [HIGH] Out-of-bounds Read @ coders_png__.c (conf=90)
+    The loop `for (x=(ssize_t) image->columns; x != 0; x--)` may read beyond the bounds of the buffer po
+  [HIGH] Out-of-bounds Read @ coders_png_`.c (conf=95)
+    The code reads 8 bytes from the blob into the 'magic_number' array without checking if the read oper
+  [HIGH] Out-of-bounds Read @ coders_png_{.c (conf=85)
+    The loop that initializes the colormap does not check if the index `n` exceeds the size of the `colo
+  [HIGH] Out-of-bounds Read @ coders_png_|.c (conf=95)
+    The loop that logs the colormap entries does not check if `i` is within the bounds of the colormap a
+  [HIGH] Out-of-bounds Read @ coders_png_}.c (conf=90)
+    The loop that processes pixel colors does not check if the index `x` is within the bounds of `image-
+  [HIGH] Out-of-bounds Read @ coders_png_~.c (conf=90)
+    The loop that iterates over the pixels (`for (x=0; x < (ssize_t) image->columns; x++)`) does not che
+  [HIGH] Buffer Overflow @ coders_png_.c (conf=90)
+    The `png_create_write_struct_2` function may allocate memory based on the size of `PNG_LIBPNG_VER_ST
+  [HIGH] Integer Overflow @ coders_png_.c (conf=95)
+    The expression (100.0 * image->resolution.x) and (100.0 * image->resolution.y) may cause integer ove
+  [HIGH] Out-of-bounds Read @ coders_png_.c (conf=90)
+    The loop that sets `ping_background.index` does not check if `i` is within the bounds of `image->col
+  [HIGH] Integer Overflow @ coders_png_.c (conf=95)
+    The variable `image_depth` is assigned a value based on `ping_bit_depth`, which is potentially unbou
+  [HIGH] Integer Overflow @ coders_png_.c (conf=90)
+    The loop that calculates `ping_bit_depth` can cause an integer overflow if `image_colors` is large e
+  [HIGH] Integer Overflow @ coders_png_.c (conf=90)
+    The expression `(one << ping_bit_depth)-1` may cause an integer overflow if `ping_bit_depth` is larg
+  [HIGH] Integer Overflow @ coders_png_.c (conf=95)
+    The line `level=(int) MagickMin((ssize_t) quality/10,9);` may cause an integer overflow if `quality`
+  [HIGH] Out-of-bounds Read @ coders_png_.c (conf=90)
+    The code snippet does not check the bounds of the `palette` array when logging the PLTE and tRNS chu
+  [HIGH] Heap Buffer Overflow @ coders_png_.c (conf=90)
+    The variable `name` is used to write raw profile data to the PNG file. If `name` is not properly val
+  [HIGH] Out-of-bounds Read @ coders_png_.c (conf=85)
+    The code attempts to read a property value using `GetImageProperty` without checking if the property
+  [HIGH] Heap Buffer Overflow @ coders_png_.c (conf=90)
+    The code writes 'length' bytes to 'image' without checking if 'length' is within the bounds of the a
+  [HIGH] Out-of-bounds Read/Write @ coders_png_.c (conf=95)
+    The code writes to `ping_pixels` without checking if the index `i` is within the bounds of the array
+  [HIGH] Out-of-bounds Read @ coders_png_.c (conf=90)
+    The code reads `ping_pixels` without checking if it is within the bounds of the allocated buffer. Th
+  [HIGH] Buffer Overflow @ coders_png_.c (conf=90)
+    The code writes a fixed-size chunk of 32 bytes into the `chunk` buffer without validating the size o
+  [HIGH] Heap Buffer Overflow @ coders_png_.c (conf=90)
+    The code does not properly check the bounds of the buffer when writing to the PNG file. If an image 
+  [HIGH] Out-of-bounds Read/Write @ coders_png_.c (conf=95)
+    The code does not check the bounds of the image data when writing to the PNG file. If the image data
+  [HIGH] Integer Overflow @ coders_png_.c (conf=90)
+    The code does not properly validate the input for `png:IHDR.bit-depth-orig` and `png:IHDR.color-type
+  [HIGH] Integer Overflow @ coders_png_.c (conf=95)
+    The `LocaleCompare` function is used to compare the string `value` with predefined strings. If an at
+  [HIGH] Integer Overflow @ coders_png_.c (conf=95)
+    The `StringToUnsignedLong` function is used to convert the string value to an unsigned long. If the 
+  [HIGH] Out-of-bounds Read/Write @ coders_png_.c (conf=90)
+    The code does not check the bounds of the `excluding` variable before writing to `mng_info->exclude_
+  [HIGH] Buffer Overflow @ coders_png_.c (conf=85)
+    The code does not check the size of the `chunk` buffer before writing to it, which could lead to a b
+  [HIGH] Heap Buffer Overflow @ coders_png_.c (conf=90)
+    The `ImageToBlob` function may write past the end of the buffer if the `length` variable is not corr
+  [HIGH] Buffer Overflow @ coders_png_.c (conf=85)
+    The code writes a fixed-size chunk of data to the image stream without validating the size of the ch
+  [HIGH] Heap Buffer Overflow @ coders_png_.c (conf=90)
+    The code writes data to the `chunk` buffer without checking if the buffer is large enough to hold th
+  [HIGH] Heap Buffer Overflow @ coders_png_.c (conf=85)
+    The `ImageToBlob` function may not properly check the size of the buffer being written to, potential
+  [HIGH] Heap Buffer Overflow @ coders_png_.c (conf=85)
+    The code writes a fixed 8 bytes to the blob without checking the size of the blob. If the blob is sm
+  [HIGH] Out-of-bounds Read @ coders_png_.c (conf=90)
+    The code reads the `image->columns` and `image->rows` without checking if they are within the bounds
+  [HIGH] Integer Overflow @ coders_png_.c (conf=90)
+    The calculation of `mng_info->ticks_per_second` may cause an integer overflow if `image->ticks_per_s
+  [HIGH] Out-of-bounds Read/Write @ coders_png_.c (conf=90)
+    The code writes to `chunk` at offset 28 without checking if the `chunk` buffer is large enough to ac
+  [HIGH] Integer Overflow @ coders_png_.c (conf=95)
+    The calculation of `image->resolution.x*100.0/2.54+0.5` and `image->resolution.y*100.0/2.54+0.5` may
+  [HIGH] Heap Buffer Overflow @ coders_png_.c (conf=85)
+    The code writes data_length+4 bytes to the chunk buffer without checking if it exceeds the buffer si
+  [HIGH] Out-of-bounds Read/Write @ coders_png_.c (conf=90)
+    The code does not check the bounds of the `mng_info->image` buffer before writing to it, which could
+  [HIGH] Buffer Overflow @ coders_svg_A.c (conf=95)
+    The code snippet does not properly check the length of the `token` before using it in `FormatLocaleS
+  [HIGH] Heap Buffer Overflow @ coders_svg_B.c (conf=90)
+    The function `StringToDouble` is used to convert a string to a double, but it is called with a NULL 
+  [HIGH] Buffer Overflow @ coders_svg_C.c (conf=90)
+    The `CopyMagickString` function may copy more characters than the buffer can hold if the input strin
+  [HIGH] Out-of-bounds Read/Write @ coders_svg_D.c (conf=95)
+    The code snippet does not properly check the bounds of the `token` string before using it in `Format
+  [HIGH] Heap Buffer Overflow @ coders_svg_E.c (conf=90)
+    The `ResizeQuantumMemory` function may return a pointer to a buffer that is not properly allocated, 
+  [HIGH] Buffer Overflow @ coders_svg_F.c (conf=90)
+    The `length` variable is incremented by the length of `message` after each `FormatLocaleString` call
+  [HIGH] Integer Overflow @ coders_svg_G.c (conf=90)
+    The expression `(6*BezierQuantum) >= (MAGICK_SSIZE_MAX/number_attributes)` may cause an integer over
+  [HIGH] Out-of-bounds Read @ coders_svg_H.c (conf=90)
+    The variable `value` is used to format a string with `FormatLocaleFile`, but there is no check to en
+  [HIGH] Buffer Overflow @ coders_svg_I.c (conf=90)
+    The `FormatLocaleFile` function may write beyond the bounds of the buffer if the `value` string is t
+  [HIGH] Buffer Overflow @ coders_svg_J.c (conf=90)
+    The `FormatLocaleFile` function may write beyond the bounds of the buffer if the `value` string is t
+  [HIGH] Out-of-bounds Read/Write @ coders_svg_K.c (conf=90)
+    The code does not check the bounds of the `value` string before using it to set the `svg_info->eleme
+  [HIGH] Out-of-bounds Read/Write @ coders_svg_L.c (conf=90)
+    The `LocaleCompare` function is used to compare the `name` string with predefined strings. If an att
+  [HIGH] Out-of-bounds Read/Write @ coders_svg_M.c (conf=85)
+    The code does not perform bounds checking on the `value` string when using `FormatLocaleFile`. If `v
+  [HIGH] Out-of-bounds Read/Write @ coders_svg_N.c (conf=90)
+    The code does not check the bounds of the `svg_info->file` buffer before writing to it using `Format
+  [HIGH] Heap Buffer Overflow @ coders_svg_O.c (conf=90)
+    The code does not properly check the bounds of the `token` pointer when calling `StringToDouble`. If
+  [HIGH] Out-of-bounds Read/Write @ coders_svg_P.c (conf=90)
+    The code snippet reads user space coordinates without bounds checking, which could lead to out-of-bo
+  [HIGH] Out-of-bounds Read/Write @ coders_svg_Q.c (conf=85)
+    The `CloneString` function is used to clone a string into `svg_info->offset`, `svg_info->url`, and `
+  [HIGH] Out-of-bounds Read/Write @ coders_svg_R.c (conf=85)
+    The `GetUserSpaceCoordinateValue` function is used to read values from SVG input, but there is no ch
+  [HIGH] Integer Overflow @ coders_svg_S.c (conf=90)
+    The `StringToDouble` function is used to convert string tokens to double values. If the string token
+  [HIGH] Integer Overflow @ coders_svg_T.c (conf=95)
+    The `DegreesToRadians` function is used with `fmod` which can cause an integer overflow if the input
+  [HIGH] Heap Buffer Overflow @ coders_svg_U.c (conf=90)
+    The function `StringToDouble` is used to convert a string to a double, but it is called with a NULL 
+  [HIGH] Integer Overflow @ coders_svg_V.c (conf=90)
+    The `CastDoubleToSizeT` function may cause an integer overflow when converting `svg_info->bounds.wid
+  [HIGH] Out-of-bounds Read @ coders_svg_W.c (conf=90)
+    The code reads the `svg_info->url` and uses it in `GetMagickThreadFilename` without bounds checking.
+  [HIGH] Out-of-bounds Read @ coders_svg_X.c (conf=90)
+    The code does not properly check the bounds of the `tokens` array when accessing `tokens[j]`. If `j`
+  [HIGH] Buffer Overflow @ coders_svg_Y.c (conf=90)
+    The ConcatenateString function is used to append strings to svg_info->comment without checking the l
+  [HIGH] Heap Buffer Overflow @ coders_svg_Z.c (conf=90)
+    The variable 'n' is used to read data into the 'message' buffer without bounds checking. If 'n' exce
+  [HIGH] Out-of-bounds Read @ coders_svg_[.c (conf=95)
+    The code attempts to read from `image_info->filename` using `FormatLocaleString` without checking if
+  [HIGH] Out-of-bounds Read/Write @ coders_svg_\.c (conf=85)
+    The function `ReadSVGImage` is assigned to `entry->decoder` without proper bounds checking on the in
+  [HIGH] Out-of-bounds Read @ coders_svg_].c (conf=90)
+    The `GetVirtualPixels` function may read beyond the allocated memory if the image's pixel data is no
+  [HIGH] Out-of-bounds Read @ coders_svg_^.c (conf=90)
+    The `FormatLocaleString` function may write past the end of the `message` buffer if the format strin
+  [HIGH] Out-of-bounds Read @ coders_svg__.c (conf=90)
+    The code snippet does not check the bounds of the `value` string when writing to the blob. If `value
+  [HIGH] Out-of-bounds Read/Write @ coders_svg_`.c (conf=90)
+    The code snippet does not show bounds checking for the `token` variable when it is used in `FormatLo
+  [HIGH] Out-of-bounds Read/Write @ coders_tiff_A.c (conf=90)
+    The code snippet does not show bounds checking for the `sample` variable when calling `WriteTIFFChan
+  [HIGH] Out-of-bounds Read @ coders_tiff_B.c (conf=90)
+    The code is initializing a colormap with a fixed size of 65536 for red, green, and blue. If `image->
+  [HIGH] Out-of-bounds Read @ coders_tiff_C.c (conf=85)
+    The `IsTIFF` function performs a fixed-size comparison of the first four bytes of the image data to 
+  [HIGH] Out-of-bounds Read/Write @ coders_tiff_D.c (conf=85)
+    The code writes a single byte at a time to the TIFF file using `TIFFWriteRawStrip`. If the buffer si
+  [HIGH] Out-of-bounds Read/Write @ coders_tiff_E.c (conf=85)
+    The loop iterates over `image->columns` without checking if `x` is within the bounds of the image da
+  [HIGH] Heap Buffer Overflow @ coders_tiff_F.c (conf=85)
+    The `CopyMagickString` function may not properly check the length of the source string, potentially 
+  [HIGH] Out-of-bounds Read @ coders_tiff_G.c (conf=85)
+    The function TIFFReadEXIFDirectory may read past the end of the EXIF directory if the directory size
+  [HIGH] Out-of-bounds Read @ coders_tiff_H.c (conf=85)
+    The loop that processes the JPEG marker APP0+14 does not check if the `length` is within the bounds 
+  [HIGH] Out-of-bounds Read @ coders_tiff_I.c (conf=85)
+    The loop condition `i < (ssize_t) profile->length-8` may be incorrect if `profile->length` is not pr
+  [HIGH] Out-of-bounds Read @ coders_tiff_J.c (conf=85)
+    The loop `for (i=0; i < (ssize_t) image_info->scene; i++)` does not check if `image_info->scene` is 
+  [HIGH] Integer Overflow @ coders_tiff_K.c (conf=90)
+    The code snippet does not show any direct integer overflow in the provided code, but the TIFFGetFiel
+  [HIGH] Out-of-bounds Read @ coders_tiff_L.c (conf=85)
+    The code snippet does not check the bounds of the `sampling_factor` buffer before using it with `For
+  [HIGH] Out-of-bounds Read @ coders_tiff_M.c (conf=90)
+    The loop that assigns values to `image->colormap[i].red`, `image->colormap[i].green`, and `image->co
+  [HIGH] Out-of-bounds Read/Write @ coders_tiff_N.c (conf=85)
+    The `buffer` array is used to store the formatted string of `rows_per_strip`, but it is not checked 
+  [HIGH] Heap Buffer Overflow @ coders_tiff_O.c (conf=85)
+    The `strip_pixels` buffer is allocated with a size based on `strip_size` and `count`, but the loop t
+  [HIGH] Out-of-bounds Read @ coders_tiff_P.c (conf=90)
+    The loop that reads pixels from the image (`for (y=0; y < (ssize_t) image->rows; y++)`) does not che
+  [HIGH] Out-of-bounds Read @ coders_tiff_Q.c (conf=90)
+    The loop `for (y=0; y < (ssize_t) image->rows; y+=rows)` may read beyond the bounds of the image if 
+  [HIGH] Out-of-bounds Read @ coders_tiff_R.c (conf=95)
+    The loop `for (x=0; x < (ssize_t) image->columns; x++)` reads pixel values from `*p` without checkin
+  [HIGH] Out-of-bounds Read @ coders_tiff_S.c (conf=90)
+    The code does not properly check the bounds of the `ignore` array when populating it with `strtol` r
+  [HIGH] Out-of-bounds Read/Write @ coders_tiff_T.c (conf=90)
+    The code does not perform any bounds checking on the input data when setting the decoder and encoder
+  [HIGH] Out-of-bounds Read @ coders_tiff_U.c (conf=85)
+    The variable `strip_size` is assigned the value of `byte_count[i]` without checking if `i` is within
+  [HIGH] Out-of-bounds Read @ coders_tiff_V.c (conf=85)
+    The code reads the strip byte counts from the TIFF file and uses them to allocate a buffer. If the T
+  [HIGH] Integer Overflow @ coders_tiff_W.c (conf=85)
+    The variable `max_levels` is assigned the value of `~0UL`, which is the maximum unsigned long value.
+  [HIGH] Out-of-bounds Read/Write @ coders_tiff_X.c (conf=85)
+    The code reads pixel values and writes them back to the image without checking if the pixel index is
+  [HIGH] Buffer Overflow @ coders_tiff_Y.c (conf=85)
+    The code does not properly check the bounds of the `image->columns` when calculating `tile_width`. I
+  [HIGH] Out-of-bounds Read @ coders_tiff_Z.c (conf=95)
+    The code does not properly check the length of the `profile` string before using it in `GetStringInf
+  [HIGH] Out-of-bounds Read/Write @ coders_tiff_[.c (conf=85)
+    The code reads image artifacts and sets TIFF fields without bounds checking, which could lead to out
+  [HIGH] Out-of-bounds Read/Write @ coders_tiff_\.c (conf=90)
+    The code does not check the bounds of the `image->filename` before using it with `LocaleCompare`, wh
+  [HIGH] Integer Overflow @ coders_tiff_].c (conf=90)
+    The `depth` variable in the loop could potentially overflow if `image->colors` is very large. This i
+  [HIGH] Heap Buffer Overflow @ coders_tiff_^.c (conf=90)
+    The code snippet sets `extra_samples` without validating it against the maximum number of samples pe
+  [HIGH] Integer Overflow @ coders_tiff__.c (conf=90)
+    The line `jpeg_tables_mode=(int) StringToUnsignedLong(option);` may cause an integer overflow if the
+  [HIGH] Integer Overflow @ coders_tiff_`.c (conf=85)
+    The multiplication of `x_position` by `image->resolution.x` and `y_position` by `image->resolution.y
+  [HIGH] Heap Buffer Overflow @ coders_webp_A.c (conf=95)
+    The function WriteWEBPImage() may not properly check the size of the input buffer when writing a Web
+  [HIGH] Out-of-bounds Read @ coders_webp_B.c (conf=90)
+    The function `IsWEBPImageLossless` reads data from the stream up to `VP8_CHUNK_INDEX` without checki
+  [HIGH] Out-of-bounds Read @ coders_webp_C.c (conf=90)
+    The loop that sets pixel values does not check if the pixel coordinates are within the bounds of the
+  [HIGH] Heap Buffer Overflow @ coders_webp_D.c (conf=85)
+    The `stream` variable is allocated using `AcquireQuantumMemory` with a size of `length`, but the act
+  [HIGH] Out-of-bounds Read @ coders_webp_E.c (conf=85)
+    The code does not check the validity of the `webp_status` before using it in a switch statement. If 
+  [HIGH] Buffer Overflow @ coders_webp_F.c (conf=85)
+    The function `WriteWEBPImage` may write past the end of a buffer if the `image_info` or `image` poin
+  [HIGH] Out-of-bounds Read @ coders_webp_G.c (conf=85)
+    The loop that reads pixels from `image` does not check if `x` is less than `image->columns`, which c
+  [HIGH] Heap Buffer Overflow @ coders_webp_H.c (conf=85)
+    The variable `frame_timestamp` is incremented by `effective_delta`, which is calculated using `frame
+  [HIGH] Buffer Overflow @ coders_webp_I.c (conf=90)
+    The `memset(webp_data, 0, sizeof(*webp_data));` line may lead to a buffer overflow if `webp_data` is
+  [HIGH] Integer Overflow @ coders_webp_J.c (conf=85)
+    The line `configure.pass=6;` may cause an integer overflow if `configure.pass` is set to a large val
+  [HIGH] Heap Buffer Overflow @ coders_webp_K.c (conf=90)
+    The `writer.size` is directly used to write `writer.mem` to the blob without checking if `writer.siz

@@ -1,0 +1,623 @@
+/opt/homebrew/lib/python3.14/site-packages/zhipuai/core/_base_compat.py:48: UserWarning: Core Pydantic V1 functionality isn't compatible with Python 3.14 or greater.
+  from pydantic.v1.typing import (
+🔍 扫描目标: linux_kvm (205 个 extracts)
+📌 关注点: VM guest-to-host escape, KVM hypercall OOB, x86 instruction emulation bugs, memo...
+  [  1/205] arch_x86_kvm_emulate_A.c 🚨
+  [  2/205] arch_x86_kvm_emulate_B.c 🚨
+  [  3/205] arch_x86_kvm_emulate_C.c 🚨
+  [  4/205] arch_x86_kvm_emulate_D.c 🚨
+  [  5/205] arch_x86_kvm_emulate_E.c 🚨
+  [  6/205] arch_x86_kvm_emulate_F.c 🚨
+  [  7/205] arch_x86_kvm_emulate_G.c 🚨
+  [  8/205] arch_x86_kvm_emulate_H.c 🚨
+  [  9/205] arch_x86_kvm_emulate_I.c 🚨
+  [ 10/205] arch_x86_kvm_emulate_J.c 🚨
+  [ 11/205] arch_x86_kvm_emulate_K.c 🚨
+  [ 12/205] arch_x86_kvm_emulate_L.c 🚨
+  [ 13/205] arch_x86_kvm_emulate_M.c 🚨
+  [ 14/205] arch_x86_kvm_emulate_N.c 🚨
+  [ 15/205] arch_x86_kvm_emulate_O.c 🚨
+  [ 16/205] arch_x86_kvm_emulate_P.c 🚨
+  [ 17/205] arch_x86_kvm_emulate_Q.c 🚨
+  [ 18/205] arch_x86_kvm_emulate_R.c 🚨
+  [ 19/205] arch_x86_kvm_emulate_S.c 🚨
+  [ 20/205] arch_x86_kvm_emulate_T.c 🚨
+  [ 21/205] arch_x86_kvm_emulate_U.c 🚨
+  [ 22/205] arch_x86_kvm_emulate_V.c 🚨
+  [ 23/205] arch_x86_kvm_emulate_W.c 🚨
+  [ 24/205] arch_x86_kvm_emulate_X.c 🚨
+  [ 25/205] arch_x86_kvm_emulate_Y.c 🚨
+  [ 26/205] arch_x86_kvm_emulate_Z.c 🚨
+  [ 27/205] arch_x86_kvm_emulate_[.c 🚨
+  [ 28/205] arch_x86_kvm_emulate_\.c 🚨
+  [ 29/205] arch_x86_kvm_emulate_].c 🚨
+  [ 30/205] arch_x86_kvm_emulate_^.c 🚨
+  [ 31/205] arch_x86_kvm_emulate__.c 🚨
+  [ 32/205] arch_x86_kvm_emulate_`.c 🚨
+  [ 33/205] arch_x86_kvm_hyperv_A.c 🚨
+  [ 34/205] arch_x86_kvm_hyperv_B.c 🚨
+  [ 35/205] arch_x86_kvm_hyperv_C.c 🚨
+  [ 36/205] arch_x86_kvm_hyperv_D.c 🚨
+  [ 37/205] arch_x86_kvm_hyperv_E.c 🚨
+  [ 38/205] arch_x86_kvm_hyperv_F.c 🚨
+  [ 39/205] arch_x86_kvm_hyperv_G.c 🚨
+  [ 40/205] arch_x86_kvm_hyperv_H.c 🚨
+  [ 41/205] arch_x86_kvm_hyperv_I.c 🚨
+  [ 42/205] arch_x86_kvm_hyperv_J.c 🚨
+  [ 43/205] arch_x86_kvm_hyperv_K.c 🚨
+  [ 44/205] arch_x86_kvm_hyperv_L.c 🚨
+  [ 45/205] arch_x86_kvm_hyperv_M.c 🚨
+  [ 46/205] arch_x86_kvm_hyperv_N.c 🚨
+  [ 47/205] arch_x86_kvm_hyperv_O.c 🚨
+  [ 48/205] arch_x86_kvm_hyperv_P.c 🚨
+  [ 49/205] arch_x86_kvm_hyperv_Q.c 🚨
+  [ 50/205] arch_x86_kvm_svm_svm_A.c 🚨
+  [ 51/205] arch_x86_kvm_svm_svm_B.c 🚨
+  [ 52/205] arch_x86_kvm_svm_svm_C.c 🚨
+  [ 53/205] arch_x86_kvm_svm_svm_D.c 🚨
+  [ 54/205] arch_x86_kvm_svm_svm_E.c 🚨
+  [ 55/205] arch_x86_kvm_svm_svm_F.c 🚨
+  [ 56/205] arch_x86_kvm_svm_svm_G.c 🚨
+  [ 57/205] arch_x86_kvm_svm_svm_H.c 🚨
+  [ 58/205] arch_x86_kvm_svm_svm_I.c 🚨
+  [ 59/205] arch_x86_kvm_svm_svm_J.c 🚨
+  [ 60/205] arch_x86_kvm_svm_svm_K.c 🚨
+  [ 61/205] arch_x86_kvm_svm_svm_L.c 🚨
+  [ 62/205] arch_x86_kvm_svm_svm_M.c 🚨
+  [ 63/205] arch_x86_kvm_svm_svm_N.c 🚨
+  [ 64/205] arch_x86_kvm_svm_svm_O.c 🚨
+  [ 65/205] arch_x86_kvm_svm_svm_P.c 🚨
+  [ 66/205] arch_x86_kvm_svm_svm_Q.c 🚨
+  [ 67/205] arch_x86_kvm_svm_svm_R.c 🚨
+  [ 68/205] arch_x86_kvm_svm_svm_S.c 🚨
+  [ 69/205] arch_x86_kvm_svm_svm_T.c 🚨
+  [ 70/205] arch_x86_kvm_svm_svm_U.c 🚨
+  [ 71/205] arch_x86_kvm_svm_svm_V.c 🚨
+  [ 72/205] arch_x86_kvm_svm_svm_W.c 🚨
+  [ 73/205] arch_x86_kvm_svm_svm_X.c 🚨
+  [ 74/205] arch_x86_kvm_svm_svm_Y.c 🚨
+  [ 75/205] arch_x86_kvm_svm_svm_Z.c 🚨
+  [ 76/205] arch_x86_kvm_svm_svm_[.c 🚨
+  [ 77/205] arch_x86_kvm_svm_svm_\.c 🚨
+  [ 78/205] arch_x86_kvm_svm_svm_].c 🚨
+  [ 79/205] arch_x86_kvm_svm_svm_^.c 🚨
+  [ 80/205] arch_x86_kvm_svm_svm__.c 🚨
+  [ 81/205] arch_x86_kvm_svm_svm_`.c 🚨
+  [ 82/205] arch_x86_kvm_vmx_vmx_A.c 🚨
+  [ 83/205] arch_x86_kvm_vmx_vmx_B.c 🚨
+  [ 84/205] arch_x86_kvm_vmx_vmx_C.c 🚨
+  [ 85/205] arch_x86_kvm_vmx_vmx_D.c 🚨
+  [ 86/205] arch_x86_kvm_vmx_vmx_E.c 🚨
+  [ 87/205] arch_x86_kvm_vmx_vmx_F.c 🚨
+  [ 88/205] arch_x86_kvm_vmx_vmx_G.c 🚨
+  [ 89/205] arch_x86_kvm_vmx_vmx_H.c 🚨
+  [ 90/205] arch_x86_kvm_vmx_vmx_I.c 🚨
+  [ 91/205] arch_x86_kvm_vmx_vmx_J.c 🚨
+  [ 92/205] arch_x86_kvm_vmx_vmx_K.c 🚨
+  [ 93/205] arch_x86_kvm_vmx_vmx_L.c 🚨
+  [ 94/205] arch_x86_kvm_vmx_vmx_M.c 🚨
+  [ 95/205] arch_x86_kvm_vmx_vmx_N.c 🚨
+  [ 96/205] arch_x86_kvm_vmx_vmx_O.c 🚨
+  [ 97/205] arch_x86_kvm_vmx_vmx_P.c 🚨
+  [ 98/205] arch_x86_kvm_vmx_vmx_Q.c 🚨
+  [ 99/205] arch_x86_kvm_vmx_vmx_R.c 🚨
+  [100/205] arch_x86_kvm_vmx_vmx_S.c 🚨
+  [101/205] arch_x86_kvm_vmx_vmx_T.c 🚨
+  [102/205] arch_x86_kvm_vmx_vmx_U.c 🚨
+  [103/205] arch_x86_kvm_vmx_vmx_V.c 🚨
+  [104/205] arch_x86_kvm_vmx_vmx_W.c 🚨
+  [105/205] arch_x86_kvm_vmx_vmx_X.c 🚨
+  [106/205] arch_x86_kvm_vmx_vmx_Y.c 🚨
+  [107/205] arch_x86_kvm_vmx_vmx_Z.c 🚨
+  [108/205] arch_x86_kvm_vmx_vmx_[.c 🚨
+  [109/205] arch_x86_kvm_vmx_vmx_\.c 🚨
+  [110/205] arch_x86_kvm_vmx_vmx_].c 🚨
+  [111/205] arch_x86_kvm_vmx_vmx_^.c 🚨
+  [112/205] arch_x86_kvm_vmx_vmx__.c 🚨
+  [113/205] arch_x86_kvm_vmx_vmx_`.c 🚨
+  [114/205] arch_x86_kvm_x86_A.c 🚨
+  [115/205] arch_x86_kvm_x86_B.c 🚨
+  [116/205] arch_x86_kvm_x86_C.c 🚨
+  [117/205] arch_x86_kvm_x86_D.c 🚨
+  [118/205] arch_x86_kvm_x86_E.c 🚨
+  [119/205] arch_x86_kvm_x86_F.c 🚨
+  [120/205] arch_x86_kvm_x86_G.c 🚨
+  [121/205] arch_x86_kvm_x86_H.c 🚨
+  [122/205] arch_x86_kvm_x86_I.c 🚨
+  [123/205] arch_x86_kvm_x86_J.c 🚨
+  [124/205] arch_x86_kvm_x86_K.c 🚨
+  [125/205] arch_x86_kvm_x86_L.c 🚨
+  [126/205] arch_x86_kvm_x86_M.c 🚨
+  [127/205] arch_x86_kvm_x86_N.c 🚨
+  [128/205] arch_x86_kvm_x86_O.c 🚨
+  [129/205] arch_x86_kvm_x86_P.c 🚨
+  [130/205] arch_x86_kvm_x86_Q.c 🚨
+  [131/205] arch_x86_kvm_x86_R.c 🚨
+  [132/205] arch_x86_kvm_x86_S.c 🚨
+  [133/205] arch_x86_kvm_x86_T.c 🚨
+  [134/205] arch_x86_kvm_x86_U.c 🚨
+  [135/205] arch_x86_kvm_x86_V.c 🚨
+  [136/205] arch_x86_kvm_x86_W.c 🚨
+  [137/205] arch_x86_kvm_x86_X.c 🚨
+  [138/205] arch_x86_kvm_x86_Y.c 🚨
+  [139/205] arch_x86_kvm_x86_Z.c 🚨
+  [140/205] arch_x86_kvm_x86_[.c 🚨
+  [141/205] arch_x86_kvm_x86_\.c 🚨
+  [142/205] arch_x86_kvm_x86_].c 🚨
+  [143/205] arch_x86_kvm_x86_^.c 🚨
+  [144/205] arch_x86_kvm_x86__.c 🚨
+  [145/205] arch_x86_kvm_x86_`.c 🚨
+  [146/205] arch_x86_kvm_x86_{.c 🚨
+  [147/205] arch_x86_kvm_x86_|.c 🚨
+  [148/205] arch_x86_kvm_x86_}.c 🚨
+  [149/205] arch_x86_kvm_x86_~.c 🚨
+  [150/205] arch_x86_kvm_x86_.c 🚨
+  [151/205] arch_x86_kvm_x86_.c 🚨
+  [152/205] arch_x86_kvm_x86_.c 🚨
+  [153/205] arch_x86_kvm_x86_.c 🚨
+  [154/205] arch_x86_kvm_x86_.c 🚨
+  [155/205] arch_x86_kvm_x86_.c 🚨
+  [156/205] arch_x86_kvm_x86_.c 🚨
+  [157/205] arch_x86_kvm_x86_.c 🚨
+  [158/205] arch_x86_kvm_x86_.c 🚨
+  [159/205] arch_x86_kvm_x86_.c 🚨
+  [160/205] arch_x86_kvm_x86_.c 🚨
+  [161/205] arch_x86_kvm_x86_.c 🚨
+  [162/205] arch_x86_kvm_x86_.c 🚨
+  [163/205] arch_x86_kvm_x86_.c 🚨
+  [164/205] arch_x86_kvm_x86_.c 🚨
+  [165/205] arch_x86_kvm_x86_.c 🚨
+  [166/205] arch_x86_kvm_x86_.c 🚨
+  [167/205] arch_x86_kvm_x86_.c 🚨
+  [168/205] arch_x86_kvm_x86_.c 🚨
+  [169/205] arch_x86_kvm_x86_.c 🚨
+  [170/205] arch_x86_kvm_x86_.c 🚨
+  [171/205] arch_x86_kvm_x86_.c 🚨
+  [172/205] arch_x86_kvm_x86_.c 🚨
+  [173/205] arch_x86_kvm_x86_.c 🚨
+  [174/205] virt_kvm_kvm_main_A.c 🚨
+  [175/205] virt_kvm_kvm_main_B.c 🚨
+  [176/205] virt_kvm_kvm_main_C.c 🚨
+  [177/205] virt_kvm_kvm_main_D.c 🚨
+  [178/205] virt_kvm_kvm_main_E.c 🚨
+  [179/205] virt_kvm_kvm_main_F.c 🚨
+  [180/205] virt_kvm_kvm_main_G.c 🚨
+  [181/205] virt_kvm_kvm_main_H.c 🚨
+  [182/205] virt_kvm_kvm_main_I.c 🚨
+  [183/205] virt_kvm_kvm_main_J.c 🚨
+  [184/205] virt_kvm_kvm_main_K.c 🚨
+  [185/205] virt_kvm_kvm_main_L.c 🚨
+  [186/205] virt_kvm_kvm_main_M.c 🚨
+  [187/205] virt_kvm_kvm_main_N.c 🚨
+  [188/205] virt_kvm_kvm_main_O.c 🚨
+  [189/205] virt_kvm_kvm_main_P.c 🚨
+  [190/205] virt_kvm_kvm_main_Q.c 🚨
+  [191/205] virt_kvm_kvm_main_R.c 🚨
+  [192/205] virt_kvm_kvm_main_S.c 🚨
+  [193/205] virt_kvm_kvm_main_T.c 🚨
+  [194/205] virt_kvm_kvm_main_U.c 🚨
+  [195/205] virt_kvm_kvm_main_V.c 🚨
+  [196/205] virt_kvm_kvm_main_W.c 🚨
+  [197/205] virt_kvm_kvm_main_X.c 🚨
+  [198/205] virt_kvm_kvm_main_Y.c ✓
+  [199/205] virt_kvm_kvm_main_Z.c 🚨
+  [200/205] virt_kvm_kvm_main_[.c 🚨
+  [201/205] virt_kvm_kvm_main_\.c 🚨
+  [202/205] virt_kvm_kvm_main_].c 🚨
+  [203/205] virt_kvm_kvm_main_^.c 🚨
+  [204/205] virt_kvm_kvm_main__.c 🚨
+  [205/205] virt_kvm_kvm_main_`.c 🚨
+
+==================================================
+✅ 完成: 204 findings, 0 clean, 0 errors
+📄 结果: /Users/xiaopingfeng/Projects/cyberai/research/linux_kvm/t1_glm_phase2_2317.jsonl
+
+🔴 高置信度 findings (204):
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_emulate_A.c (conf=90)
+    The code does not properly check bounds for the KVM emulator's hypercall handling, which could lead 
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_emulate_B.c (conf=95)
+    The code snippet provided does not show any direct hypercall handling, but if the KVM hypercall inte
+  [HIGH] Memory Corruption @ arch_x86_kvm_emulate_C.c (conf=90)
+    The use of `for_each_set_bit` with `NR_EMULATOR_GPRS` may lead to out-of-bounds access if `regs_dirt
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_emulate_D.c (conf=95)
+    The EM_ASM_2CL macro uses a switch statement that does not handle all cases for the ON64 case, poten
+  [HIGH] Memory Corruption @ arch_x86_kvm_emulate_E.c (conf=85)
+    The function `emulate_de` calls `emulate_exception` with a hardcoded vector value of `DE_VECTOR`. If
+  [CRITICAL] Memory Corruption @ arch_x86_kvm_emulate_F.c (conf=95)
+    The function `segmented_write_std` does not perform any bounds checking on the size parameter before
+  [HIGH] Memory Corruption @ arch_x86_kvm_emulate_G.c (conf=85)
+    The function `read_descriptor` does not properly check the return value of `segmented_read_std` when
+  [HIGH] Memory Corruption @ arch_x86_kvm_emulate_H.c (conf=85)
+    The code does not properly check the bounds of the memory access when fetching data with `insn_fetch
+  [HIGH] Buffer Overflow @ arch_x86_kvm_emulate_I.c (conf=85)
+    The function `read_interrupt_descriptor` may read beyond the bounds of the interrupt descriptor tabl
+  [HIGH] Memory Corruption @ arch_x86_kvm_emulate_J.c (conf=90)
+    The code does not properly check the validity of the segment descriptor before using it, which could
+  [HIGH] Memory Corruption @ arch_x86_kvm_emulate_K.c (conf=85)
+    The cmpxchg_emulated function may lead to memory corruption if the size of seg_desc is not properly 
+  [HIGH] Buffer Overflow @ arch_x86_kvm_emulate_L.c (conf=95)
+    The function `emulate_push` may not properly check the return value of `stack_size(ctxt)` before usi
+  [HIGH] Memory Corruption @ arch_x86_kvm_emulate_M.c (conf=90)
+    The code does not properly handle the case when ctxt->op_bytes is not 4 or 2, which can lead to inco
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_emulate_N.c (conf=85)
+    The code does not properly check bounds when setting the segment selectors for CS and SS segments, w
+  [HIGH] Memory Corruption @ arch_x86_kvm_emulate_O.c (conf=85)
+    The `reg_write` function is used to write values to registers without bounds checking. If an attacke
+  [HIGH] Memory Corruption @ arch_x86_kvm_emulate_P.c (conf=90)
+    The function `__load_segment_descriptor` may return `X86EMUL_CONTINUE` without proper validation of 
+  [HIGH] Memory Corruption @ arch_x86_kvm_emulate_Q.c (conf=95)
+    The code performs multiple calls to `__load_segment_descriptor` without checking for potential buffe
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_emulate_R.c (conf=85)
+    The code snippet does not properly validate the bounds of the `next_tss_desc` when setting the segme
+  [HIGH] Memory Corruption @ arch_x86_kvm_emulate_S.c (conf=85)
+    The `em_mov` function performs a memory copy without checking for buffer overflows. If `ctxt->src.va
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_emulate_T.c (conf=85)
+    The `em_hypercall` function does not properly validate the hypercall parameters, potentially allowin
+  [HIGH] Memory Corruption @ arch_x86_kvm_emulate_U.c (conf=95)
+    The function `em_fxsave` writes the `fx_state` to memory without bounds checking, which could lead t
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_emulate_V.c (conf=90)
+    The code does not properly validate the CR4 register before performing operations that could potenti
+  [HIGH] VM Guest-to-Host Escape @ arch_x86_kvm_emulate_W.c (conf=95)
+    The use of `vmrun`, `vmload`, `vmsave`, `stgi`, `clgi`, `skinit`, and `invlpga` without proper check
+  [HIGH] Memory Corruption @ arch_x86_kvm_emulate_X.c (conf=95)
+    Potential memory corruption due to unhandled escape cases in the escape_db structure. The use of 'N'
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_emulate_Y.c (conf=90)
+    The code snippet does not explicitly show the handling of KVM hypercall out-of-bounds conditions, wh
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_emulate_Z.c (conf=90)
+    The code snippet shows a potential out-of-bounds read in the handling of KVM hypercalls due to the l
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_emulate_[.c (conf=85)
+    The `opcode_map_0f_38` array may contain out-of-bounds references due to the use of `X4(N)` and `X8(
+  [HIGH] Memory Corruption @ arch_x86_kvm_emulate_\.c (conf=95)
+    The code does not properly validate the memory operand size for certain operations, which could lead
+  [HIGH] Buffer Overflow @ arch_x86_kvm_emulate_].c (conf=90)
+    The `memcpy` function is used to copy `insn_len` bytes from `insn` to `ctxt->fetch.data`. If `insn_l
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_emulate_^.c (conf=90)
+    The code snippet contains a potential out-of-bounds read in the `done_modrm` function. The `array_in
+  [HIGH] Memory Corruption @ arch_x86_kvm_emulate__.c (conf=95)
+    Potential memory corruption due to unhandled exceptions when rc equals X86EMUL_PROPAGATE_FAULT. The 
+  [HIGH] Memory Corruption @ arch_x86_kvm_emulate_`.c (conf=90)
+    The code does not properly check the return value of `segmented_read` before using the read data, wh
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_hyperv_A.c (conf=95)
+    The code snippet shows the definition of `HV_EXT_CALL_MAX`, which is calculated as `HV_EXT_CALL_QUER
+  [HIGH] Buffer Overflow @ arch_x86_kvm_hyperv_B.c (conf=85)
+    The function `synic_set_msr` writes to `synic->evt_page` and `synic->msg_page` without bounds checki
+  [HIGH] Buffer Overflow @ arch_x86_kvm_hyperv_C.c (conf=95)
+    The `syndbg_exit` function is called without proper bounds checking on the `data` parameter when `ho
+  [CRITICAL] Memory Corruption @ arch_x86_kvm_hyperv_D.c (conf=95)
+    The function `stimer_start` may lead to a memory corruption issue if `stimer->count` is set to zero 
+  [CRITICAL] Memory Corruption @ arch_x86_kvm_hyperv_E.c (conf=95)
+    The function `kvm_vcpu_read_guest_page` and `kvm_vcpu_write_guest_page` may lead to memory corruptio
+  [CRITICAL] Use After Free @ arch_x86_kvm_hyperv_F.c (conf=95)
+    The kzalloc_obj function may return NULL, and hv_vcpu is assigned to vcpu->arch.hyperv without check
+  [HIGH] Memory Corruption @ arch_x86_kvm_hyperv_G.c (conf=85)
+    The function `kvm_read_guest` and `kvm_write_guest` are used to read and write guest memory. If the 
+  [HIGH] KVM Hypercall Out-of-Bounds Write @ arch_x86_kvm_hyperv_H.c (conf=85)
+    The code snippet allows for out-of-bounds writes to the hv_hypercall variable if the hv_guest_os_id 
+  [HIGH] KVM Hypercall Out-of-Bounds Write @ arch_x86_kvm_hyperv_I.c (conf=85)
+    The code writes to `hv->hv_hypercall` without bounds checking, which could lead to an out-of-bounds 
+  [HIGH] Memory Corruption @ arch_x86_kvm_hyperv_J.c (conf=90)
+    Potential memory corruption due to unhandled MSR values in the switch-case statement for kvm_hv_get_
+  [HIGH] Memory Corruption @ arch_x86_kvm_hyperv_K.c (conf=95)
+    The function `kvm_hv_set_msr_common` and `kvm_hv_get_msr_common` may lead to memory corruption due t
+  [HIGH] Buffer Overflow @ arch_x86_kvm_hyperv_L.c (conf=95)
+    The function `kfifo_in` may not handle the case where `count` is greater than `kfifo_avail(&tlb_flus
+  [HIGH] Memory Corruption @ arch_x86_kvm_hyperv_M.c (conf=85)
+    The code does not properly validate the 'var_cnt' against 'hweight64(valid_bank_mask)', which could 
+  [CRITICAL] Memory Corruption @ arch_x86_kvm_hyperv_N.c (conf=95)
+    The code does not properly validate the `hc->ingpa` pointer before dereferencing it, which could lea
+  [HIGH] Race Condition @ arch_x86_kvm_hyperv_O.c (conf=90)
+    The `eventfd` variable is accessed without proper synchronization, potentially leading to a race con
+  [CRITICAL] Buffer Overflow @ arch_x86_kvm_hyperv_P.c (conf=95)
+    The `kvm_hv_flush_tlb` function does not check the bounds of `hc.rep_idx` and `hc.rep_cnt`, which co
+  [HIGH] Buffer Overflow @ arch_x86_kvm_hyperv_Q.c (conf=95)
+    The function `kvm_get_hv_cpuid` does not properly check the size of the `entries` buffer before copy
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_svm_svm_A.c (conf=85)
+    The code snippet shows a workaround for AMD Erratum 1096, which can potentially lead to a VM guest-t
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_svm_svm_B.c (conf=85)
+    The function `svm_adjust_mmio_mask` may not properly handle the memory encryption bit, potentially l
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_svm_svm_C.c (conf=85)
+    The code snippet uses a conditional expression to set the `mask` variable, which is then used in `kv
+  [HIGH] Memory Corruption @ arch_x86_kvm_svm_svm_D.c (conf=90)
+    The code snippet does not show any explicit bounds checking on memory operations, which could lead t
+  [HIGH] Memory Corruption @ arch_x86_kvm_svm_svm_E.c (conf=85)
+    The svm_alloc_permissions_map function allocates memory and sets all bits in the permissions map to 
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_svm_svm_F.c (conf=90)
+    The repeated calls to svm_set_intercept_for_msr without proper validation of the guest state could p
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_svm_svm_G.c (conf=85)
+    The code does not properly check bounds when handling KVM hypercalls, which could lead to out-of-bou
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_svm_svm_H.c (conf=85)
+    The code sets multiple intercepts for various CPU instructions and features, which could potentially
+  [HIGH] Use After Free @ arch_x86_kvm_svm_svm_I.c (conf=95)
+    The function `svm_free_nested` may free the `svm` pointer, but the `sev_free_vcpu` function may stil
+  [HIGH] Memory Corruption @ arch_x86_kvm_svm_svm_J.c (conf=95)
+    The svm_set_vintr function sets the int_vector to 0x0 without any bounds checking, which could lead 
+  [HIGH] Memory Corruption @ arch_x86_kvm_svm_svm_K.c (conf=90)
+    The svm_set_cr0 function does not properly validate the cr0 value before writing it to the VMCB save
+  [HIGH] Memory Corruption @ arch_x86_kvm_svm_svm_L.c (conf=95)
+    The function `svm_set_dr6` does not properly check if the `value` being set for `vmcb->save.dr6` is 
+  [HIGH] Memory Corruption @ arch_x86_kvm_svm_svm_M.c (conf=90)
+    The function `native_write_msr_safe` may write to memory without proper bounds checking, potentially
+  [HIGH] Memory Corruption @ arch_x86_kvm_svm_svm_N.c (conf=85)
+    The function `svm_set_gif` does not properly handle the case when `vgif` is false and an interrupt s
+  [HIGH] Memory Corruption @ arch_x86_kvm_svm_svm_O.c (conf=85)
+    The function `kvm_clear_exception_queue` may lead to memory corruption if the `vcpu` pointer is inva
+  [HIGH] Memory Corruption @ arch_x86_kvm_svm_svm_P.c (conf=85)
+    The function `kvm_set_dr` may lead to memory corruption if the `dr` value is out of bounds, as it is
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_svm_svm_Q.c (conf=85)
+    The code does not properly handle MSR accesses, which could potentially lead to VM guest-to-host esc
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_svm_svm_R.c (conf=90)
+    The code does not properly validate the MSR values written by the guest, which could potentially lea
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_svm_svm_S.c (conf=90)
+    The `invpcid_interception` function does not perform segment checks for 32-bit mode, which could lea
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_svm_svm_T.c (conf=90)
+    The use of a fixed-size array `svm_exit_handlers` to map SVM exit reasons to handlers may lead to ou
+  [HIGH] Memory Corruption @ arch_x86_kvm_svm_svm_U.c (conf=90)
+    Potential memory corruption due to unhandled error in `sev_decrypt_vmsa` function. This could lead t
+  [HIGH] Memory Corruption @ arch_x86_kvm_svm_svm_V.c (conf=90)
+    Potential memory corruption due to incorrect handling of segment base addresses. The code prints seg
+  [HIGH] VM Guest-to-Host Escape @ arch_x86_kvm_svm_svm_W.c (conf=85)
+    Potential VM guest-to-host escape vulnerability due to improper handling of VM state during VM exits
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_svm_svm_X.c (conf=85)
+    The code does not properly handle nested VM exits, which could potentially lead to a VM guest-to-hos
+  [HIGH] Memory Corruption @ arch_x86_kvm_svm_svm_Y.c (conf=85)
+    The function svm_complete_interrupt_delivery() reads the value of vcpu->mode using smp_load_acquire(
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_svm_svm_Z.c (conf=85)
+    The code does not properly check bounds when handling KVM hypercalls, which could lead to out-of-bou
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_svm_svm_[.c (conf=85)
+    The code does not properly handle the case where a remote TLB flush is requested, which could potent
+  [HIGH] Memory Corruption @ arch_x86_kvm_svm_svm_\.c (conf=85)
+    The svm_vcpu_run function may lead to memory corruption if the pre_svm_run function fails and does n
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_svm_svm_].c (conf=85)
+    The code snippet does not explicitly check for VM exit conditions that could lead to guest-to-host e
+  [HIGH] VM Guest-to-Host Escape @ arch_x86_kvm_svm_svm_^.c (conf=85)
+    The code does not properly disable XSAVES in the guest, which can allow the guest to execute XSAVES 
+  [CRITICAL] Memory Corruption @ arch_x86_kvm_svm_svm__.c (conf=95)
+    The code snippet does not properly validate the length of the bytes being read or written during SVM
+  [HIGH] Memory Corruption @ arch_x86_kvm_svm_svm_`.c (conf=85)
+    The svm_copy_vmrun_state function may lead to memory corruption if the hva + 0x400 pointer is not pr
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_vmx_vmx_A.c (conf=90)
+    The code does not properly handle the injection of #AC into the guest, which could potentially lead 
+  [HIGH] VMX Hypercall Out-of-Bounds Write @ arch_x86_kvm_vmx_vmx_B.c (conf=85)
+    The `vmx_patch_hypercall` function writes a VMCALL instruction to a hypercall address without bounds
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_vmx_vmx_C.c (conf=90)
+    The code does not properly handle the case where the guest can own the CR4.UMIP bit, which could pot
+  [HIGH] Memory Corruption @ arch_x86_kvm_vmx_vmx_D.c (conf=90)
+    The function `handle_invlpg` does not check if the exit qualification is valid before calling `kvm_m
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_vmx_vmx_E.c (conf=85)
+    The code snippet does not properly handle MMIO vmexits, which could potentially allow a guest to esc
+  [HIGH] VMX Instruction Handling Bug @ arch_x86_kvm_vmx_vmx_F.c (conf=95)
+    The `handle_vmx_instruction` function queues a #UD (Undefined Instruction) exception for VMX instruc
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_vmx_vmx_G.c (conf=85)
+    The code snippet shows a list of exit handlers for KVM VM exits. If an exit handler does not properl
+  [HIGH] Memory Corruption @ arch_x86_kvm_vmx_vmx_H.c (conf=90)
+    The code reads the guest physical address (gpa) from the PML buffer without bounds checking. If the 
+  [HIGH] VMCS Information Disclosure @ arch_x86_kvm_vmx_vmx_I.c (conf=90)
+    The code is printing sensitive VMCS information, including guest state, selectors, and MSRs, which c
+  [HIGH] VMCS Information Disclosure @ arch_x86_kvm_vmx_vmx_J.c (conf=95)
+    The code is printing sensitive VMCS information, which could potentially be used by an attacker to u
+  [HIGH] Memory Corruption @ arch_x86_kvm_vmx_vmx_K.c (conf=85)
+    The code is dereferencing an address from the VMCS which could be corrupted. This could lead to a me
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_vmx_vmx_L.c (conf=85)
+    The code does not properly handle the `soft_vnmi_blocked` flag, which could potentially allow a gues
+  [HIGH] Memory Corruption @ arch_x86_kvm_vmx_vmx_M.c (conf=85)
+    The code does not properly handle the case where `slot` is NULL or has invalid flags. This could lea
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_vmx_vmx_N.c (conf=85)
+    The code snippet does not show proper bounds checking when handling VM exits. If the `intr_info` is 
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_vmx_vmx_O.c (conf=85)
+    The code snippet does not properly validate the bounds of the hypercall parameters, which could lead
+  [HIGH] KVM Hypercall Out-of-Bounds Write @ arch_x86_kvm_vmx_vmx_P.c (conf=95)
+    The code does not properly check bounds when writing to MSRs (Model-Specific Registers) using `vmx_g
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_vmx_vmx_Q.c (conf=85)
+    The code does not explicitly check for VM exit conditions that could lead to guest-to-host escape. T
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_vmx_vmx_R.c (conf=85)
+    The code does not explicitly handle the case where `boot_cpu_has(X86_BUG_L1TF)` is true and `enable_
+  [HIGH] KVM Hypercall Out-of-Bounds Write @ arch_x86_kvm_vmx_vmx_S.c (conf=95)
+    The code snippet does not properly validate the number of address ranges before writing to `vmx->pt_
+  [HIGH] VMX Escape @ arch_x86_kvm_vmx_vmx_T.c (conf=85)
+    The code does not properly handle adaptive PEBS (Programmable Event Based Sampling), which can be ex
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_vmx_vmx_U.c (conf=85)
+    The code does not properly handle nested CPU execution, which could potentially lead to a VM guest-t
+  [HIGH] VMX SMI/RSM State Corruption @ arch_x86_kvm_vmx_vmx_V.c (conf=85)
+    The code does not properly handle the state corruption that can occur during SMI and RSM transitions
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_vmx_vmx_W.c (conf=85)
+    The code does not properly handle the case where `boot_cpu_data.x86_phys_bits` does not match `kvm_h
+  [HIGH] VM Guest-to-Host Escape @ arch_x86_kvm_vmx_vmx_X.c (conf=85)
+    The code does not properly handle the `pt_mode` variable, which could potentially allow a guest to m
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_vmx_vmx_Y.c (conf=85)
+    The code does not properly handle the 'Enlightened MSR Bitmap' feature, which could potentially allo
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_vmx_vmx_Z.c (conf=85)
+    The loop that sets intercepts for MSRs may allow out-of-bounds access if `kvm_pmu_cap.num_counters_g
+  [HIGH] Memory Corruption @ arch_x86_kvm_vmx_vmx_[.c (conf=90)
+    The code does not properly synchronize access to the `vmcs12` structure, which is dynamically alloca
+  [HIGH] VMX Control Structure Misconfiguration @ arch_x86_kvm_vmx_vmx_\.c (conf=95)
+    The code snippet shows a configuration of VMX control structures that may lead to VM escape vulnerab
+  [HIGH] Memory Corruption @ arch_x86_kvm_vmx_vmx_].c (conf=85)
+    The function `vmx_adjust_secondary_exec_control` may lead to memory corruption if the `exec_control`
+  [HIGH] VMX Virtualization Hole @ arch_x86_kvm_vmx_vmx_^.c (conf=95)
+    The code allows the guest to execute RDTSCP or RDPID when either one is advertised, which can create
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_vmx_vmx__.c (conf=90)
+    The function `vmx_write_encls_bitmap` is called with a NULL pointer, which could lead to a guest-to-
+  [HIGH] VM Escape @ arch_x86_kvm_vmx_vmx_`.c (conf=90)
+    Incrementing `vcpu->stat.nmi_injections` without proper checks could potentially lead to a VM guest-
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_A.c (conf=95)
+    The function `kvm_vcpu_ioctl_x86_setup_mce` does not properly validate the `mcg_cap` input, which ca
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_B.c (conf=85)
+    The function `kvm_vcpu_ioctl_x86_set_mce` does not properly validate the `mce->bank` value before ac
+  [CRITICAL] Buffer Overflow @ arch_x86_kvm_x86_C.c (conf=95)
+    The function `kvm_vcpu_ioctl_x86_set_vcpu_events` does not properly validate the `events->exception.
+  [HIGH] Buffer Overflow @ arch_x86_kvm_x86_D.c (conf=95)
+    The function `kvm_vcpu_ioctl_x86_set_debugregs` does not properly validate the size of the `dbgregs`
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_E.c (conf=95)
+    Potential memory corruption due to unhandled MSR index in kvm_translate_kvm_reg function. This could
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_F.c (conf=90)
+    The function `kvm_arch_vcpu_ioctl` does not properly validate the size of the `kvm_xsave` structure 
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_G.c (conf=95)
+    The use of `copy_to_user` without checking for `EFAULT` after the copy operation can lead to a memor
+  [CRITICAL] Buffer Overflow @ arch_x86_kvm_x86_H.c (conf=95)
+    The use of `memdup_user` without proper bounds checking can lead to a buffer overflow if the user su
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_x86_I.c (conf=85)
+    The code does not properly validate the KVM hypercall exit capability bitmask, which may lead to an 
+  [HIGH] Buffer Overflow @ arch_x86_kvm_x86_J.c (conf=95)
+    The function `kvm_add_msr_filter` may overflow the `bitmap` buffer if `user_range->bitmap` is not pr
+  [CRITICAL] Memory Corruption @ arch_x86_kvm_x86_K.c (conf=95)
+    Potential memory corruption due to unvalidated copy_from_user() without proper error handling. This 
+  [CRITICAL] Buffer Overflow @ arch_x86_kvm_x86_L.c (conf=95)
+    The `copy_from_user` function is used without proper bounds checking, which can lead to buffer overf
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_x86_M.c (conf=85)
+    The code does not properly check for all possible MSRs that could be exposed to guests, which could 
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_N.c (conf=90)
+    The function `translate_nested_gpa` does not check if the `mmu->gva_to_gpa` function returns `INVALI
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_O.c (conf=85)
+    The function `emulator_write_std` writes guest memory without checking if the guest is in a valid st
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_P.c (conf=85)
+    The code does not properly handle the case where `bytes <= 8u` and `write` is true. It writes only u
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_Q.c (conf=85)
+    The `emulator_cmpxchg_emulated` function may lead to memory corruption due to improper handling of t
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_x86_R.c (conf=95)
+    The function `kvm_x86_call` may be used to invoke KVM hypercalls. If the hypercall index is not prop
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_x86_S.c (conf=85)
+    The `kvm_msr_user_space` function may allow for an out-of-bounds write if the `r` parameter is not p
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_x86_T.c (conf=90)
+    The `fix_hypercall` function may not properly validate the bounds of hypercall inputs, potentially a
+  [CRITICAL] Buffer Overflow @ arch_x86_kvm_x86_U.c (conf=95)
+    The function `prepare_emulation_failure_exit` writes `ndata` elements of size `sizeof(data[0])` to `
+  [HIGH] VM Guest-to-Host Escape @ arch_x86_kvm_x86_V.c (conf=85)
+    The code snippet shows a retry mechanism for handling emulation failures. If the CPU fails to emulat
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_x86_W.c (conf=85)
+    The function `is_vmware_backdoor_opcode` checks for VMware backdoor opcodes but does not properly ha
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_X.c (conf=85)
+    The code does not properly handle the case where `ctxt->have_exception` is true and `vcpu->mmio_need
+  [HIGH] KVM Hypercall Out-of-Bounds Write @ arch_x86_kvm_x86_Y.c (conf=95)
+    The code does not properly check the bounds of the 'port' variable when handling 'OUT 0x7e' requests
+  [HIGH] Race Condition @ arch_x86_kvm_x86_Z.c (conf=85)
+    The `mutex_lock(&kvm_lock)` and `mutex_unlock(&kvm_lock)` are used to protect access to `vm_list` an
+  [HIGH] KVM Hypercall Out-of-Bounds Read @ arch_x86_kvm_x86_[.c (conf=95)
+    The code does not properly check the bounds of the MSR index before reading from the MSR data struct
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_x86_\.c (conf=90)
+    The code does not properly check for the presence of certain features before accessing MSRs, which c
+  [CRITICAL] Memory Corruption @ arch_x86_kvm_x86_].c (conf=95)
+    The `memdup_user` function may fail and return an error pointer that is not checked before being der
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_x86_^.c (conf=95)
+    The presence of multiple KVM capabilities that are related to Hyper-V, such as KVM_CAP_HYPERV, KVM_C
+  [CRITICAL] Buffer Overflow @ arch_x86_kvm_x86__.c (conf=95)
+    The function `kvm_x86_call` may be vulnerable to buffer overflow if the `has_emulated_msr` callback 
+  [HIGH] Buffer Overflow @ arch_x86_kvm_x86_`.c (conf=85)
+    The function `copy_to_user` is used to copy data from user space to kernel space. If the buffer in u
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_{.c (conf=85)
+    Potential memory corruption due to the use of `rdmsrq_safe` without proper handling of the return va
+  [HIGH] Integer Overflow @ arch_x86_kvm_x86_|.c (conf=85)
+    The `min` function is used to ensure that `max` does not exceed `0x7fffffffULL`. However, if `kvm_ca
+  [HIGH] Hypercall Overflow @ arch_x86_kvm_x86_}.c (conf=90)
+    The code does not properly validate the number of arguments passed to hypercall handlers, which coul
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_x86_~.c (conf=85)
+    The code snippet does not show proper bounds checking when calling `kvm_x86_call(update_cr8_intercep
+  [HIGH] VM Guest-to-Host Escape @ arch_x86_kvm_x86_.c (conf=85)
+    The code does not properly handle the injection of exceptions and events, which could potentially le
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_x86_.c (conf=85)
+    The code allows for multiple NMIs to be pending, which could potentially be exploited to cause a VM 
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_.c (conf=95)
+    The function `kvm_zap_gfn_range` may lead to memory corruption if the `gfn` calculation is incorrect
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_x86_.c (conf=95)
+    The code snippet uses `kvm_x86_call` to invoke a hypercall, but it does not properly validate the si
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_.c (conf=85)
+    Potential memory corruption due to out-of-bounds access in `BUG_ON(vcpu->arch.pending_ioapic_eoi > 2
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_.c (conf=85)
+    The use of `WARN_ON_ONCE` with a condition that may not be true could lead to a potential memory cor
+  [HIGH] VM Guest-to-Host Escape @ arch_x86_kvm_x86_.c (conf=85)
+    The code does not properly handle VM exits, which could potentially lead to a guest-to-host escape i
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_.c (conf=85)
+    The function `complete_emulated_mmio` has a potential memory corruption vulnerability due to the use
+  [HIGH] VM Guest-to-Host Escape @ arch_x86_kvm_x86_.c (conf=85)
+    The code does not properly handle the case where a guest attempts to return into the emulator while 
+  [CRITICAL] Memory Corruption @ arch_x86_kvm_x86_.c (conf=95)
+    The function `__get_regs` reads register values from the guest's emulation context and writes them b
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_.c (conf=85)
+    The code does not properly validate the `mp_state` before setting it, which could lead to out-of-bou
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_x86_.c (conf=85)
+    The code does not properly validate the guest state before setting segments, which could potentially
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_.c (conf=85)
+    The function `kvm_arch_vcpu_ioctl_get_fpu` and `kvm_arch_vcpu_ioctl_set_fpu` are copying memory from
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_.c (conf=95)
+    The `kvm_x86_call(vcpu_create)(vcpu)` function call may lead to memory corruption if the `vcpu_creat
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_.c (conf=85)
+    The use of `memset` to zero out `vcpu->arch.db` may not be sufficient if `vcpu->arch.db` is a pointe
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_x86_.c (conf=85)
+    The code snippet does not properly handle the case where TSC offset matching is disabled during VM b
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_.c (conf=90)
+    The function `__x86_set_memory_region` uses `vm_mmap` to allocate memory for a KVM internal memory s
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_.c (conf=95)
+    The function `kvm_arch_free_memslot` calls `vfree` on `slot->arch.lpage_info[i - 1]` without checkin
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_.c (conf=90)
+    The function `kvm_mmu_slot_apply_flags` does not properly handle the case where `kvm_mmu_slot_leaf_c
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_.c (conf=95)
+    The code does not properly handle the case where `kvm->arch.n_requested_mmu_pages` is not set, which
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_x86_.c (conf=85)
+    The code does not properly handle the case where the guest temporarily disables paging, which could 
+  [HIGH] KVM Hypercall Out-of-Bounds @ arch_x86_kvm_x86_.c (conf=85)
+    The `wrmsrq_safe` function may write beyond the bounds of the MSR IA32_SPEC_CTRL register if the val
+  [HIGH] Memory Corruption @ arch_x86_kvm_x86_.c (conf=90)
+    The function `kvm_sev_es_mmio` does not handle the case where `data` is on the stack, which can lead
+  [HIGH] VM guest-to-host escape @ arch_x86_kvm_x86_.c (conf=95)
+    The presence of multiple exported symbols related to VM management (e.g., kvm_entry, kvm_exit, kvm_m
+  [HIGH] Memory Corruption @ virt_kvm_kvm_main_A.c (conf=90)
+    The function `kvm_io_bus_write` does not properly handle the case where `kvm_iodevice_write` fails. 
+  [HIGH] Use After Free @ virt_kvm_kvm_main_B.c (conf=90)
+    The `kvm_io_bus_destroy(bus)` function is called with `bus` potentially being NULL after the check. 
+  [HIGH] Race Condition @ virt_kvm_kvm_main_C.c (conf=85)
+    The `mutex_lock(&kvm_lock)` and `mutex_unlock(&kvm_lock)` are used to protect access to shared data,
+  [HIGH] Memory Corruption @ virt_kvm_kvm_main_D.c (conf=90)
+    The `kmem_cache_create_usercopy` function may lead to memory corruption if the `vcpu_size` or `vcpu_
+  [HIGH] Memory Corruption @ virt_kvm_kvm_main_E.c (conf=85)
+    The code does not properly handle the case where `kvm->mmu_invalidate_range_start` is already set. T
+  [HIGH] Memory Corruption @ virt_kvm_kvm_main_F.c (conf=85)
+    The function `kvm_age_hva_range_no_flush` may lead to memory corruption if the `address` parameter i
+  [CRITICAL] Buffer Overflow @ virt_kvm_kvm_main_G.c (conf=95)
+    The snprintf function is used to format a string into a buffer without specifying a maximum field wi
+  [HIGH] Use-After-Free @ virt_kvm_kvm_main_H.c (conf=95)
+    The code is using `list_del` on the `vm_node` of a `kvm_device` without holding the `kvm->lock`. If 
+  [HIGH] Race Condition @ virt_kvm_kvm_main_I.c (conf=85)
+    The function `kvm_lock_all_vcpus` and `kvm_unlock_all_vcpus` may experience a race condition if `kvm
+  [HIGH] Buffer Overflow @ virt_kvm_kvm_main_J.c (conf=90)
+    The use of bitwise AND with `KVM_MEM_GUEST_MEMFD` and `KVM_MEM_LOG_DIRTY_PAGES` could potentially le
+  [HIGH] Memory Corruption @ virt_kvm_kvm_main_K.c (conf=95)
+    The `kvm_free_memslot` function is called with the `old` memory slot, which may lead to memory corru
+  [HIGH] Memory Corruption @ virt_kvm_kvm_main_L.c (conf=85)
+    The function `kvm_set_memslot` does not properly handle the case where `kvm_invalidate_memslot` fail
+  [HIGH] Memory Corruption @ virt_kvm_kvm_main_M.c (conf=85)
+    The check for `mem->memory_size != (unsigned long)mem->memory_size` is not sufficient to prevent a m
+  [HIGH] Memory Corruption @ virt_kvm_kvm_main_N.c (conf=85)
+    The function `kvm_get_dirty_log_protect` uses `copy_to_user` to copy the dirty bitmap from kernel sp
+  [HIGH] Buffer Overflow @ virt_kvm_kvm_main_O.c (conf=85)
+    The `copy_from_user` function may cause a buffer overflow if `log->dirty_bitmap` is larger than `dir
+  [HIGH] Memory Corruption @ virt_kvm_kvm_main_P.c (conf=90)
+    The function `kvm_vm_set_mem_attributes` uses `xa_store` to store attributes into `kvm->mem_attr_arr
+  [HIGH] Memory Corruption @ virt_kvm_kvm_main_Q.c (conf=85)
+    The function `kvm_host_page_size` may lead to memory corruption if `kvm_vcpu_gfn_to_hva_prot` return
+  [HIGH] Memory Corruption @ virt_kvm_kvm_main_R.c (conf=90)
+    The function `hva_to_pfn_slow` may lead to memory corruption due to improper handling of `page` poin
+  [HIGH] Memory Corruption @ virt_kvm_kvm_main_S.c (conf=85)
+    The function `kvm_read_guest_page` performs a copy_from_user operation without checking if the user 
+  [HIGH] Buffer Overflow @ virt_kvm_kvm_main_T.c (conf=90)
+    The `offset + len > PAGE_SIZE` check in `__kvm_write_guest_page` may not be sufficient to prevent bu
+  [HIGH] Buffer Overflow @ virt_kvm_kvm_main_U.c (conf=95)
+    The function `kvm_read_guest_offset_cached` does not properly check the length of the data being cop
+  [HIGH] Race Condition @ virt_kvm_kvm_main_V.c (conf=85)
+    The `kvm_vcpu_check_block` function is called with a negative return value, which breaks the loop. H
+  [HIGH] Race Condition @ virt_kvm_kvm_main_W.c (conf=85)
+    The use of `READ_ONCE` on `vcpu->cpu` may not be sufficient to prevent race conditions if `kvm_arch_
+  [HIGH] Race Condition @ virt_kvm_kvm_main_X.c (conf=90)
+    The loop that yields to a vCPU may be racy due to lack of visibility into the guest. Multiple vCPUs 
+  [HIGH] Use After Free @ virt_kvm_kvm_main_Z.c (conf=90)
+    The code may be vulnerable to use-after-free if `kvm_regs` is freed but still accessed after the `go
+  [HIGH] Buffer Overflow @ virt_kvm_kvm_main_[.c (conf=90)
+    The use of `copy_from_user` without proper bounds checking can lead to buffer overflows. The `argp` 
+  [CRITICAL] Buffer Overflow @ virt_kvm_kvm_main_\.c (conf=95)
+    The function `kvm_ioctl_create_device` does not properly check the size of the `size` parameter when
+  [HIGH] Memory Corruption @ virt_kvm_kvm_main_].c (conf=85)
+    The function `kvm_flush_remote_tlbs` may lead to memory corruption if `cleared` is not properly vali
+  [HIGH] Buffer Overflow @ virt_kvm_kvm_main_^.c (conf=85)
+    The `copy_from_user` function is used to copy data from user space to kernel space. If the buffer in
+  [HIGH] Buffer Overflow @ virt_kvm_kvm_main__.c (conf=90)
+    The `copy_from_user` function may copy more data than intended if the user buffer is smaller than th
+  [HIGH] VM guest-to-host escape @ virt_kvm_kvm_main_`.c (conf=85)
+    The code does not explicitly disable interrupts before transferring control to firmware, which could

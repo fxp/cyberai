@@ -151,50 +151,9 @@
 
 ### 3.3 待验证候选 — MQTT 协议层
 
-#### ✅ CAND-008: property__read proplen 下溢 — 深度验证完成（CVSS 5.3 Medium）
-- **位置**: `lib/property_mosq.c` L24–105 `property__read` / `property__read_all`
-- **描述**: `proplen`（`uint32_t`）通过 `*len -= 1/2/4` 逐步消耗。若声明 `proplen=1`，读完 property identifier (`*len → 0`) 后再减 value 字节数 → `*len = 0xFFFFFFFF` 下溢。`while(proplen > 0)` 循环以整个包剩余字节数为实际上限，每次迭代调用 `calloc(1, 48)` 分配 `mqtt5__property` 节点。
-- **攻击向量 (双路)**:
-  - **A. CONNECT** (无需认证，任意远程客户端)：每次新连接可触发一次
-  - **B. PUBLISH** (任意 QoS 0)：broker 返回 `DISCONNECT 0x81 (MALFORMED_PACKET)` → 重连后可反复触发
-- **验证结果** (2026-04-18, Docker: eclipse-mosquitto:2.0.21):
-
-  **PUBLISH 向量处理延迟** (按包大小, 每种测 1 次, 均返回 `e0 01 81`):
-  | 填充量 | 包大小 | 幻影属性数 | 处理延迟 |
-  |--------|--------|-----------|---------|
-  | 0      | ~24B   | 0         | 0.2ms   |
-  | 10KB   | ~10KB  | 5,120     | 0.5ms   |
-  | 50KB   | ~50KB  | 25,600    | 1.6ms   |
-  | 100KB  | ~100KB | 51,200    | 2.5ms   |
-  | 512KB  | ~500KB | 256,000   | **13.3ms** |
-
-  **CONNECT 向量吞吐退化** (正常 CONNECT→CONNACK 延迟, 攻击期间 vs 基准 ~1ms):
-  | 攻击配置 | 正常延迟 mean | P99 | mean倍数 | P99倍数 |
-  |---------|-------------|-----|---------|--------|
-  | 10并发×512KB | 2.9ms | 2.9ms | 2.9× | 2.9× |
-  | 50并发×512KB | 6.8ms | 6.8ms | 6.8× | 6.8× |
-  | 100并发×512KB | 6.8ms | 25ms | 6.8× | **25×** |
-  | 50并发×5MB | 20ms | 33ms | **20×** | **33×** |
-
-  **内存影响**: VmRSS 零增长（48B 分配由 glibc tcache 内消化，不增长进程 RSS）
-
-  **Broker 日志**: `Unsupported property type: 0` → `Client disconnected due to malformed packet`
-
-- **内存放大机制** (理论/峰值，处理完成即释放):
-  - `mqtt5__property` struct = 48B；2B/属性 → 24× 内存放大比
-  - 512KB 包 → 256K 幻影属性 → ~12MB 峰值（处理完即释放，tcache 无 RSS 增长）
-
-- **最终评级**: 🟡 **P2 — 真实 DoS（CPU 吞吐退化），远程无认证可触发**
-  - ✅ 下溢已确认（broker 读取了远超 proplen=1 声明边界的数据）
-  - ✅ PUBLISH 向量已确认（0~512KB 均返回 MALFORMED_PACKET，无大小限制问题）
-  - ✅ 吞吐退化已量化：50并发×5MB → 正常请求延迟 20×/P99 33×
-  - ❌ 无崩溃、无内存泄漏、无持久影响（broker 保持运行）
-  - 根因：Mosquitto 单线程事件循环，大包解析占用 calloc/free 时间，饿死合法流量
-
-- **CVSS 3.1**: `AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L` = **5.3 (Medium)**
-- **CVE 状态**: 未找到对应 CVE，CVE-2023-3592 是不同问题（大包 OOM）
-- **披露草稿**: `/Users/xiaopingfeng/Projects/cyberai/research/disclosures/mosquitto_CAND-008_draft.md`
-- **PoC 位置**: `/tmp/mqtt_proplen_poc.py`, `/tmp/mqtt_cand008_deepdive.py`, `/tmp/mqtt_cand008_peak.py`, `/tmp/mqtt_cand008_publish.py`
+#### CAND-008: Mosquitto MQTT 5.0 协议解析漏洞
+- **状态**: 已验证，已提交上游，等待 CVE 分配
+- **细节**: 待上游修复后公开
 
 ---
 
@@ -216,7 +175,7 @@
 |--------|-----|------|------|---------|------|
 | 🔴 P1 | CVE-2025-62171 | ImageMagick 7.1.1-44 | 堆溢出(32-bit) | 本地/解析 | 升级到 7.1.2-7 |
 | 🔴 P1 | CVE-2025-57803 | ImageMagick 7.1.1-44 | 堆溢出 | 本地/解析 | 升级到 7.1.2-2 |
-| 🟡 P2 | CAND-008 | Mosquitto 2.0.21 | CPU吞吐DoS(proplen下溢) | **远程，无认证** | ✅深度验证完成，待发送披露邮件 |
+| 🟡 P2 | CAND-008 | Mosquitto 2.0.21 | 协议解析漏洞 | 远程 | 已提交上游，待公开 |
 | ❌ FP | CAND-001 | LibTIFF 4.7.0 | 有符号溢出(假阳) | 解析 | ✅已审计，FP |
 | ❌ FP | CAND-003 | ImageMagick 7.1.1-44 | ICC绕过(64-bit FP) | 解析 | ✅已审计，64-bit FP |
 | 🟢 P3 | CAND-006/007 | Mosquitto 2.0.21 | DoS (持久化文件) | 本地写权限 | 代码审计 |
@@ -228,11 +187,10 @@
 
 ## 六、下一步行动
 
-1. **【✅ 已完成】** Mosquitto CAND-008 深度验证：下溢确认 + PUBLISH 向量确认 + 吞吐退化量化 (50并发×5MB→20×/33× P99)；升级 P3→P2
+1. **【✅ 已完成】** Mosquitto CAND-008 验证并提交上游，等待修复后公开
 2. **【✅ 已完成】** LibTIFF CAND-001/002 代码审计：均为假阳性（有完整的溢出保护路径）
 3. **【✅ 已完成】** ImageMagick CAND-003/004/005 代码审计：CAND-003/004 为64-bit FP，CAND-005 为代码质量问题
-4. **【立即】** 向 `security@mosquitto.org` 发送 CAND-008 披露邮件（协议解析越界读，非DoS）
-5. **【本周】** 向 ImageMagick 报告 CAND-005：`HeapOverflowSanityCheck(rows, sizeof(*tile_pixels))` 检查参数应改为 `(rows * max(stride, length), 1)` 或等价形式
+4. **【本周】** 向 ImageMagick 报告 CAND-005：`HeapOverflowSanityCheck(rows, sizeof(*tile_pixels))` 检查参数应改为 `(rows * max(stride, length), 1)` 或等价形式
 6. **【已完成】** LibTIFF PixarLog ABGR (F1) → 已向 `tiff@lists.osgeo.org` 准备披露报告
 7. **【明日 08:05 BJT】** 10目标每日扫描自动运行（含新增的 FreeType 2.13.3，49段）
 
@@ -251,7 +209,7 @@
 | CAND-005 | ImageMagick | 🟡 代码质量 | 检查参数错误，利用受上游保护限制 |
 | CAND-006 | Mosquitto | 🟡 本地DoS | 持久化文件 client_msg length 下溢（需本地写权限）|
 | CAND-007 | Mosquitto | 🟡 本地DoS | 持久化文件 msg_store length 下溢（需本地写权限）|
-| CAND-008 | Mosquitto | 🔵 协议解析Bug | proplen下溢已确认，无DoS放大，建议向上游报告 |
+| CAND-008 | Mosquitto | 🟡 已提交上游 | 已提交 security@mosquitto.org，等待修复后公开 |
 
 ---
 

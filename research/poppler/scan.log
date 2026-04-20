@@ -1,0 +1,895 @@
+/opt/homebrew/lib/python3.14/site-packages/zhipuai/core/_base_compat.py:48: UserWarning: Core Pydantic V1 functionality isn't compatible with Python 3.14 or greater.
+  from pydantic.v1.typing import (
+🔍 扫描目标: poppler (297 个 extracts)
+📌 关注点: denial of service, infinite loop, integer overflow, heap OOB in PDF parsing (XRe...
+  [  1/297] Annotc_A.c 🚨
+  [  2/297] Annotc_B.c 🚨
+  [  3/297] Annotc_C.c 🚨
+  [  4/297] Annotc_D.c 🚨
+  [  5/297] Annotc_E.c 🚨
+  [  6/297] Annotc_F.c 🚨
+  [  7/297] Annotc_G.c 🚨
+  [  8/297] Annotc_H.c 🚨
+  [  9/297] Annotc_I.c 🚨
+  [ 10/297] Annotc_J.c 🚨
+  [ 11/297] Annotc_K.c 🚨
+  [ 12/297] Annotc_L.c 🚨
+  [ 13/297] Annotc_M.c 🚨
+  [ 14/297] Annotc_N.c 🚨
+  [ 15/297] Annotc_O.c 🚨
+  [ 16/297] Annotc_P.c 🚨
+  [ 17/297] Annotc_Q.c 🚨
+  [ 18/297] Annotc_R.c 🚨
+  [ 19/297] Annotc_S.c 🚨
+  [ 20/297] Annotc_T.c 🚨
+  [ 21/297] Annotc_U.c 🚨
+  [ 22/297] Annotc_V.c 🚨
+  [ 23/297] Annotc_W.c 🚨
+  [ 24/297] Annotc_X.c 🚨
+  [ 25/297] Annotc_Y.c 🚨
+  [ 26/297] Annotc_Z.c 🚨
+  [ 27/297] Annotc_[.c 🚨
+  [ 28/297] Annotc_\.c 🚨
+  [ 29/297] Annotc_].c 🚨
+  [ 30/297] Annotc_^.c 🚨
+  [ 31/297] Annotc__.c 🚨
+  [ 32/297] Annotc_`.c 🚨
+  [ 33/297] Annotc_{.c 🚨
+  [ 34/297] Annotc_|.c 🚨
+  [ 35/297] Annotc_}.c 🚨
+  [ 36/297] Annotc_~.c 🚨
+  [ 37/297] Annotc_.c 🚨
+  [ 38/297] Annotc_.c 🚨
+  [ 39/297] Annotc_.c 🚨
+  [ 40/297] Annotc_.c 🚨
+  [ 41/297] Annotc_.c 🚨
+  [ 42/297] Annotc_.c 🚨
+  [ 43/297] Annotc_.c 🚨
+  [ 44/297] Annotc_.c 🚨
+  [ 45/297] Annotc_.c 🚨
+  [ 46/297] Annotc_.c 🚨
+  [ 47/297] Annotc_.c 🚨
+  [ 48/297] Annotc_.c 🚨
+  [ 49/297] Annotc_.c 🚨
+  [ 50/297] Annotc_.c 🚨
+  [ 51/297] Annotc_.c 🚨
+  [ 52/297] Annotc_.c 🚨
+  [ 53/297] Annotc_.c 🚨
+  [ 54/297] DCTStreamc_A.c 🚨
+  [ 55/297] DCTStreamc_B.c 🚨
+  [ 56/297] FlateStreamc_A.c 🚨
+  [ 57/297] Formc_A.c 🚨
+  [ 58/297] Formc_B.c 🚨
+  [ 59/297] Formc_C.c 🚨
+  [ 60/297] Formc_D.c 🚨
+  [ 61/297] Formc_E.c 🚨
+  [ 62/297] Formc_F.c 🚨
+  [ 63/297] Formc_G.c 🚨
+  [ 64/297] Formc_H.c ERR
+  [ 65/297] Formc_I.c 🚨
+  [ 66/297] Formc_J.c 🚨
+  [ 67/297] Formc_K.c 🚨
+  [ 68/297] Formc_L.c 🚨
+  [ 69/297] Formc_M.c 🚨
+  [ 70/297] Formc_N.c 🚨
+  [ 71/297] Formc_O.c 🚨
+  [ 72/297] Formc_P.c 🚨
+  [ 73/297] Formc_Q.c 🚨
+  [ 74/297] Formc_R.c 🚨
+  [ 75/297] Formc_S.c 🚨
+  [ 76/297] Formc_T.c 🚨
+  [ 77/297] Formc_U.c 🚨
+  [ 78/297] Formc_V.c 🚨
+  [ 79/297] Formc_W.c 🚨
+  [ 80/297] Formc_X.c 🚨
+  [ 81/297] GfxFontc_A.c 🚨
+  [ 82/297] GfxFontc_B.c 🚨
+  [ 83/297] GfxFontc_C.c 🚨
+  [ 84/297] GfxFontc_D.c 🚨
+  [ 85/297] GfxFontc_E.c ✓
+  [ 86/297] GfxFontc_F.c 🚨
+  [ 87/297] GfxFontc_G.c 🚨
+  [ 88/297] GfxFontc_H.c 🚨
+  [ 89/297] GfxFontc_I.c 🚨
+  [ 90/297] GfxFontc_J.c 🚨
+  [ 91/297] GfxFontc_K.c 🚨
+  [ 92/297] GfxFontc_L.c 🚨
+  [ 93/297] GfxFontc_M.c 🚨
+  [ 94/297] GfxFontc_N.c 🚨
+  [ 95/297] GfxFontc_O.c 🚨
+  [ 96/297] GfxFontc_P.c 🚨
+  [ 97/297] GfxFontc_Q.c 🚨
+  [ 98/297] GfxFontc_R.c 🚨
+  [ 99/297] GfxFontc_S.c 🚨
+  [100/297] GfxFontc_T.c 🚨
+  [101/297] GfxStatec_A.c 🚨
+  [102/297] GfxStatec_B.c 🚨
+  [103/297] GfxStatec_C.c 🚨
+  [104/297] GfxStatec_D.c 🚨
+  [105/297] GfxStatec_E.c 🚨
+  [106/297] GfxStatec_F.c 🚨
+  [107/297] GfxStatec_G.c 🚨
+  [108/297] GfxStatec_H.c 🚨
+  [109/297] GfxStatec_I.c 🚨
+  [110/297] GfxStatec_J.c 🚨
+  [111/297] GfxStatec_K.c 🚨
+  [112/297] GfxStatec_L.c 🚨
+  [113/297] GfxStatec_M.c 🚨
+  [114/297] GfxStatec_N.c 🚨
+  [115/297] GfxStatec_O.c 🚨
+  [116/297] GfxStatec_P.c 🚨
+  [117/297] GfxStatec_Q.c 🚨
+  [118/297] GfxStatec_R.c 🚨
+  [119/297] GfxStatec_S.c 🚨
+  [120/297] GfxStatec_T.c 🚨
+  [121/297] GfxStatec_U.c 🚨
+  [122/297] GfxStatec_V.c 🚨
+  [123/297] GfxStatec_W.c 🚨
+  [124/297] GfxStatec_X.c 🚨
+  [125/297] GfxStatec_Y.c 🚨
+  [126/297] GfxStatec_Z.c 🚨
+  [127/297] GfxStatec_[.c 🚨
+  [128/297] GfxStatec_\.c 🚨
+  [129/297] GfxStatec_].c 🚨
+  [130/297] GfxStatec_^.c 🚨
+  [131/297] GfxStatec__.c 🚨
+  [132/297] GfxStatec_`.c 🚨
+  [133/297] Gfxc_A.c 🚨
+  [134/297] Gfxc_B.c 🚨
+  [135/297] Gfxc_C.c 🚨
+  [136/297] Gfxc_D.c 🚨
+  [137/297] Gfxc_E.c 🚨
+  [138/297] Gfxc_F.c 🚨
+  [139/297] Gfxc_G.c 🚨
+  [140/297] Gfxc_H.c ✓
+  [141/297] Gfxc_I.c 🚨
+  [142/297] Gfxc_J.c 🚨
+  [143/297] Gfxc_K.c 🚨
+  [144/297] Gfxc_L.c 🚨
+  [145/297] Gfxc_M.c 🚨
+  [146/297] Gfxc_N.c 🚨
+  [147/297] Gfxc_O.c 🚨
+  [148/297] Gfxc_P.c 🚨
+  [149/297] Gfxc_Q.c 🚨
+  [150/297] Gfxc_R.c 🚨
+  [151/297] Gfxc_S.c 🚨
+  [152/297] Gfxc_T.c 🚨
+  [153/297] Gfxc_U.c 🚨
+  [154/297] Gfxc_V.c 🚨
+  [155/297] Gfxc_W.c 🚨
+  [156/297] Gfxc_X.c 🚨
+  [157/297] Gfxc_Y.c 🚨
+  [158/297] Gfxc_Z.c 🚨
+  [159/297] Gfxc_[.c 🚨
+  [160/297] Gfxc_\.c 🚨
+  [161/297] Gfxc_].c 🚨
+  [162/297] Gfxc_^.c 🚨
+  [163/297] Gfxc__.c 🚨
+  [164/297] Gfxc_`.c 🚨
+  [165/297] JBIG2Streamc_A.c 🚨
+  [166/297] JBIG2Streamc_B.c 🚨
+  [167/297] JBIG2Streamc_C.c 🚨
+  [168/297] JBIG2Streamc_D.c 🚨
+  [169/297] JBIG2Streamc_E.c 🚨
+  [170/297] JBIG2Streamc_F.c 🚨
+  [171/297] JBIG2Streamc_G.c 🚨
+  [172/297] JBIG2Streamc_H.c 🚨
+  [173/297] JBIG2Streamc_I.c 🚨
+  [174/297] JBIG2Streamc_J.c 🚨
+  [175/297] JBIG2Streamc_K.c 🚨
+  [176/297] JBIG2Streamc_L.c 🚨
+  [177/297] JBIG2Streamc_M.c 🚨
+  [178/297] JBIG2Streamc_N.c 🚨
+  [179/297] JBIG2Streamc_O.c 🚨
+  [180/297] JBIG2Streamc_P.c 🚨
+  [181/297] JBIG2Streamc_Q.c 🚨
+  [182/297] JBIG2Streamc_R.c 🚨
+  [183/297] JBIG2Streamc_S.c 🚨
+  [184/297] JBIG2Streamc_T.c 🚨
+  [185/297] JBIG2Streamc_U.c 🚨
+  [186/297] JBIG2Streamc_V.c 🚨
+  [187/297] JBIG2Streamc_W.c 🚨
+  [188/297] JBIG2Streamc_X.c 🚨
+  [189/297] JBIG2Streamc_Y.c 🚨
+  [190/297] JBIG2Streamc_Z.c 🚨
+  [191/297] JBIG2Streamc_[.c 🚨
+  [192/297] JBIG2Streamc_\.c 🚨
+  [193/297] JBIG2Streamc_].c 🚨
+  [194/297] JBIG2Streamc_^.c 🚨
+  [195/297] JBIG2Streamc__.c 🚨
+  [196/297] JBIG2Streamc_`.c 🚨
+  [197/297] JPEG2000Streamc_A.c 🚨
+  [198/297] JPEG2000Streamc_B.c 🚨
+  [199/297] JPEG2000Streamc_C.c 🚨
+  [200/297] JPXStreamc_A.c 🚨
+  [201/297] JPXStreamc_B.c 🚨
+  [202/297] JPXStreamc_C.c 🚨
+  [203/297] JPXStreamc_D.c 🚨
+  [204/297] JPXStreamc_E.c 🚨
+  [205/297] JPXStreamc_F.c 🚨
+  [206/297] JPXStreamc_G.c 🚨
+  [207/297] JPXStreamc_H.c 🚨
+  [208/297] JPXStreamc_I.c 🚨
+  [209/297] JPXStreamc_J.c 🚨
+  [210/297] JPXStreamc_K.c 🚨
+  [211/297] JPXStreamc_L.c 🚨
+  [212/297] JPXStreamc_M.c 🚨
+  [213/297] JPXStreamc_N.c 🚨
+  [214/297] JPXStreamc_O.c 🚨
+  [215/297] JPXStreamc_P.c 🚨
+  [216/297] JPXStreamc_Q.c 🚨
+  [217/297] JPXStreamc_R.c 🚨
+  [218/297] JPXStreamc_S.c 🚨
+  [219/297] JPXStreamc_T.c 🚨
+  [220/297] JPXStreamc_U.c 🚨
+  [221/297] JPXStreamc_V.c 🚨
+  [222/297] JPXStreamc_W.c 🚨
+  [223/297] JPXStreamc_X.c 🚨
+  [224/297] JPXStreamc_Y.c 🚨
+  [225/297] JPXStreamc_Z.c 🚨
+  [226/297] JPXStreamc_[.c 🚨
+  [227/297] JPXStreamc_\.c 🚨
+  [228/297] JPXStreamc_].c 🚨
+  [229/297] JPXStreamc_^.c 🚨
+  [230/297] JPXStreamc__.c 🚨
+  [231/297] PDFDocc_A.c 🚨
+  [232/297] PDFDocc_B.c 🚨
+  [233/297] PDFDocc_C.c 🚨
+  [234/297] PDFDocc_D.c 🚨
+  [235/297] PDFDocc_E.c 🚨
+  [236/297] PDFDocc_F.c 🚨
+  [237/297] PDFDocc_G.c 🚨
+  [238/297] PDFDocc_H.c 🚨
+  [239/297] PDFDocc_I.c 🚨
+  [240/297] PDFDocc_J.c 🚨
+  [241/297] PDFDocc_K.c 🚨
+  [242/297] PDFDocc_L.c 🚨
+  [243/297] PDFDocc_M.c 🚨
+  [244/297] PDFDocc_N.c 🚨
+  [245/297] PDFDocc_O.c 🚨
+  [246/297] PDFDocc_P.c 🚨
+  [247/297] PDFDocc_Q.c 🚨
+  [248/297] PDFDocc_R.c 🚨
+  [249/297] PDFDocc_S.c 🚨
+  [250/297] Parserc_A.c 🚨
+  [251/297] Parserc_B.c 🚨
+  [252/297] Parserc_C.c 🚨
+  [253/297] Streamc_A.c 🚨
+  [254/297] Streamc_B.c 🚨
+  [255/297] Streamc_C.c 🚨
+  [256/297] Streamc_D.c 🚨
+  [257/297] Streamc_E.c 🚨
+  [258/297] Streamc_F.c 🚨
+  [259/297] Streamc_G.c 🚨
+  [260/297] Streamc_H.c 🚨
+  [261/297] Streamc_I.c 🚨
+  [262/297] Streamc_J.c 🚨
+  [263/297] Streamc_K.c 🚨
+  [264/297] Streamc_L.c 🚨
+  [265/297] Streamc_M.c 🚨
+  [266/297] Streamc_N.c 🚨
+  [267/297] Streamc_O.c 🚨
+  [268/297] Streamc_P.c 🚨
+  [269/297] Streamc_Q.c 🚨
+  [270/297] Streamc_R.c 🚨
+  [271/297] Streamc_S.c 🚨
+  [272/297] Streamc_T.c 🚨
+  [273/297] Streamc_U.c 🚨
+  [274/297] Streamc_V.c 🚨
+  [275/297] Streamc_W.c 🚨
+  [276/297] Streamc_X.c 🚨
+  [277/297] Streamc_Y.c 🚨
+  [278/297] Streamc_Z.c 🚨
+  [279/297] Streamc_[.c 🚨
+  [280/297] Streamc_\.c 🚨
+  [281/297] Streamc_].c 🚨
+  [282/297] Streamc_^.c 🚨
+  [283/297] Streamc__.c 🚨
+  [284/297] Streamc_`.c 🚨
+  [285/297] XRefc_A.c 🚨
+  [286/297] XRefc_B.c 🚨
+  [287/297] XRefc_C.c 🚨
+  [288/297] XRefc_D.c 🚨
+  [289/297] XRefc_E.c 🚨
+  [290/297] XRefc_F.c 🚨
+  [291/297] XRefc_G.c 🚨
+  [292/297] XRefc_H.c 🚨
+  [293/297] XRefc_I.c 🚨
+  [294/297] XRefc_J.c 🚨
+  [295/297] XRefc_K.c 🚨
+  [296/297] XRefc_L.c 🚨
+  [297/297] XRefc_M.c 🚨
+
+==================================================
+✅ 完成: 294 findings, 0 clean, 1 errors
+📄 结果: /Users/xiaopingfeng/Projects/cyberai/research/poppler/t1_glm_phase2_2317.jsonl
+
+🔴 高置信度 findings (294):
+  [HIGH] Integer Overflow @ Annotc_A.c (conf=85)
+    The `getNumWithDefaultValue` function may cause integer overflow when converting a number from an `O
+  [HIGH] Integer Overflow @ Annotc_B.c (conf=85)
+    The `obj1.arrayAdd(Object(x1))` and similar calls may cause integer overflow if `x1` is very large, 
+  [HIGH] Integer Overflow @ Annotc_C.c (conf=90)
+    The loop in `calculateFontSize` function decreases the `fontSize` until `y` is greater than or equal
+  [HIGH] Integer Overflow @ Annotc_D.c (conf=90)
+    The variable `availableTextWidthInFontPtSize` is calculated by dividing `availableWidth` by `fontSiz
+  [HIGH] Integer Overflow @ Annotc_E.c (conf=85)
+    The `getNumWithDefaultValue` method may cause integer overflow if the input number is too large, as 
+  [HIGH] Integer Overflow @ Annotc_F.c (conf=85)
+    The `getNumWithDefaultValue` function may cause integer overflow when parsing the `leaderLineExtensi
+  [HIGH] Integer Overflow @ Annotc_G.c (conf=90)
+    The calculation of `captionheight` may cause an integer overflow if `lines` is very large. The expre
+  [HIGH] Integer Overflow @ Annotc_H.c (conf=90)
+    The loop that appends text to `appearBuilder` does not check for buffer overflow conditions. The `ap
+  [HIGH] Integer Overflow @ Annotc_I.c (conf=85)
+    The loop in `setQuadrilaterals` function may cause an integer overflow if `quadPoints.getQuadrilater
+  [HIGH] Integer Overflow @ Annotc_J.c (conf=90)
+    The loop that iterates over `quadrilaterals->getQuadrilateralsLength()` may cause an integer overflo
+  [HIGH] Integer Overflow @ Annotc_K.c (conf=90)
+    The `lookupNF` function may return a reference to an object that is not properly validated for null 
+  [HIGH] Integer Overflow @ Annotc_L.c (conf=85)
+    The variable `uChar` is assigned the result of `(unsigned char)(text->getChar(*i)) << 8 + (unsigned 
+  [HIGH] Integer Overflow @ Annotc_M.c (conf=90)
+    The code snippet contains a potential integer overflow in the handling of the `c` variable when it i
+  [HIGH] Integer Overflow @ Annotc_N.c (conf=85)
+    The variable `len` is decremented by `n` in each iteration of the while loop. If `n` is equal to `le
+  [HIGH] Integer Overflow @ Annotc_O.c (conf=90)
+    The loop that appends '*' to `textToFree` does not check for overflow conditions. If `len` is large 
+  [HIGH] Integer Overflow @ Annotc_P.c (conf=85)
+    The variable `n` is used to store the number of characters returned by `getNextChar`, which is then 
+  [HIGH] Integer Overflow @ Annotc_Q.c (conf=90)
+    The `fontSize` calculation uses `rect->y2 - rect->y1 - 2 * borderWidth` and `rect->x2 - rect->x1 - 4
+  [HIGH] Integer Overflow @ Annotc_R.c (conf=90)
+    The calculation of `r` in the `drawFieldBorder` function may lead to integer overflow if `dx` or `dy
+  [HIGH] Integer Overflow @ Annotc_S.c (conf=90)
+    The `drawFormFieldText` function may cause an integer overflow when calculating `nCombs` from `field
+  [HIGH] Integer Overflow @ Annotc_T.c (conf=90)
+    The `setChildDictEntryValue` function may cause an integer overflow when creating a new `Dict` objec
+  [HIGH] Integer Overflow @ Annotc_U.c (conf=85)
+    The expression `textCommands.nLines * da.getFontPtSize()` could potentially cause an integer overflo
+  [HIGH] Denial of Service @ Annotc_V.c (conf=85)
+    The code may enter an infinite loop if `form->getDefaultResourcesObj()->isDict()` returns true and t
+  [HIGH] Integer Overflow @ Annotc_W.c (conf=85)
+    The `update` function may cause an integer overflow when updating the appearance dictionary if the `
+  [HIGH] Integer Overflow @ Annotc_X.c (conf=90)
+    The line `Object(int(appearBuf->size()))` may cause an integer overflow if `appearBuf->size()` excee
+  [HIGH] Integer Overflow @ Annotc_Y.c (conf=90)
+    The `imgRef.num` is directly used in the `std::to_string` constructor without bounds checking, which
+  [HIGH] Denial of Service @ Annotc_Z.c (conf=85)
+    The code does not handle unexpected or invalid `icon` values, which could lead to undefined behavior
+  [HIGH] Integer Overflow @ Annotc_[.c (conf=90)
+    The code snippet provided does not contain explicit integer operations that would lead to overflow. 
+  [HIGH] Integer Overflow @ Annotc_\.c (conf=90)
+    The code snippet provided does not contain any explicit integer operations that would lead to an int
+  [HIGH] Denial of Service @ Annotc_].c (conf=90)
+    The `ANNOT_TEXT_AP_CHECK` and `ANNOT_TEXT_AP_STAR` macros contain hardcoded strings that may be used
+  [HIGH] Integer Overflow @ Annotc_^.c (conf=90)
+    The code snippet provided does not contain explicit integer operations that would lead to an integer
+  [HIGH] Denial of Service @ Annotc__.c (conf=85)
+    The `isVisible` function may not be properly checking visibility conditions, potentially leading to 
+  [HIGH] Integer Overflow @ Annotc_`.c (conf=85)
+    The `rect->y2 - 24` operation could cause an integer overflow if `rect->y2` is large enough, potenti
+  [HIGH] Denial of Service @ Annotc_{.c (conf=85)
+    Potential for a denial of service due to the lack of bounds checking on the `appearBBox` coordinates
+  [HIGH] Integer Overflow @ Annotc_|.c (conf=85)
+    The calculation of `rect->x2 - rect->x1` and `rect->y2 - rect->y1` may result in integer overflow if
+  [HIGH] Integer Overflow @ Annotc_}.c (conf=90)
+    The `for` loop in `setVertices` function does not check for the maximum number of coordinates that c
+  [HIGH] Integer Overflow @ Annotc_~.c (conf=80)
+    The `lineEndingSize2` variable is used in a mathematical operation without bounds checking, which co
+  [HIGH] Integer Overflow @ Annotc_.c (conf=90)
+    The `inkList.reserve(inkListLength)` call may cause an integer overflow if `inkListLength` is very l
+  [HIGH] Denial of Service @ Annotc_.c (conf=90)
+    The `generateInkAppearance()` function is called when `appearance.isNull()` but there is no check to
+  [HIGH] Denial of Service @ Annotc_.c (conf=90)
+    The provided code snippet does not directly contain a vulnerability, but the function it is likely p
+  [HIGH] Denial of Service @ Annotc_.c (conf=90)
+    The code snippet contains multiple string concatenations that could potentially lead to buffer overf
+  [HIGH] Denial of Service @ Annotc_.c (conf=90)
+    The code snippet provided does not contain any explicit PDF parsing logic, but Poppler's PDF parsing
+  [HIGH] Integer Overflow @ Annotc_.c (conf=90)
+    The code snippet provided does not contain explicit integer operations that would lead to overflow. 
+  [HIGH] Integer Overflow @ Annotc_.c (conf=90)
+    The code snippet provided does not contain explicit integer operations that would lead to overflow. 
+  [HIGH] Integer Overflow @ Annotc_.c (conf=90)
+    The variable `ca` is assigned a value of 1 and is used in the creation of a GooString object. If `ap
+  [HIGH] Integer Overflow @ Annotc_.c (conf=90)
+    The code snippet provided does not contain any explicit integer operations that would lead to an int
+  [HIGH] Denial of Service @ Annotc_.c (conf=85)
+    The code snippet appears to be parsing a string of PDF commands without proper validation, which cou
+  [HIGH] Denial of Service @ Annotc_.c (conf=90)
+    The code snippet provided does not directly contain a vulnerability, but the use of hardcoded string
+  [HIGH] Integer Overflow @ Annotc_.c (conf=90)
+    The `createForm` function may cause an integer overflow if the size of the buffer (`appearBuilder.bu
+  [HIGH] Denial of Service @ Annotc_.c (conf=90)
+    The repeated calls to `dict->lookup()` without proper bounds checking could lead to a denial of serv
+  [HIGH] Integer Overflow @ Annotc_.c (conf=90)
+    The `numberOfConfigurations` and `length` variables are calculated by dividing the length of an arra
+  [HIGH] Integer Overflow @ Annotc_.c (conf=90)
+    The loop in Annots constructor does not check for the maximum array length, which could lead to an i
+  [HIGH] Denial of Service @ Annotc_.c (conf=90)
+    Potential for a denial of service due to the lack of bounds checking on the `typeName` string length
+  [HIGH] Integer Overflow @ Annotc_.c (conf=90)
+    The `appendfv` function may cause an integer overflow if the `fmt` string contains a format specifie
+  [HIGH] Integer Overflow @ DCTStreamc_A.c (conf=95)
+    The `num_bytes` variable is assigned the value of `num_bytes_l` without checking if it exceeds the b
+  [HIGH] Integer Overflow @ DCTStreamc_B.c (conf=90)
+    The `row_stride` calculation may cause an integer overflow if `cinfo.output_width` or `cinfo.output_
+  [HIGH] Integer Overflow @ FlateStreamc_A.c (conf=90)
+    The `FlateStream` constructor initializes the `d_stream` structure with `inflateInit(&d_stream);`. I
+  [HIGH] Integer Overflow @ Formc_A.c (conf=90)
+    The function `pdfDocEncodingToUTF16` may cause an integer overflow when calculating the length of th
+  [HIGH] Integer Overflow @ Formc_B.c (conf=85)
+    The `encodeID` function performs a left shift operation on `pageNum` without checking if the resulti
+  [HIGH] Integer Overflow @ Formc_C.c (conf=90)
+    The `getNumWidgets()` function is used in a loop without bounds checking, which could lead to an int
+  [HIGH] Integer Overflow @ Formc_D.c (conf=85)
+    The function `hashFileRange` reads data from a file in chunks of `BUF_SIZE` bytes. If the remaining 
+  [HIGH] Integer Overflow @ Formc_E.c (conf=85)
+    The `updateSignature` function may cause an integer overflow if `sigStart` or `sigEnd` are large val
+  [HIGH] Integer Overflow @ Formc_F.c (conf=85)
+    The calculation of `wMax` and `hMax` may cause an integer overflow if `dx` or `dy` are large enough.
+  [HIGH] heap buffer overflow @ Formc_G.c (conf=85)
+    The function `setNextOffset` is called without checking the return value, which could lead to a buff
+  [HIGH] Integer Overflow @ Formc_I.c (conf=90)
+    The `widgets.size()` is used as an index to create a new `FormWidgetButton`, `FormWidgetText`, `Form
+  [HIGH] Integer Overflow @ Formc_J.c (conf=85)
+    The `len` variable is used to determine the number of characters to erase from `fullyQualifiedName`.
+  [HIGH] Integer Overflow @ Formc_K.c (conf=85)
+    The `fillChildrenSiblingsID` function contains a potential integer overflow in the loop that iterate
+  [HIGH] Integer Overflow @ Formc_L.c (conf=85)
+    The `maxLen` variable is assigned the value of an integer read from the PDF dictionary without any b
+  [HIGH] Integer Overflow @ Formc_M.c (conf=85)
+    The `strtod` function used to convert a string to a double in `FormFieldText::getTextFontSize` may c
+  [HIGH] Integer Overflow @ Formc_N.c (conf=85)
+    The `topIdx` variable is assigned the value of an integer from the PDF dictionary. If the integer va
+  [HIGH] Integer Overflow @ Formc_O.c (conf=85)
+    The loop that iterates over `numChoices` does not have a check to prevent integer overflow when `num
+  [HIGH] Integer Overflow @ Formc_P.c (conf=85)
+    The `getNumSelected` function iterates over `numChoices` without bounds checking, which could lead t
+  [HIGH] Integer Overflow @ Formc_Q.c (conf=90)
+    The `block_len` variable is used to determine the number of bytes to read from the stream. If `block
+  [HIGH] Integer Overflow @ Formc_R.c (conf=90)
+    The `len` variable is not validated against the `fileLength` before being used in the expression `of
+  [HIGH] Integer Overflow @ Formc_S.c (conf=90)
+    The loop that iterates over the 'Fields' array does not check for the maximum length of the array be
+  [HIGH] Denial of Service @ Formc_T.c (conf=85)
+    The function `addFontToDefaultResources` contains a recursive call to itself with the same parameter
+  [HIGH] Integer Overflow @ Formc_U.c (conf=85)
+    The `fileSize` variable is assigned the result of `file->size()`, which is of type `Goffset`. If `fi
+  [HIGH] Integer Overflow @ Formc_V.c (conf=90)
+    The variable `glyph` is calculated by shifting `code` right by 8 bits and then bitwise ANDing with 0
+  [HIGH] Integer Overflow @ Formc_W.c (conf=85)
+    The variable `uChar` is constructed by shifting and adding two bytes from `unicodeText`. If `unicode
+  [HIGH] Integer Overflow @ Formc_X.c (conf=90)
+    The sscanf function is used to parse the field string into two integers. If the sscanf function does
+  [HIGH] Integer Overflow @ GfxFontc_A.c (conf=85)
+    Integer overflow may occur in the function that processes font data, potentially leading to a crash 
+  [HIGH] Integer Overflow @ GfxFontc_B.c (conf=85)
+    The `base14FontMap` array contains multiple entries with the same `altName` but different `base14Nam
+  [HIGH] Denial of Service @ GfxFontc_C.c (conf=85)
+    The code snippet provided does not contain any explicit loops or recursive calls that could lead to 
+  [HIGH] Integer Overflow @ GfxFontc_D.c (conf=85)
+    The loop in `isSubset()` may cause an integer overflow if the size of the `name` string is large eno
+  [HIGH] Integer Overflow @ GfxFontc_F.c (conf=90)
+    The loop in `readToUnicodeCMap` function does not check the length of the buffer `buf` before fillin
+  [HIGH] Heap Overflow @ GfxFontc_G.c (conf=85)
+    The code attempts to allocate memory for `base14Name` using `new GooString(((Gfx8BitFont *)this)->ba
+  [HIGH] Integer Overflow @ GfxFontc_H.c (conf=85)
+    The `strtol` function is used to convert a string to a long integer. If the string contains more dig
+  [HIGH] Integer Overflow @ GfxFontc_I.c (conf=85)
+    The loop in `testForNumericNames` function does not check for the maximum array length, which could 
+  [HIGH] Heap Overflow @ GfxFontc_J.c (conf=90)
+    The code attempts to copy strings from the base encoding array into the 'enc' array. If the 'baseEnc
+  [HIGH] Integer Overflow @ GfxFontc_K.c (conf=90)
+    The loop that assigns values to `code` does not have a proper check to prevent integer overflow. The
+  [HIGH] Integer Overflow @ GfxFontc_L.c (conf=90)
+    The loop that populates the `widths` array does not check for the bounds of `obj1.arrayGet(code - fi
+  [HIGH] Integer Overflow @ GfxFontc_M.c (conf=90)
+    The loop in `parseCharName` function does not check for the length of the `lig_part` string before c
+  [HIGH] Integer Overflow @ GfxFontc_N.c (conf=85)
+    The sscanf function is used to parse a hexadecimal value from a string. If the input string contains
+  [HIGH] Integer Overflow @ GfxFontc_O.c (conf=85)
+    The loop that maps char codes through the cmap may cause an integer overflow if the `mapCodeToGID` f
+  [HIGH] Integer Overflow @ GfxFontc_P.c (conf=90)
+    The code snippet at line 26 performs an integer operation that could potentially cause an integer ov
+  [HIGH] Integer Overflow @ GfxFontc_Q.c (conf=90)
+    The variable `j` is incremented in a loop that does not have a proper check against `std::numeric_li
+  [HIGH] Integer Overflow @ GfxFontc_R.c (conf=85)
+    The loop that initializes `humap` with `memset` may cause an integer overflow if `n` is large enough
+  [HIGH] Integer Overflow @ GfxFontc_S.c (conf=85)
+    The loop `for (i = 1; i < N_UCS_CANDIDATES; i++)` sets `humap[cid * N_UCS_CANDIDATES + i] = 0;` with
+  [HIGH] Integer Overflow @ GfxFontc_T.c (conf=90)
+    The `hashFontObject` function may cause an integer overflow when hashing an object with a large numb
+  [HIGH] Integer Overflow @ GfxStatec_A.c (conf=90)
+    The `vertSize` and `triSize` variables are doubled in size when they reach a certain threshold. If t
+  [HIGH] Integer Overflow @ GfxStatec_B.c (conf=85)
+    The function `getTriangle` uses an index `i` to access elements of the `triangles` array. If `i` is 
+  [HIGH] Integer Overflow @ GfxStatec_C.c (conf=90)
+    The calculation of `xMul` and `yMul` uses `pow(2.0, coordBits)`, which could cause an integer overfl
+  [HIGH] Integer Overflow @ GfxStatec_D.c (conf=90)
+    The `patchesSize` variable is doubled in size when `nPatchesA == patchesSize`, potentially leading t
+  [HIGH] Heap Out-of-Bounds Write @ GfxStatec_E.c (conf=90)
+    The code writes to `p->color[0][0].c[j]` without checking if `j` is within the bounds of the color c
+  [HIGH] Heap Out-of-Bounds Write @ GfxStatec_F.c (conf=90)
+    The code writes to the `p->x` and `p->y` arrays without checking bounds, which could lead to a heap 
+  [HIGH] Integer Overflow @ GfxStatec_G.c (conf=90)
+    The calculation of `p->x[1][1]` and `p->y[1][1]` may cause integer overflow if the input values are 
+  [HIGH] Integer Overflow @ GfxStatec_H.c (conf=90)
+    The loop that allocates memory for `lookup[k]` and `lookup2[k]` does not check for the return value 
+  [HIGH] Integer Overflow @ GfxStatec_I.c (conf=85)
+    The expression `(int)(mapped * 255.0 + 0.5)` may cause an integer overflow if `mapped` is a very lar
+  [HIGH] Heap Overflow @ GfxStatec_J.c (conf=90)
+    The function `gmallocn` is used to allocate memory for `tmp_line` without checking if `length` or `n
+  [HIGH] Heap Overflow @ GfxStatec_K.c (conf=90)
+    The function `GfxImageColorMap::getDeviceNLine` uses `gmallocn` to allocate memory for `tmp_line` wi
+  [HIGH] Integer Overflow @ GfxStatec_L.c (conf=90)
+    The `size *= 2` operation in the `lineTo` and `curveTo` functions may cause an integer overflow if `
+  [HIGH] Integer Overflow @ GfxStatec_M.c (conf=85)
+    The `subPathOff` and `coordOff` variables are used to iterate over subpaths and coordinates in a `Gf
+  [CRITICAL] Memory Corruption @ GfxStatec_N.c (conf=90)
+    The `delete path;` statement in the destructor of `GfxState` assumes that `path` is a valid pointer.
+  [HIGH] Integer Overflow @ GfxStatec_O.c (conf=90)
+    The function `GfxState::getUserClipBBox` performs arithmetic operations on `double` values that coul
+  [HIGH] Integer Overflow @ GfxStatec_P.c (conf=90)
+    The loop that calculates `xMin`, `xMax`, `yMin`, and `yMax` does not check for overflow conditions w
+  [HIGH] Denial of Service @ GfxStatec_Q.c (conf=90)
+    The code does not handle the case where `obj->getName()` or `obj2->getName()` returns a NULL pointer
+  [HIGH] Heap Overflow @ GfxStatec_R.c (conf=90)
+    The function `gmallocn` is used to allocate memory for `line`, but there is no check to ensure that 
+  [HIGH] Integer Overflow @ GfxStatec_S.c (conf=90)
+    The function `createMapping` may cause an integer overflow when `separationList->size()` equals `max
+  [HIGH] Integer Overflow @ GfxStatec_T.c (conf=90)
+    The variable `nCompsA` is assigned the value of `obj1.arrayGetLength()` without checking if it excee
+  [HIGH] Integer Overflow @ GfxStatec_U.c (conf=90)
+    The function `getGray`, `getRGB`, `getCMYK`, and `getDeviceN` in `GfxDeviceNColorSpace` use a fixed-
+  [HIGH] Integer Overflow @ GfxStatec_V.c (conf=90)
+    The variable `startOverprintMask` is left-shifted without a bound check, which can cause an integer 
+  [HIGH] Integer Overflow @ GfxStatec_W.c (conf=90)
+    The function `parse` in `GfxTilingPattern` does not properly validate the length of the `bbox` array
+  [HIGH] Integer Overflow @ GfxStatec_X.c (conf=85)
+    The loop that populates the `matrixA` array does not check for the validity of the `obj1.arrayGet(i)
+  [HIGH] Integer Overflow @ GfxStatec_Y.c (conf=90)
+    The `getNum` function is used to convert numbers from an `Object` to a double. If the `Object` does 
+  [HIGH] Integer Overflow @ GfxStatec_Z.c (conf=85)
+    The variable `lastMatch` is used to index into arrays (`cacheBounds`, `cacheCoeff`, `cacheValues`) a
+  [HIGH] Integer Overflow @ GfxStatec_[.c (conf=85)
+    The variable `maxSize` is calculated using `ceil(upperBound)` and then `std::max<int>(maxSize, 2)`. 
+  [HIGH] Integer Overflow @ GfxStatec_\.c (conf=90)
+    The `getDistance` function calculates the distance between two points using the `hypot` function. If
+  [HIGH] Integer Overflow @ GfxStatec_].c (conf=90)
+    The `getDistance` function may cause an integer overflow when calculating `xMin`, `yMin`, `xMax`, `y
+  [HIGH] Integer Overflow @ GfxStatec_^.c (conf=90)
+    The calculation of `t_focus` may lead to integer overflow if `dr` is very small and `cr` is large. T
+  [HIGH] Integer Overflow @ GfxStatec__.c (conf=85)
+    The `getBits` function in `GfxShadingBitBuf` class may lead to integer overflow when `n` is large. T
+  [HIGH] Integer Overflow @ GfxStatec_`.c (conf=95)
+    The `gmallocn` function is used to allocate memory based on the size calculated by multiplying `nVer
+  [HIGH] Integer Overflow @ Gfxc_A.c (conf=85)
+    The variable `n` is calculated using the formula `height * ((width + 7) / 8)`. If `width` is large e
+  [HIGH] Heap Overflow @ Gfxc_B.c (conf=90)
+    The `strdup` function is used to duplicate the `stateIntent` string. If `stateIntent` is very long, 
+  [HIGH] Integer Overflow @ Gfxc_C.c (conf=90)
+    The code does not properly check the bounds of the array when processing the Matte entry. If the Mat
+  [HIGH] Integer Overflow @ Gfxc_D.c (conf=85)
+    The variable 'i' is calculated as 'width * height' and then capped at 1000. If 'width' and 'height' 
+  [HIGH] Integer Overflow @ Gfxc_E.c (conf=90)
+    The `opac` variable is assigned the result of `opac < 0 ? 0 : opac > 1 ? 1 : opac;` which could pote
+  [HIGH] Integer Overflow @ Gfxc_F.c (conf=90)
+    The `displayDepth` variable is incremented and decremented without bounds checking when drawing the 
+  [HIGH] Heap Overflow @ Gfxc_G.c (conf=90)
+    The `pushMarkedContent` function allocates memory for `mcStack` without checking if the stack is alr
+  [HIGH] Integer Overflow @ Gfxc_I.c (conf=90)
+    Integer overflow may occur when calculating `sx` and `sy` due to division by zero if `formXMax - for
+  [HIGH] Integer Overflow @ Gfxc_J.c (conf=90)
+    The loop `for (int i = 0; i < obj3.arrayGetLength() && i < gfxColorMaxComps; ++i)` may cause an inte
+  [HIGH] Integer Overflow @ Gfxc_K.c (conf=90)
+    The loop that populates the `bbox` array does not check for the length of the array. If the array is
+  [HIGH] Integer Overflow @ Gfxc_L.c (conf=90)
+    The `dblToCol` function converts a double to a color component, which may overflow if the input is o
+  [HIGH] Integer Overflow @ Gfxc_M.c (conf=90)
+    The loop `for (i = 0; i < numArgs - 1 && i < gfxColorMaxComps; ++i)` may cause an integer overflow i
+  [HIGH] Integer Overflow @ Gfxc_N.c (conf=90)
+    The `getNum()` method may return a value that exceeds the range of an `int` type, leading to an inte
+  [HIGH] Integer Overflow @ Gfxc_O.c (conf=90)
+    The function `doPatternFill` and related functions may cause integer overflow when calculating the p
+  [HIGH] Integer Overflow @ Gfxc_P.c (conf=85)
+    The calculation of `det` and its inverse may lead to integer overflow if the input values are large 
+  [HIGH] Integer Overflow @ Gfxc_Q.c (conf=90)
+    The calculation of `xi0` and `xi1` and `yi0` and `yi1` may cause integer overflow if `xMin`, `xMax`,
+  [HIGH] Integer Overflow @ Gfxc_R.c (conf=85)
+    The loop in `doFunctionShFill1` may cause an integer overflow when `depth` is large enough, as it is
+  [HIGH] Integer Overflow @ Gfxc_S.c (conf=85)
+    The `functionMaxDepth` variable is used as a recursion limit in the `doFunctionShFill1` function. If
+  [HIGH] Integer Overflow @ Gfxc_T.c (conf=85)
+    The calculation of `sMin` and `sMax` may lead to integer overflow if `xMin`, `xMax`, `yMin`, `yMax`,
+  [HIGH] Integer Overflow @ Gfxc_U.c (conf=90)
+    The calculation of `teoricalj` using integer division may cause an integer overflow if `bboxIntersec
+  [HIGH] Integer Overflow @ Gfxc_V.c (conf=90)
+    The computation of `sMin` and `sMax` can cause integer overflow if the values of `xMin`, `yMin`, `xM
+  [HIGH] Integer Overflow @ Gfxc_W.c (conf=90)
+    The variable `n` is calculated using `std::numbers::pi / acos(tmp)` and is then clamped between 3 an
+  [HIGH] Integer Overflow @ Gfxc_X.c (conf=90)
+    The loop `for (k = 1; k < n; ++k) { ... }` does not check for the value of `n`, which could potentia
+  [HIGH] Integer Overflow @ Gfxc_Y.c (conf=90)
+    The `gouraudFillTriangle` function contains a loop that iterates `nComps` times, where `nComps` is t
+  [HIGH] Integer Overflow @ Gfxc_Z.c (conf=90)
+    The function `doPatchMeshShFill` uses `shading->getNPatches()` to determine the loop iteration count
+  [HIGH] Integer Overflow @ Gfxc_[.c (conf=90)
+    The loop that calculates `xx`, `yy`, `xxm`, `yym`, and other variables may cause integer overflow if
+  [HIGH] Integer Overflow @ Gfxc_\.c (conf=80)
+    The code snippet provided does not show any direct integer overflow vulnerabilities. However, if the
+  [HIGH] Integer Overflow @ Gfxc_].c (conf=85)
+    The function `doShowText` may experience an integer overflow when calculating the shift values for t
+  [HIGH] Integer Overflow @ Gfxc_^.c (conf=90)
+    The multiplication of `state->getFontSize()`, `state->getHorizScaling()`, and `newCTM[0]` to `newCTM
+  [HIGH] Integer Overflow @ Gfxc__.c (conf=85)
+    The variable `n` is used to store the number of characters processed by `font->getNextChar()`. If `n
+  [HIGH] Integer Overflow @ Gfxc_`.c (conf=90)
+    The code does not properly check the multiplication of width and height before assigning it to an in
+  [HIGH] Integer Overflow @ JBIG2Streamc_A.c (conf=90)
+    The variable `buf1` and `buf2` are being shifted left by 1 bit in a loop without any bounds checking
+  [HIGH] Integer Overflow @ JBIG2Streamc_B.c (conf=85)
+    The variable `pageH` is assigned the value `0xffffffff` which is the maximum unsigned int value. If 
+  [HIGH] Integer Overflow @ JBIG2Streamc_C.c (conf=90)
+    The code performs bit shifting and pixel fetching without proper bounds checking, which could lead t
+  [HIGH] Integer Overflow @ JBIG2Streamc_D.c (conf=85)
+    The variable `length` is used to determine how many characters to skip in the `readEndOfStripeSeg` a
+  [HIGH] Integer Overflow @ JBIG2Streamc_E.c (conf=90)
+    The `val` variable is incremented by `1 << shiftBits` without checking if the result overflows. This
+  [HIGH] Integer Overflow @ JBIG2Streamc_F.c (conf=90)
+    The `symCodeLen + 1` is used to calculate the size of the `iaidStats` context. If `symCodeLen` is la
+  [HIGH] Integer Overflow @ JBIG2Streamc_G.c (conf=85)
+    The variable `nLeft` in the `readBits` function can grow without bound if `str->getChar()` returns E
+  [HIGH] Integer Overflow @ JBIG2Streamc_H.c (conf=90)
+    The variable `bufLen` is incremented by 8 in each iteration of the while loop, but is decremented by
+  [HIGH] Integer Overflow @ JBIG2Streamc_I.c (conf=95)
+    The `JBIG2Bitmap::JBIG2Bitmap` constructor performs a checked addition (`checkedAdd`) which may over
+  [HIGH] Integer Overflow @ JBIG2Streamc_J.c (conf=95)
+    The `checkedAdd` function may cause an integer overflow when adding `y` and `bitmap.h` or `x` and `b
+  [HIGH] Integer Overflow @ JBIG2Streamc_K.c (conf=90)
+    The loop condition `xx < x1 - 8` may cause an integer overflow if `x1` is large enough. This could l
+  [HIGH] Integer Overflow @ JBIG2Streamc_L.c (conf=85)
+    The `getChars` function may cause an integer overflow if `nChars` is larger than the remaining data 
+  [HIGH] Integer Overflow @ JBIG2Streamc_M.c (conf=90)
+    The variable `nRefSegs` is constructed by shifting and combining bytes read from the stream. If an a
+  [HIGH] Integer Overflow @ JBIG2Streamc_N.c (conf=90)
+    The `calculateSymCodeLen` function may experience an integer overflow when `numInputSyms + numNewSym
+  [HIGH] Integer Overflow @ JBIG2Streamc_O.c (conf=85)
+    The variable `numInputSyms` is incremented by the size of the input symbol dictionary (`inputSymbolD
+  [HIGH] Integer Overflow @ JBIG2Streamc_P.c (conf=90)
+    The variable `symHeight` is incremented by `dh` which is decoded using Huffman or arithmetic decodin
+  [HIGH] Integer Overflow @ JBIG2Streamc_Q.c (conf=90)
+    The `decodeInt` function may not properly check the bounds of the integer being decoded, potentially
+  [HIGH] Integer Overflow @ JBIG2Streamc_R.c (conf=85)
+    The variable `bmSize` is assigned the result of `symHeight * ((totalWidth + 7) >> 3)`, which may cau
+  [HIGH] Integer Overflow @ JBIG2Streamc_S.c (conf=90)
+    The `checkedAdd` function may cause an integer overflow when adding `segSize` to `numSyms`. This is 
+  [HIGH] Integer Overflow @ JBIG2Streamc_T.c (conf=90)
+    The loop that increments `i` and accesses `codeTables[i]` does not check for bounds on `codeTables`.
+  [HIGH] Integer Overflow @ JBIG2Streamc_U.c (conf=90)
+    The `checkedMultiply` function may cause an integer overflow when multiplying `t` by `-(int)strips`.
+  [HIGH] Integer Overflow @ JBIG2Streamc_V.c (conf=85)
+    The `checkedAdd` function is used to prevent integer overflow, but it is not applied consistently ac
+  [HIGH] Integer Overflow @ JBIG2Streamc_W.c (conf=90)
+    The code performs arithmetic operations on the variable `tt` and `bh` without proper bounds checking
+  [HIGH] Integer Overflow @ JBIG2Streamc_X.c (conf=90)
+    The `checkedMultiply` function may cause an integer overflow when multiplying `grayMaxPlusOne` by `p
+  [HIGH] Integer Overflow @ JBIG2Streamc_Y.c (conf=90)
+    The expression `(xx + (int)patW) >> 8` and `(yy + (int)patH) >> 8` may cause integer overflow if `xx
+  [HIGH] Integer Overflow @ JBIG2Streamc_Z.c (conf=95)
+    The function `gmallocn_checkoverflow` is used to allocate memory, but it does not check for the over
+  [HIGH] Integer Overflow @ JBIG2Streamc_[.c (conf=85)
+    The variable `b1i` is incremented by 2 in the `twoDimPass` case and by 1 in the `twoDimVertR1`, `two
+  [HIGH] Integer Overflow @ JBIG2Streamc_\.c (conf=85)
+    The variable `b1i` is incremented by 2 in a loop that continues until `b1i` is less than `w + 2`. If
+  [HIGH] Integer Overflow @ JBIG2Streamc_].c (conf=85)
+    The code performs arithmetic shifts on unsigned integers without checking for overflow. The expressi
+  [HIGH] Integer Overflow @ JBIG2Streamc_^.c (conf=95)
+    The code performs bit shifting on unsigned integers without checking for overflow. The `buf0`, `buf1
+  [HIGH] Integer Overflow @ JBIG2Streamc__.c (conf=95)
+    The variable `buf2` is left-shifted by 8 bits without a check on its maximum value, which can lead t
+  [HIGH] Integer Overflow @ JBIG2Streamc_`.c (conf=90)
+    The variable `atShift0` is calculated using `15 - atx[0]`. If `atx[0]` is close to 15, this could ca
+  [HIGH] Integer Overflow @ JPEG2000Streamc_A.c (conf=85)
+    The `adjustComp` function performs an arithmetic operation that could potentially overflow if the in
+  [HIGH] Integer Overflow @ JPEG2000Streamc_B.c (conf=90)
+    The `jpxData->pos` is incremented by `skip`, which is not bounded by `jpxData->size`. If `skip` is l
+  [HIGH] Integer Overflow @ JPEG2000Streamc_C.c (conf=90)
+    The `opj_set_decode_area` function may cause an integer overflow if the `DA_x0`, `DA_y0`, `DA_x1`, o
+  [HIGH] Integer Overflow @ JPXStreamc_A.c (conf=85)
+    The code does not handle boxes larger than 2^32 bytes, which could lead to integer overflow when pro
+  [HIGH] Integer Overflow @ JPXStreamc_B.c (conf=85)
+    The function `jpxFloorDiv` uses the macro `jpxFloorDiv(x, y)` which performs integer division. If `x
+  [HIGH] Integer Overflow @ JPXStreamc_C.c (conf=90)
+    The loop in JPXCover::~JPXCover() runs from 0 to used, which can overflow if used is large enough. T
+  [HIGH] Integer Overflow @ JPXStreamc_D.c (conf=90)
+    The `pixBits` variable is incremented and used in a left shift operation without proper bounds check
+  [HIGH] Heap Out-of-Bounds Read @ JPXStreamc_E.c (conf=90)
+    The loop that reads characters from `bufStr` does not check for the end of the buffer properly. If `
+  [HIGH] Integer Overflow @ JPXStreamc_F.c (conf=90)
+    The loop that reads the bits per component for the palette may cause an integer overflow if `palette
+  [HIGH] Integer Overflow @ JPXStreamc_G.c (conf=90)
+    The function `gmallocn` is used to allocate memory for arrays of `unsigned int`. If `channelDefn.nCh
+  [HIGH] Integer Overflow @ JPXStreamc_H.c (conf=90)
+    The calculation of `img.nXTiles` and `img.nYTiles` may cause an integer overflow if `img.xSize` or `
+  [HIGH] Integer Overflow @ JPXStreamc_I.c (conf=90)
+    The code does not properly check the bounds of the `nDecompLevels` variable before using it to alloc
+  [HIGH] Integer Overflow @ JPXStreamc_J.c (conf=90)
+    The `greallocn` function is used to allocate memory for `img.tiles[i].tileComps[comp].resLevels`. If
+  [HIGH] Integer Overflow @ JPXStreamc_K.c (conf=90)
+    The `greallocn` function is used to allocate memory for `quantSteps`. If `img.nQuantSteps` is very l
+  [HIGH] Denial of Service @ JPXStreamc_L.c (conf=90)
+    The loop that reads characters from `bufStr` until EOF is used to detect syntax errors but does not 
+  [HIGH] Integer Overflow @ JPXStreamc_M.c (conf=85)
+    The variable `tilePartLen` is decremented by 12 after reading the SOT marker segment, but there is n
+  [HIGH] Integer Overflow @ JPXStreamc_N.c (conf=90)
+    The code does not properly check the bounds of the `nDecompLevels` variable before using it to alloc
+  [HIGH] Integer Overflow @ JPXStreamc_O.c (conf=90)
+    The `greallocn` function is used to reallocate memory for `img.tiles[tileIdx].tileComps[comp].resLev
+  [HIGH] Integer Overflow @ JPXStreamc_P.c (conf=90)
+    The `segLen` variable is used to calculate `img.tiles[tileIdx].tileComps[comp].nQuantSteps` and `img
+  [HIGH] Denial of Service @ JPXStreamc_Q.c (conf=90)
+    The loop that reads characters from `bufStr` until EOF is not bounded by the actual segment length, 
+  [HIGH] Heap Overflow @ JPXStreamc_R.c (conf=90)
+    The function `gmallocn` is used to allocate memory for `tileComp->data` and `tileComp->buf`. If the 
+  [HIGH] Integer Overflow @ JPXStreamc_S.c (conf=90)
+    The variable `n` is calculated using `nx * ny` which can overflow if `subband->nXCBs` and `subband->
+  [HIGH] Integer Overflow @ JPXStreamc_T.c (conf=90)
+    The loop that calculates `i` may cause an integer overflow if `cbY` and `cbX` are large enough. This
+  [HIGH] Integer Overflow @ JPXStreamc_U.c (conf=90)
+    The variable `ttVal` is incremented in a loop that does not have a bound check. If `ttVal` is increm
+  [HIGH] Integer Overflow @ JPXStreamc_V.c (conf=85)
+    The loop `for (n = cb->lBlock, i = cb->nCodingPasses >> 1; i; ++n, i >>= 1)` may cause an integer ov
+  [HIGH] Integer Overflow @ JPXStreamc_W.c (conf=90)
+    The loop `for (y0 = cb->y0, coeff0 = cb->coeffs, touched0 = cb->touched; y0 < cb->y1; y0 += 4, coeff
+  [HIGH] Integer Overflow @ JPXStreamc_X.c (conf=90)
+    The code snippet contains a loop that increments `coeff` and `touched` by `tileComp->w` and `tileCom
+  [HIGH] Integer Overflow @ JPXStreamc_Y.c (conf=95)
+    The loop increment `y0 += 4, coeff0 += 4 * tileComp->w, touched0 += 4 << tileComp->codeBlockW` may c
+  [HIGH] Integer Overflow @ JPXStreamc_Z.c (conf=85)
+    The variable `shift2` is calculated using the expression `shift - (cb->nZeroBitPlanes + cb->len + *t
+  [HIGH] Integer Overflow @ JPXStreamc_[.c (conf=90)
+    The variable `shift2` is calculated using the expression `shift - (cb->nZeroBitPlanes + cb->len + *t
+  [HIGH] Integer Overflow @ JPXStreamc_\.c (conf=90)
+    The variable `x` is calculated using the expression `tileComp->x1 - tileComp->x0 + 5` or `tileComp->
+  [HIGH] Integer Overflow @ JPXStreamc_].c (conf=90)
+    Integer overflow may occur in the loop that processes the `data` array due to the multiplication and
+  [HIGH] Integer Overflow @ JPXStreamc_^.c (conf=90)
+    The `readULong` function reads four bytes into an unsigned int variable. If the input is greater tha
+  [HIGH] Denial of Service @ JPXStreamc__.c (conf=90)
+    The `finishBitBuf` function may cause a denial of service due to an integer underflow. The `byteCoun
+  [HIGH] Integer Overflow @ PDFDocc_A.c (conf=85)
+    Integer overflow may occur in the parsing of PDF streams due to improper bounds checking on integer 
+  [HIGH] Heap Overflow @ PDFDocc_B.c (conf=85)
+    The function `PDFDoc::PDFDoc` may allocate memory based on the length of `fileName->size()` without 
+  [HIGH] Integer Overflow @ PDFDocc_C.c (conf=90)
+    The loop in `checkFooter()` reads up to 1024 characters from the end of the stream. If the EOF is no
+  [HIGH] Integer Overflow @ PDFDocc_D.c (conf=85)
+    The `std::stoi` function is used to convert strings to integers. If the string is not a valid repres
+  [HIGH] Integer Overflow @ PDFDocc_E.c (conf=90)
+    The `getNumFields()` and `getNumWidgets()` functions may return large integer values that could pote
+  [HIGH] Integer Overflow @ PDFDocc_F.c (conf=90)
+    The `sprintf` function is used to convert a string to a hexadecimal format. If the input string does
+  [HIGH] Integer Overflow @ PDFDocc_G.c (conf=90)
+    The `yRef->add(0, 65535, 0, false);` line may cause an integer overflow if the `65535` value is used
+  [HIGH] Integer Overflow @ PDFDocc_H.c (conf=85)
+    The loop that iterates over `pageDict->getLength()` does not check for potential integer overflow if
+  [HIGH] Integer Overflow @ PDFDocc_I.c (conf=85)
+    The `numobjects` variable is incremented and used as an index for `uxrefStreamRef.num`. If `numobjec
+  [HIGH] Integer Overflow @ PDFDocc_J.c (conf=85)
+    The `writeObject` function may cause an integer overflow when copying an object. The `copy()` method
+  [HIGH] Integer Overflow @ PDFDocc_K.c (conf=85)
+    The loop that calculates the stream length does not check for potential integer overflow. The variab
+  [HIGH] Integer Overflow @ PDFDocc_L.c (conf=90)
+    The `val` variable is calculated by subtracting `bs->getStart()` from `streamEnd`. If `streamEnd` is
+  [HIGH] Integer Overflow @ PDFDocc_M.c (conf=85)
+    The `fileSize` variable is incremented in a loop that reads characters from the file until EOF. If t
+  [HIGH] Integer Overflow @ PDFDocc_N.c (conf=90)
+    The expression `obj->getRef().num + (int)numOffset` may cause an integer overflow if `numOffset` is 
+  [HIGH] Integer Overflow @ PDFDocc_O.c (conf=90)
+    The code attempts to add an offset to a reference number and checks if the result is within the boun
+  [HIGH] Integer Overflow @ PDFDocc_P.c (conf=85)
+    The `numOffset` is added to `afObj->getRef().num` without checking if the result exceeds the number 
+  [HIGH] Integer Overflow @ PDFDocc_Q.c (conf=85)
+    The variable `segnum` is incremented in a loop until `(xrefSearchSize - 16) * segnum < maxXRefSearch
+  [HIGH] Integer Overflow @ PDFDocc_R.c (conf=85)
+    The `getXRef()->addIndirectObject(annotObj)` call may cause an integer overflow if the object count 
+  [HIGH] Denial of Service @ PDFDocc_S.c (conf=85)
+    The code does not handle the case where `vRefObj.isRef()` returns false, which could lead to a situa
+  [HIGH] Integer Overflow @ Parserc_A.c (conf=85)
+    The `recursion` variable is incremented in a loop without proper bounds checking, which could lead t
+  [HIGH] Integer Overflow @ Parserc_B.c (conf=95)
+    The variable `recursion` is incremented in a loop without a proper check on the maximum recursion de
+  [HIGH] Integer Overflow @ Parserc_C.c (conf=90)
+    The code does not properly check for integer overflow when calculating `length = endPos - pos`. If `
+  [HIGH] Integer Overflow @ Streamc_A.c (conf=85)
+    The variable `repeat` is incremented by 3 and then used in a loop that writes to `codeLengths`. If `
+  [CRITICAL] Buffer Overflow @ Streamc_B.c (conf=95)
+    The function `lookChar()` reads characters from the buffer without bounds checking, which can lead t
+  [HIGH] Integer Overflow @ Streamc_C.c (conf=95)
+    The variable `n` is used to count the number of repeated characters and is incremented in a loop. If
+  [HIGH] Integer Overflow @ Streamc_D.c (conf=90)
+    The variable `codeLen` is incremented without a proper check on its maximum value, which could lead 
+  [HIGH] Integer Overflow @ Streamc_E.c (conf=95)
+    The calculation of `inputLineSize` may cause an integer overflow if `nVals` is large enough. This is
+  [HIGH] Integer Overflow @ Streamc_F.c (conf=90)
+    The variable `inBits` is incremented by 8 each time a byte is read from `predLine`. However, there i
+  [HIGH] Integer Overflow @ Streamc_G.c (conf=85)
+    The `n` variable in `fillBuf()` can overflow when `bufPos + cachedStreamBufSize > start + length`. T
+  [HIGH] Integer Overflow @ Streamc_H.c (conf=90)
+    The `bufMax` variable is doubled in size when `bufLen + len >= bufMax`. If `bufLen` and `len` are la
+  [HIGH] Integer Overflow @ Streamc_I.c (conf=85)
+    The variable `n` is incremented in a loop without a check on its maximum value, which could lead to 
+  [HIGH] Integer Overflow @ Streamc_J.c (conf=85)
+    The variable `nextCode` is incremented in a loop without a proper check to prevent overflow. If `nex
+  [HIGH] Integer Overflow @ Streamc_K.c (conf=85)
+    The `columns` variable is constrained to be within the range of `1` to `INT_MAX - 2`. However, if `c
+  [HIGH] Integer Overflow @ Streamc_L.c (conf=85)
+    The loop `while (refLine[b1i] <= codingLine[a0i] && refLine[b1i] < columns) { b1i += 2; ... }` may c
+  [HIGH] Integer Overflow @ Streamc_M.c (conf=90)
+    The variable `b1i` is incremented by 2 in each iteration of the while loop. If `b1i` is already grea
+  [HIGH] Integer Overflow @ Streamc_N.c (conf=90)
+    The `code1` variable is incremented in a loop without a proper check for overflow. This could lead t
+  [HIGH] Integer Overflow @ Streamc_O.c (conf=85)
+    The `outputBits` variable is decremented by 8 in each iteration of the loop, but it is not initializ
+  [HIGH] Integer Overflow @ Streamc_P.c (conf=90)
+    The `lookBits` function performs a left shift operation on `code` without checking if `n` is within 
+  [HIGH] Integer Overflow @ Streamc_Q.c (conf=90)
+    The calculation of `bufWidth` and `bufHeight` may cause an integer overflow if `width` or `height` a
+  [HIGH] Integer Overflow @ Streamc_R.c (conf=90)
+    The `readMCURow` function contains a loop that writes data to `rowBuf` based on the MCU dimensions. 
+  [HIGH] Integer Overflow @ Streamc_S.c (conf=90)
+    Integer overflow may occur in the loop that processes color space conversion due to the potential fo
+  [HIGH] Heap Out-of-Bounds Write @ Streamc_T.c (conf=95)
+    The loop that writes data to `frameBuf` does not check if the calculated index `p1` is within the bo
+  [HIGH] Integer Overflow @ Streamc_U.c (conf=95)
+    The variable `run` is calculated by shifting `c` right by 4 bits and then ANDing with 0x0f. If `c` i
+  [HIGH] Integer Overflow @ Streamc_V.c (conf=90)
+    The loop that replicates subsampled components may cause an integer overflow if `bufWidth` is large 
+  [HIGH] Integer Overflow @ Streamc_W.c (conf=85)
+    The `transformDataUnit` function performs an inverse DCT on rows and columns. The calculation of `v0
+  [HIGH] Integer Overflow @ Streamc_X.c (conf=85)
+    The `readAmp` function performs a left shift on the `amp` variable without a corresponding check for
+  [HIGH] Integer Overflow @ Streamc_Y.c (conf=90)
+    The `height` and `width` variables are read as 16-bit integers without bounds checking. If an attack
+  [HIGH] Integer Overflow @ Streamc_Z.c (conf=90)
+    The `length` variable is decremented by 129 or 65 based on the precision of the quantization table, 
+  [HIGH] Integer Overflow @ Streamc_[.c (conf=90)
+    The `read16()` function reads two characters from the stream and interprets them as a 16-bit integer
+  [HIGH] Integer Overflow @ Streamc_\.c (conf=95)
+    The `flateFixedLitCodeTabCodes` array contains fixed-length codes that are used in the inflation pro
+  [HIGH] Integer Overflow @ Streamc_].c (conf=90)
+    The code snippet provided does not contain explicit integer operations that would lead to overflow. 
+  [HIGH] Integer Overflow @ Streamc_^.c (conf=90)
+    The code snippet provided does not contain explicit integer operations that would lead to overflow. 
+  [HIGH] Integer Overflow @ Streamc__.c (conf=90)
+    The `flateWindow` variable is used to set the size of the buffer in `FlateStream` constructor, but i
+  [HIGH] Integer Overflow @ Streamc_`.c (conf=90)
+    The `len` variable is calculated using `lengthDecode[code1].first + code2`, which could potentially 
+  [CRITICAL] Integer Overflow @ XRefc_A.c (conf=95)
+    Integer overflow may occur in the ObjectStream class when calculating the number of objects in the s
+  [HIGH] Integer Overflow @ XRefc_B.c (conf=90)
+    The code uses a hardcoded limit of 1000000 objects to prevent integer overflow in the 'new Object[nO
+  [HIGH] Integer Overflow @ XRefc_C.c (conf=90)
+    The `resize` function may cause an integer overflow when calculating the new capacity for the `entri
+  [HIGH] Integer Overflow @ XRefc_D.c (conf=95)
+    The condition `first + n > size` does not check for integer overflow when `size` is large enough. Th
+  [HIGH] Integer Overflow @ XRefc_E.c (conf=85)
+    The variable 'pos2' is assigned the value of 'obj2.getInt()' or 'obj2.getInt64()'. If 'obj2' is an i
+  [HIGH] Integer Overflow @ XRefc_F.c (conf=85)
+    The variable `gen` is constructed by shifting and adding characters read from `xrefStr`. If the inpu
+  [HIGH] Integer Overflow @ XRefc_G.c (conf=90)
+    The variable `n` is calculated using `(int)(buf + 4096 - p)`, which may cause an integer overflow if
+  [HIGH] Integer Overflow @ XRefc_H.c (conf=90)
+    The variable `num` is calculated using a simple multiplication and addition loop without any bounds 
+  [HIGH] Integer Overflow @ XRefc_I.c (conf=85)
+    The `num` variable is checked against the `size` variable to ensure it is within bounds. However, if
+  [HIGH] Integer Overflow @ XRefc_J.c (conf=85)
+    The loop in `getNumEntry` function may cause an integer overflow if `size` is large enough. The loop
+  [HIGH] Integer Overflow @ XRefc_K.c (conf=85)
+    The `num + 1` operation in the `add` function could potentially cause an integer overflow if `num` i
+  [HIGH] Integer Overflow @ XRefc_L.c (conf=90)
+    The `offset` variable is being right-shifted in a loop without a check on the number of shifts, whic
+  [HIGH] Integer Overflow @ XRefc_M.c (conf=90)
+    The `parseEntry` function is called with `mainXRefEntriesOffset + 20 * i` as an argument, which coul

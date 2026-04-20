@@ -1,0 +1,340 @@
+/opt/homebrew/lib/python3.14/site-packages/zhipuai/core/_base_compat.py:48: UserWarning: Core Pydantic V1 functionality isn't compatible with Python 3.14 or greater.
+  from pydantic.v1.typing import (
+🔍 扫描目标: linux_usb (110 个 extracts)
+📌 关注点: kernel crash on USB device connect, descriptor parsing OOB, NULL pointer derefer...
+  [  1/110] drivers_hid_hid-core_A.c 🚨
+  [  2/110] drivers_hid_hid-core_B.c 🚨
+  [  3/110] drivers_hid_hid-core_C.c 🚨
+  [  4/110] drivers_hid_hid-core_D.c 🚨
+  [  5/110] drivers_hid_hid-core_E.c 🚨
+  [  6/110] drivers_hid_hid-core_F.c 🚨
+  [  7/110] drivers_hid_hid-core_G.c 🚨
+  [  8/110] drivers_hid_hid-core_H.c 🚨
+  [  9/110] drivers_hid_hid-core_I.c 🚨
+  [ 10/110] drivers_hid_hid-core_J.c 🚨
+  [ 11/110] drivers_hid_hid-core_K.c 🚨
+  [ 12/110] drivers_hid_hid-core_L.c 🚨
+  [ 13/110] drivers_hid_hid-core_M.c 🚨
+  [ 14/110] drivers_hid_hid-core_N.c 🚨
+  [ 15/110] drivers_hid_hid-core_O.c 🚨
+  [ 16/110] drivers_hid_hid-core_P.c 🚨
+  [ 17/110] drivers_hid_hid-core_Q.c 🚨
+  [ 18/110] drivers_hid_hid-generic_A.c 🚨
+  [ 19/110] drivers_hid_hid-input_A.c 🚨
+  [ 20/110] drivers_hid_hid-input_B.c 🚨
+  [ 21/110] drivers_hid_hid-input_C.c 🚨
+  [ 22/110] drivers_hid_hid-input_D.c 🚨
+  [ 23/110] drivers_hid_hid-input_E.c 🚨
+  [ 24/110] drivers_hid_hid-input_F.c 🚨
+  [ 25/110] drivers_hid_hid-input_G.c 🚨
+  [ 26/110] drivers_hid_hid-input_H.c 🚨
+  [ 27/110] drivers_hid_hid-input_I.c 🚨
+  [ 28/110] drivers_hid_hid-input_J.c 🚨
+  [ 29/110] drivers_hid_hid-input_K.c 🚨
+  [ 30/110] drivers_hid_hid-input_L.c 🚨
+  [ 31/110] drivers_hid_hid-input_M.c 🚨
+  [ 32/110] drivers_hid_hid-input_N.c 🚨
+  [ 33/110] drivers_hid_hid-input_O.c 🚨
+  [ 34/110] drivers_hid_hid-input_P.c 🚨
+  [ 35/110] drivers_usb_core_config_A.c 🚨
+  [ 36/110] drivers_usb_core_config_B.c 🚨
+  [ 37/110] drivers_usb_core_config_C.c 🚨
+  [ 38/110] drivers_usb_core_config_D.c 🚨
+  [ 39/110] drivers_usb_core_config_E.c 🚨
+  [ 40/110] drivers_usb_core_config_F.c 🚨
+  [ 41/110] drivers_usb_core_config_G.c 🚨
+  [ 42/110] drivers_usb_core_config_H.c 🚨
+  [ 43/110] drivers_usb_core_driver_A.c 🚨
+  [ 44/110] drivers_usb_core_driver_B.c 🚨
+  [ 45/110] drivers_usb_core_driver_C.c 🚨
+  [ 46/110] drivers_usb_core_driver_D.c 🚨
+  [ 47/110] drivers_usb_core_driver_E.c 🚨
+  [ 48/110] drivers_usb_core_driver_F.c 🚨
+  [ 49/110] drivers_usb_core_driver_G.c 🚨
+  [ 50/110] drivers_usb_core_driver_H.c 🚨
+  [ 51/110] drivers_usb_core_driver_I.c 🚨
+  [ 52/110] drivers_usb_core_driver_J.c 🚨
+  [ 53/110] drivers_usb_core_driver_K.c 🚨
+  [ 54/110] drivers_usb_core_driver_L.c 🚨
+  [ 55/110] drivers_usb_core_driver_M.c 🚨
+  [ 56/110] drivers_usb_core_driver_N.c 🚨
+  [ 57/110] drivers_usb_core_hub_A.c 🚨
+  [ 58/110] drivers_usb_core_hub_B.c 🚨
+  [ 59/110] drivers_usb_core_hub_C.c 🚨
+  [ 60/110] drivers_usb_core_hub_D.c 🚨
+  [ 61/110] drivers_usb_core_hub_E.c 🚨
+  [ 62/110] drivers_usb_core_hub_F.c 🚨
+  [ 63/110] drivers_usb_core_hub_G.c 🚨
+  [ 64/110] drivers_usb_core_hub_H.c 🚨
+  [ 65/110] drivers_usb_core_hub_I.c 🚨
+  [ 66/110] drivers_usb_core_hub_J.c 🚨
+  [ 67/110] drivers_usb_core_hub_K.c 🚨
+  [ 68/110] drivers_usb_core_hub_L.c 🚨
+  [ 69/110] drivers_usb_core_hub_M.c 🚨
+  [ 70/110] drivers_usb_core_hub_N.c 🚨
+  [ 71/110] drivers_usb_core_hub_O.c 🚨
+  [ 72/110] drivers_usb_core_hub_P.c 🚨
+  [ 73/110] drivers_usb_core_hub_Q.c 🚨
+  [ 74/110] drivers_usb_core_hub_R.c 🚨
+  [ 75/110] drivers_usb_core_hub_S.c 🚨
+  [ 76/110] drivers_usb_core_hub_T.c 🚨
+  [ 77/110] drivers_usb_core_hub_U.c 🚨
+  [ 78/110] drivers_usb_core_hub_V.c 🚨
+  [ 79/110] drivers_usb_core_hub_W.c 🚨
+  [ 80/110] drivers_usb_core_hub_X.c 🚨
+  [ 81/110] drivers_usb_core_hub_Y.c 🚨
+  [ 82/110] drivers_usb_core_hub_Z.c 🚨
+  [ 83/110] drivers_usb_core_hub_[.c 🚨
+  [ 84/110] drivers_usb_core_hub_\.c 🚨
+  [ 85/110] drivers_usb_core_hub_].c 🚨
+  [ 86/110] drivers_usb_core_hub_^.c 🚨
+  [ 87/110] drivers_usb_core_hub__.c 🚨
+  [ 88/110] drivers_usb_core_hub_`.c 🚨
+  [ 89/110] drivers_usb_core_message_A.c 🚨
+  [ 90/110] drivers_usb_core_message_B.c 🚨
+  [ 91/110] drivers_usb_core_message_C.c 🚨
+  [ 92/110] drivers_usb_core_message_D.c 🚨
+  [ 93/110] drivers_usb_core_message_E.c 🚨
+  [ 94/110] drivers_usb_core_message_F.c 🚨
+  [ 95/110] drivers_usb_core_message_G.c 🚨
+  [ 96/110] drivers_usb_core_message_H.c 🚨
+  [ 97/110] drivers_usb_core_message_I.c 🚨
+  [ 98/110] drivers_usb_core_message_J.c 🚨
+  [ 99/110] drivers_usb_core_message_K.c 🚨
+  [100/110] drivers_usb_core_message_L.c 🚨
+  [101/110] drivers_usb_core_message_M.c 🚨
+  [102/110] drivers_usb_core_message_N.c 🚨
+  [103/110] drivers_usb_core_message_O.c 🚨
+  [104/110] drivers_usb_core_message_P.c 🚨
+  [105/110] drivers_usb_core_message_Q.c 🚨
+  [106/110] drivers_usb_core_quirks_A.c 🚨
+  [107/110] drivers_usb_core_quirks_B.c 🚨
+  [108/110] drivers_usb_core_quirks_C.c 🚨
+  [109/110] drivers_usb_core_quirks_D.c 🚨
+  [110/110] drivers_usb_core_quirks_E.c 🚨
+
+==================================================
+✅ 完成: 110 findings, 0 clean, 0 errors
+📄 结果: /Users/xiaopingfeng/Projects/cyberai/research/linux_usb/t1_glm_phase2_2316.jsonl
+
+🔴 高置信度 findings (110):
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-core_A.c (conf=85)
+    The code does not properly check the bounds of the descriptor parsing, which could lead to an out-of
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-core_B.c (conf=85)
+    The code increments `collection_index` and uses it to access `parser->device->collection` without ch
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-core_C.c (conf=95)
+    The code does not properly check the `parser->global.report_size` and `parser->global.report_count` 
+  [HIGH] Out-of-Bounds Read @ drivers_hid_hid-core_D.c (conf=90)
+    The code does not properly check the bounds of the `count` variable when adding usages, which could 
+  [HIGH] Out-of-Bounds Read @ drivers_hid_hid-core_E.c (conf=90)
+    The function `fetch_item` reads data from the input stream without checking if the end of the stream
+  [HIGH] Out-of-Bounds Read @ drivers_hid_hid-core_F.c (conf=85)
+    The `kmemdup` function is used to allocate memory for `hid->dev_rdesc`. If the `size` parameter is i
+  [HIGH] Descriptor Parsing Out-of-Bounds Read @ drivers_hid_hid-core_G.c (conf=95)
+    The code does not properly check the bounds of the 'field->maxusage' when accessing 'field->usage[i]
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-core_H.c (conf=95)
+    The code does not properly check the size of the item when parsing HID descriptors, which could lead
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-core_I.c (conf=95)
+    The code does not properly check the bounds of the `value` variable when it is used as an index in t
+  [HIGH] Out-of-Bounds Write @ drivers_hid_hid-core_J.c (conf=90)
+    The `memcpy` function is used to copy `field->new_value` to `field->value` without checking if `fiel
+  [HIGH] Out-of-Bounds Read @ drivers_hid_hid-core_K.c (conf=95)
+    The function `hid_output_report` may read past the end of the 'data' buffer if the report size is no
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-core_L.c (conf=90)
+    The code does not check if the `report->maxfield` is within the bounds of the report descriptor, whi
+  [CRITICAL] NULL Pointer Dereference @ drivers_hid_hid-core_M.c (conf=95)
+    The function `hid_process_ordering(hdev)` is called without checking if `hdev` is NULL. If `hdev` is
+  [HIGH] NULL Pointer Dereference @ drivers_hid_hid-core_N.c (conf=95)
+    The function `kzalloc_obj(*dynid)` may return NULL if memory allocation fails, but the code does not
+  [HIGH] NULL Pointer Dereference @ drivers_hid_hid-core_O.c (conf=95)
+    The function `hid_match_one_id` is called without checking if `hdev` is NULL. If `hdev` is NULL, der
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-core_P.c (conf=90)
+    The code reads the device report descriptor without bounds checking, which could lead to an out-of-b
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-core_Q.c (conf=90)
+    The code does not check the bounds of the descriptor data being parsed, which could lead to an out-o
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-generic_A.c (conf=90)
+    The code does not properly check the bounds of the USB descriptor parsing, which could lead to an ou
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-input_A.c (conf=85)
+    The code does not properly check the bounds of the descriptor parsing, which could lead to an out-of
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-input_B.c (conf=90)
+    The code does not properly check the bounds of the `report->field[i]->maxusage` when accessing `repo
+  [HIGH] NULL Pointer Dereference @ drivers_hid_hid-input_C.c (conf=95)
+    The kmalloc() function is used to allocate memory, but the allocated buffer is not checked for NULL 
+  [CRITICAL] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-input_D.c (conf=95)
+    The code does not properly check the bounds of the report ID when querying the battery status, which
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-input_E.c (conf=90)
+    The code does not check if `field->report_count` is within the valid range before proceeding with th
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-input_F.c (conf=95)
+    The code does not properly check the bounds of the 'usage' variable when parsing USB device descript
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-input_G.c (conf=95)
+    The code does not properly check the bounds of the 'field' variable when parsing USB device descript
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-input_H.c (conf=90)
+    The code does not check the bounds of the USB descriptor when parsing, which could lead to an out-of
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-input_I.c (conf=95)
+    The code does not check the bounds of the USB descriptor when parsing, which could lead to an out-of
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-input_J.c (conf=90)
+    The code does not properly check the bounds of the report size when processing HID reports, which co
+  [CRITICAL] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-input_K.c (conf=95)
+    The code does not properly check for out-of-bounds values when processing HID descriptors, which cou
+  [CRITICAL] NULL Pointer Dereference @ drivers_hid_hid-input_L.c (conf=95)
+    The function `hid_report_set_tool` may be called with a NULL pointer if `report` is NULL. This can l
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-input_M.c (conf=95)
+    The code does not check the bounds of the `field->maxusage` when accessing `field->usage[j]`. If `fi
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-input_N.c (conf=95)
+    The code does not properly check if the report count is within bounds before accessing the `report->
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_hid_hid-input_O.c (conf=90)
+    The code does not properly check the bounds of the `report->maxfield` when iterating over the fields
+  [HIGH] Use-After-Free @ drivers_hid_hid-input_P.c (conf=95)
+    The code is freeing `hidinput` and its associated `name` but may still be using the `input` pointer 
+  [HIGH] Out-of-Bounds Read @ drivers_usb_core_config_A.c (conf=90)
+    The function `usb_parse_ss_endpoint_companion` reads the SuperSpeed endpoint companion descriptor wi
+  [CRITICAL] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_config_B.c (conf=95)
+    The code does not properly check the bounds of the descriptor buffer when parsing the endpoint descr
+  [HIGH] Out-of-Bounds Read @ drivers_usb_core_config_C.c (conf=95)
+    The code does not properly check the length of the endpoint descriptor before accessing it, which co
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_config_D.c (conf=90)
+    The code does not properly check the bounds of the buffer when parsing descriptors, which could lead
+  [HIGH] Out-of-Bounds Read @ drivers_usb_core_config_E.c (conf=90)
+    The code attempts to parse endpoint descriptors without checking if the buffer has enough space for 
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_config_F.c (conf=85)
+    The code does not properly check the bounds of the buffer when parsing descriptors, which could lead
+  [HIGH] Out-of-Bounds Read @ drivers_usb_core_config_G.c (conf=95)
+    The code reads a USB configuration descriptor into a buffer without checking if the length of the de
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_config_H.c (conf=95)
+    The code does not properly check if the buffer pointer goes out of bounds after subtracting the leng
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_driver_A.c (conf=95)
+    The code does not properly check the bounds of the USB descriptor parsing, which could lead to an ou
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_driver_B.c (conf=90)
+    The code does not properly check the bounds of the USB descriptor when parsing it, which could lead 
+  [CRITICAL] NULL Pointer Dereference @ drivers_usb_core_driver_C.c (conf=95)
+    The variable 'intf' is dereferenced in the probe() function without checking if it is NULL. If 'intf
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_driver_D.c (conf=95)
+    The code does not properly validate the USB device descriptor length before accessing it, which coul
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_driver_E.c (conf=95)
+    The code does not properly check the bounds of the USB device descriptor when comparing it against t
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_driver_F.c (conf=95)
+    The usb_match_id function does not properly check the bounds of the usb_device_id array, which could
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_driver_G.c (conf=90)
+    The code does not properly check the bounds of the USB device descriptor when parsing it, which coul
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_driver_H.c (conf=90)
+    The code does not check the bounds of the USB descriptor when parsing it, which could lead to an out
+  [HIGH] NULL Pointer Dereference @ drivers_usb_core_driver_I.c (conf=90)
+    The function `usb_unbind_and_rebind_marked_interfaces` does not check if `udev` is NULL before deref
+  [CRITICAL] NULL Pointer Dereference @ drivers_usb_core_driver_J.c (conf=95)
+    The function usb_get_std_status() may return an error if the USB device is inaccessible, but the err
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_driver_K.c (conf=95)
+    The code does not properly check the bounds of the descriptor parsing loop, which could lead to an o
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_driver_L.c (conf=95)
+    The code does not properly check the bounds of the USB descriptor buffer, which could lead to an out
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_driver_M.c (conf=85)
+    The code does not properly check the bounds of the USB descriptor parsing, which could lead to an ou
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_driver_N.c (conf=90)
+    The code does not check the bounds of the USB descriptor when parsing, which could lead to an out-of
+  [CRITICAL] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_A.c (conf=95)
+    The code does not properly check the length of the descriptor buffer before copying data into it, wh
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_B.c (conf=95)
+    The code does not properly check the length of the serial string buffer before using it, which could
+  [CRITICAL] NULL Pointer Dereference @ drivers_usb_core_hub_C.c (conf=95)
+    The code attempts to dereference 'udev' without checking if it is NULL after calling 'usb_new_device
+  [CRITICAL] Kernel Crash @ drivers_usb_core_hub_D.c (conf=95)
+    Potential kernel crash on USB device connect due to failure in kasprintf allocation for envp[1]. Thi
+  [CRITICAL] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_E.c (conf=95)
+    The code does not properly check the bounds of the USB descriptor when parsing it, which could lead 
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_F.c (conf=95)
+    The code does not properly check the bounds of the USB device descriptors when parsing them, which c
+  [HIGH] NULL Pointer Dereference @ drivers_usb_core_hub_G.c (conf=90)
+    The code sets `udev->bos` to `NULL` and then later attempts to dereference it without checking if it
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_H.c (conf=95)
+    The code does not properly check the bounds of the USB descriptor parsing loop, which could lead to 
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_I.c (conf=95)
+    The function usb_hub_adjust_deviceremovable() may parse the DeviceRemovable field from the USB hub d
+  [HIGH] Out-of-Bounds Read @ drivers_usb_core_hub_J.c (conf=95)
+    The code reads the hub descriptor but does not check if the read size is within the bounds of the de
+  [CRITICAL] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_K.c (conf=95)
+    The code does not properly check the size of the buffer when setting up the interrupt endpoint. This
+  [CRITICAL] NULL Pointer Dereference @ drivers_usb_core_hub_L.c (conf=95)
+    The function kzalloc_obj() may return NULL if memory allocation fails, but the code does not check f
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_M.c (conf=90)
+    The code does not properly check the bounds of the descriptor array when configuring the hub. An att
+  [HIGH] NULL Pointer Dereference @ drivers_usb_core_hub_N.c (conf=95)
+    The function usb_set_device_state does not check if the udev pointer is NULL before dereferencing it
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_O.c (conf=95)
+    The code attempts to parse an OTG descriptor without checking the bounds of the configuration descri
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_P.c (conf=90)
+    The code does not properly check the size of the `desc` buffer before accessing it, which could lead
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_Q.c (conf=85)
+    The code reads USB descriptors without bounds checking, which could lead to out-of-bounds memory acc
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_R.c (conf=90)
+    The code does not properly check the bounds of the `ssp_cap` buffer when parsing the SuperSpeed Plus
+  [CRITICAL] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_S.c (conf=95)
+    The code does not properly check the bounds of the descriptor data being read, which could lead to a
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_T.c (conf=85)
+    The code does not properly check the bounds of the USB descriptor parsing, which could lead to an ou
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_U.c (conf=90)
+    The code does not check the bounds of the descriptor buffer when sending control messages, which cou
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_V.c (conf=95)
+    The code does not properly check the bounds of the USB descriptor parsing, which could lead to an ou
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_W.c (conf=85)
+    The code does not properly check the bounds of the USB device descriptor when parsing it, which coul
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_X.c (conf=85)
+    The code snippet provided does not show the actual descriptor parsing logic, but based on the contex
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_Y.c (conf=85)
+    The code does not properly check the bounds of the portstatus and portchange variables when parsing 
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_Z.c (conf=95)
+    The code does not check the bounds of the descriptor buffer when parsing USB descriptors. This could
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_[.c (conf=85)
+    The code does not check the bounds of the descriptor parsing, which could lead to out-of-bounds read
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_\.c (conf=90)
+    The code does not check the bounds of the descriptor data being parsed, which could lead to an out-o
+  [CRITICAL] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_].c (conf=95)
+    The code does not properly check the bounds of the USB descriptor when parsing it, which could lead 
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_^.c (conf=85)
+    The code reads the device's device descriptor without validating the size of the buffer, which could
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub__.c (conf=90)
+    The code attempts to read the device descriptor to determine the ep0 maxpacket size, but it does not
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_hub_`.c (conf=95)
+    The code attempts to read 64 bytes of the device descriptor with `get_bMaxPacketSize0` which may exc
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_message_A.c (conf=95)
+    The code does not check the bounds of the descriptor buffer when parsing USB descriptors. This could
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_message_B.c (conf=95)
+    The function usb_control_msg_recv does not check if the amount of data received matches the expected
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_message_C.c (conf=95)
+    The code does not check if the length of the data to be sent is within the bounds of the endpoint's 
+  [CRITICAL] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_message_D.c (conf=95)
+    The code does not properly check the endpoint transfer type before using the `usb_fill_int_urb` or `
+  [HIGH] NULL Pointer Dereference @ drivers_usb_core_message_E.c (conf=95)
+    The code attempts to dereference `urb->dev` which is set to NULL. This can lead to a crash if `urb` 
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_message_F.c (conf=95)
+    The usb_get_descriptor function does not check if the received descriptor size matches the expected 
+  [HIGH] Out-of-Bounds Read @ drivers_usb_core_message_G.c (conf=95)
+    The code attempts to read up to 255 bytes from the USB string descriptor without checking if the buf
+  [HIGH] Out-of-Bounds Read @ drivers_usb_core_message_H.c (conf=95)
+    The usb_get_descriptor() function reads a USB descriptor into the 'desc' buffer. If the return value
+  [CRITICAL] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_message_I.c (conf=95)
+    The code does not properly check the bounds of the endpoint descriptor when parsing, which could lea
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_message_J.c (conf=95)
+    The code does not check the bounds of the `interface` array when iterating over `dev->actconfig->des
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_message_K.c (conf=90)
+    The code does not properly check the bounds of the endpoint array when setting the streams to 0. If 
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_message_L.c (conf=85)
+    The code does not properly check the bounds of the USB configuration descriptor when resetting the d
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_message_M.c (conf=90)
+    The code does not properly check the bounds of the interface association descriptor (IAD) when parsi
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_message_N.c (conf=95)
+    The code does not properly check the bounds of the configuration descriptor array when searching for
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_message_O.c (conf=95)
+    The code does not properly check the bounds of the USB descriptor parsing, which could lead to an ou
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_message_P.c (conf=85)
+    The code does not properly check the buffer length before parsing USB descriptors, which can lead to
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_message_Q.c (conf=95)
+    The code does not properly check the length of the USB descriptor before casting it to a pointer, wh
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_quirks_A.c (conf=90)
+    The code does not properly check the bounds of the descriptor parsing loop, which could lead to an o
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_quirks_B.c (conf=90)
+    The code does not check the bounds of the USB descriptor data, which could lead to an out-of-bounds 
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_quirks_C.c (conf=90)
+    The code does not check the bounds of the USB descriptor when fetching the BOS (Basic OS) descriptor
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_quirks_D.c (conf=95)
+    The code does not properly check the bounds of the USB descriptor parsing, which could lead to an ou
+  [HIGH] Descriptor Parsing Out-of-Bounds @ drivers_usb_core_quirks_E.c (conf=95)
+    The usb_endpoint_is_ignored function may read past the end of the usb_endpoint_ignore array if the d

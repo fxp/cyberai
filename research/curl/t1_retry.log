@@ -1,0 +1,10 @@
+[10:33:00] RETRY lib/urlapi.c [parseurl] (7,000 chars, timeout=240s)...
+Scan failed for lib/urlapi.c [parseurl]: GLM API timeout after 240s
+  Done 241s — 0 findings
+  Error: GLM API timeout after 240s
+  [waiting 60s...]
+[10:38:02] RETRY lib/urlapi.c [parse_hostname_login+ipv6+hostname_check] (7,000 chars, timeout=240s)...
+Scan failed for lib/urlapi.c [parse_hostname_login+ipv6+hostname_check]: GLM API timeout after 240s
+  Done 241s — 0 findings
+  Error: GLM API timeout after 240s
+  [waiting 60s...]
