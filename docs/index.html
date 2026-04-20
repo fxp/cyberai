@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CyberAI — AI-Powered Security Research Platform</title>
+  <meta name="description" content="An AI-assisted security research platform for vulnerability discovery, red-blue adversarial research, and AI capability measurement." />
+  <style>
+    :root {
+      --bg:       #0a0c10;
+      --bg2:      #0f1117;
+      --bg3:      #161b22;
+      --border:   #21262d;
+      --green:    #39d353;
+      --cyan:     #58a6ff;
+      --orange:   #f78166;
+      --yellow:   #e3b341;
+      --text:     #e6edf3;
+      --text2:    #8b949e;
+      --text3:    #6e7681;
+      --red:      #ff6b6b;
+      --purple:   #a371f7;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'SF Pro Text', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(10, 12, 16, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 1.1rem; font-weight: 700; color: var(--green);
+      letter-spacing: 0.04em;
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--text2); font-weight: 400; }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a {
+      color: var(--text2); text-decoration: none; font-size: 0.875rem;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 80px 2rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 20%,
+        rgba(57, 211, 83, 0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 80% 80%,
+        rgba(88, 166, 255, 0.05) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: rgba(57, 211, 83, 0.1); border: 1px solid rgba(57, 211, 83, 0.3);
+      border-radius: 100px;
+      padding: 0.3rem 1rem; margin-bottom: 2rem;
+      font-size: 0.8rem; color: var(--green);
+      font-family: 'SF Mono', monospace;
+    }
+    .hero-badge::before { content: '●'; font-size: 0.6rem; animation: blink 1.5s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+    }
+    .hero h1 .accent { color: var(--green); }
+    .hero p {
+      font-size: 1.2rem; color: var(--text2);
+      max-width: 640px; margin: 0 auto 3rem;
+    }
+    .hero-cta { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.75rem 1.75rem; border-radius: 8px;
+      font-size: 0.925rem; font-weight: 600; text-decoration: none;
+      transition: all 0.2s; cursor: pointer; border: none;
+    }
+    .btn-primary {
+      background: var(--green); color: #0a0c10;
+    }
+    .btn-primary:hover { background: #46e360; transform: translateY(-1px); }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover { border-color: var(--text2); }
+
+    /* terminal demo */
+    .terminal {
+      margin: 4rem auto 0;
+      max-width: 700px; width: 100%;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+    }
+    .terminal-bar {
+      background: var(--bg3); padding: 0.75rem 1rem;
+      display: flex; align-items: center; gap: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot-red { background: #ff5f57; }
+    .dot-yellow { background: #febc2e; }
+    .dot-green { background: #28c840; }
+    .terminal-title {
+      flex: 1; text-align: center;
+      font-size: 0.75rem; color: var(--text3);
+      font-family: 'SF Mono', monospace;
+    }
+    .terminal-body {
+      padding: 1.5rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.82rem; line-height: 1.8;
+      color: var(--text);
+    }
+    .t-cmd { color: var(--green); }
+    .t-output { color: var(--text2); }
+    .t-warn { color: var(--orange); }
+    .t-success { color: var(--green); }
+    .t-info { color: var(--cyan); }
+    .t-yellow { color: var(--yellow); }
+    .t-prompt { color: var(--purple); }
+    .t-red { color: var(--red); }
+
+    /* ── STATS ── */
+    .stats {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1px; background: var(--border);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .stat {
+      background: var(--bg2); padding: 2rem 1.5rem; text-align: center;
+    }
+    .stat-num {
+      font-size: 2.5rem; font-weight: 800;
+      font-family: 'SF Mono', monospace;
+      color: var(--green); line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+    .stat-label { font-size: 0.8rem; color: var(--text2); }
+
+    /* ── SECTIONS ── */
+    section { padding: 6rem 2rem; max-width: 1200px; margin: 0 auto; }
+    .section-label {
+      font-family: 'SF Mono', monospace;
+      font-size: 0.75rem; color: var(--green);
+      letter-spacing: 0.1em; text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+    h2 {
+      font-size: clamp(1.8rem, 4vw, 2.75rem);
+      font-weight: 800; letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .section-desc {
+      font-size: 1.05rem; color: var(--text2);
+      max-width: 600px; margin-bottom: 3.5rem;
+    }
+
+    /* ── ARCHITECTURE GRID ── */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    .arch-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.75rem;
+      transition: border-color 0.2s, transform 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .arch-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: var(--card-color, var(--green));
+    }
+    .arch-card:hover {
+      border-color: var(--text3);
+      transform: translateY(-2px);
+    }
+    .arch-card-num {
+      font-family: 'SF Mono', monospace;
+      font-size: 0.7rem; color: var(--text3);
+      margin-bottom: 0.75rem;
+    }
+    .arch-card h3 {
+      font-size: 1rem; font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .arch-card p {
+      font-size: 0.875rem; color: var(--text2); line-height: 1.6;
+    }
+    .arch-card .tag-row {
+      display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1rem;
+    }
+    .tag {
+      font-size: 0.72rem; font-family: 'SF Mono', monospace;
+      padding: 0.2rem 0.55rem; border-radius: 4px;
+      background: rgba(255,255,255,0.06);
+      color: var(--text2); border: 1px solid var(--border);
+    }
+
+    /* ── FINDINGS ── */
+    .findings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.5rem;
+    }
+    .finding-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.5rem;
+      transition: border-color 0.2s;
+    }
+    .finding-card:hover { border-color: var(--text3); }
+    .finding-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 1rem; gap: 1rem;
+    }
+    .finding-id {
+      font-family: 'SF Mono', monospace;
+      font-size: 0.75rem; color: var(--text3);
+    }
+    .severity-badge {
+      font-size: 0.7rem; font-weight: 700;
+      font-family: 'SF Mono', monospace;
+      padding: 0.2rem 0.6rem; border-radius: 4px;
+      white-space: nowrap;
+    }
+    .sev-critical { background: rgba(255, 107, 107, 0.15); color: var(--red); border: 1px solid rgba(255,107,107,0.3); }
+    .sev-high     { background: rgba(247,129,102,0.15); color: var(--orange); border: 1px solid rgba(247,129,102,0.3); }
+    .sev-medium   { background: rgba(227,179,65,0.15); color: var(--yellow); border: 1px solid rgba(227,179,65,0.3); }
+    .sev-low      { background: rgba(139,148,158,0.15); color: var(--text2); border: 1px solid rgba(139,148,158,0.3); }
+
+    .finding-card h3 {
+      font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem;
+    }
+    .finding-card p {
+      font-size: 0.85rem; color: var(--text2); line-height: 1.6; margin-bottom: 0.75rem;
+    }
+    .finding-meta {
+      display: flex; gap: 1rem;
+      font-size: 0.75rem; color: var(--text3); font-family: 'SF Mono', monospace;
+    }
+    .finding-meta span { display: flex; align-items: center; gap: 0.3rem; }
+    .dot-status {
+      width: 6px; height: 6px; border-radius: 50%;
+      display: inline-block;
+    }
+    .status-reported { background: var(--yellow); }
+    .status-ongoing  { background: var(--cyan); }
+    .status-confirmed{ background: var(--orange); }
+
+    /* ── PIPELINE ── */
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+    .pipeline-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.5rem;
+    }
+    .pipeline-letter {
+      width: 40px; height: 40px;
+      background: rgba(57, 211, 83, 0.1); border: 1px solid rgba(57, 211, 83, 0.3);
+      border-radius: 8px;
+      font-family: 'SF Mono', monospace;
+      font-size: 1.1rem; font-weight: 800; color: var(--green);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1rem;
+    }
+    .pipeline-card h3 {
+      font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem;
+    }
+    .pipeline-card p { font-size: 0.85rem; color: var(--text2); line-height: 1.6; }
+
+    /* ── PHASE2 TARGETS ── */
+    .targets-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    .targets-table thead tr {
+      border-bottom: 1px solid var(--border);
+    }
+    .targets-table th {
+      text-align: left; padding: 0.75rem 1rem;
+      font-size: 0.75rem; color: var(--text3);
+      font-family: 'SF Mono', monospace;
+      letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    .targets-table td {
+      padding: 0.9rem 1rem;
+      border-bottom: 1px solid rgba(33,38,45,0.5);
+      color: var(--text2);
+    }
+    .targets-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .targets-table td:first-child { color: var(--text); font-weight: 600; }
+    .priority-p0 { color: var(--red); font-family: monospace; font-size: 0.8rem; }
+    .priority-p1 { color: var(--orange); font-family: monospace; font-size: 0.8rem; }
+    .priority-p2 { color: var(--yellow); font-family: monospace; font-size: 0.8rem; }
+
+    /* ── CTA ── */
+    .cta-section {
+      text-align: center;
+      padding: 6rem 2rem;
+      border-top: 1px solid var(--border);
+      background: var(--bg2);
+    }
+    .cta-section h2 { margin-bottom: 1rem; }
+    .cta-section p { color: var(--text2); margin-bottom: 2rem; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      font-size: 0.8rem; color: var(--text3);
+    }
+    footer a { color: var(--text2); text-decoration: none; }
+    footer a:hover { color: var(--text); }
+    .footer-row { display: flex; justify-content: center; gap: 2rem; margin-top: 0.75rem; flex-wrap: wrap; }
+
+    /* ── DIVIDER ── */
+    .full-bleed {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── UTIL ── */
+    .text-mono { font-family: 'SF Mono', 'Fira Code', monospace; }
+    .text-green { color: var(--green); }
+    .text-cyan  { color: var(--cyan); }
+    .text-orange{ color: var(--orange); }
+
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .hero h1 { font-size: 2rem; }
+      section { padding: 4rem 1.25rem; }
+      .targets-table { font-size: 0.8rem; }
+      .targets-table th, .targets-table td { padding: 0.65rem 0.6rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <a href="#" class="nav-logo">CyberAI<span>.research</span></a>
+  <div class="nav-links">
+    <a href="#architecture">Architecture</a>
+    <a href="#findings">Findings</a>
+    <a href="#methodology">Methodology</a>
+    <a href="#phase2">Phase 2</a>
+    <a href="https://github.com/fxp/cyberai" target="_blank">GitHub ↗</a>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-badge">ACTIVE RESEARCH &nbsp;·&nbsp; PHASE 2 SCANNING</div>
+  <h1>
+    AI-Powered<br/>
+    <span class="accent">Security Research</span><br/>
+    Platform
+  </h1>
+  <p>
+    A systematic platform for AI-assisted vulnerability discovery,
+    red-blue adversarial research, and security capability measurement —
+    built on large language models and automated exploit pipelines.
+  </p>
+  <div class="hero-cta">
+    <a href="#findings" class="btn btn-primary">View Findings ↓</a>
+    <a href="https://github.com/fxp/cyberai" class="btn btn-outline" target="_blank">GitHub →</a>
+  </div>
+
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="dot dot-red"></div>
+      <div class="dot dot-yellow"></div>
+      <div class="dot dot-green"></div>
+      <div class="terminal-title">scan_phase2.py — GLM-4-flash · Carlini Pipeline A</div>
+    </div>
+    <div class="terminal-body">
+<span class="t-prompt">$</span> <span class="t-cmd">python3 scan_phase2.py linux_bpf</span><br/>
+<span class="t-info">🔍 Target: linux_bpf (325 extracts)</span><br/>
+<span class="t-info">📌 Focus: container escape, eBPF verifier bypass, OOB map access...</span><br/>
+<br/>
+<span class="t-output">  [  1/325] verifier.c_extract_001.c </span><span class="t-success">✓</span><br/>
+<span class="t-output">  [  2/325] verifier.c_extract_002.c </span><span class="t-warn">🚨</span><br/>
+<span class="t-output">  [  3/325] syscall.c_extract_001.c  </span><span class="t-success">✓</span><br/>
+<span class="t-output">  [  4/325] btf.c_extract_001.c      </span><span class="t-success">✓</span><br/>
+<span class="t-output">  [  5/325] core.c_extract_001.c     </span><span class="t-warn">🚨</span><br/>
+<span class="t-output">  ...</span><br/>
+<br/>
+<span class="t-info">════════════════════════════════════════════════════</span><br/>
+<span class="t-success">✅ Done: 12 findings, 280 clean, 3 errors</span><br/>
+<span class="t-yellow">🔴 High-confidence findings (5):</span><br/>
+<span class="t-output">  [HIGH] OOB map access @ verifier.c_extract_002.c (conf=85)</span><br/>
+<span class="t-output">  [HIGH] register range imprecision @ core.c_extract_001.c (conf=82)</span><br/>
+    </div>
+  </div>
+</div>
+
+<!-- ── STATS ── -->
+<div class="stats">
+  <div class="stat">
+    <div class="stat-num">8</div>
+    <div class="stat-label">Targets Scanned</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">1,900+</div>
+    <div class="stat-label">Code Extracts</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">1</div>
+    <div class="stat-label">Confirmed CVE Candidate</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">7</div>
+    <div class="stat-label">Platform Subsystems</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">5.3</div>
+    <div class="stat-label">Highest CVSS Score</div>
+  </div>
+</div>
+
+<!-- ── ARCHITECTURE ── -->
+<section id="architecture">
+  <div class="section-label">// 01 · PLATFORM</div>
+  <h2>Seven-Subsystem Architecture</h2>
+  <p class="section-desc">
+    A full-stack security research platform spanning vulnerability discovery,
+    sandboxed evaluation, supply chain protection, adversarial red-blue engines,
+    and AI capability measurement.
+  </p>
+  <div class="arch-grid">
+
+    <div class="arch-card" style="--card-color: var(--cyan);">
+      <div class="arch-card-num">SUBSYSTEM 01</div>
+      <h3>Model Abstraction Layer</h3>
+      <p>Unified <code>SecurityAgent</code> interface decoupled from any single LLM.
+         Supports Claude, GPT, Qwen, DeepSeek, and local models via vLLM/Ollama.
+         Per-experiment token budget and cost tracking.</p>
+      <div class="tag-row">
+        <span class="tag">Claude API</span>
+        <span class="tag">OpenAI</span>
+        <span class="tag">GLM-4</span>
+        <span class="tag">vLLM</span>
+        <span class="tag">Cost Tracking</span>
+      </div>
+    </div>
+
+    <div class="arch-card" style="--card-color: var(--green);">
+      <div class="arch-card-num">SUBSYSTEM 02</div>
+      <h3>Vulnerability Discovery Engine</h3>
+      <p>Four scanning pipelines: Carlini-style file scanning (Pipeline A),
+         containerized full-project analysis (B), fuzzer crash triage &amp; exploit
+         development (C), and N-day CVE automation (D).</p>
+      <div class="tag-row">
+        <span class="tag">Pipeline A-D</span>
+        <span class="tag">GLM-4-flash</span>
+        <span class="tag">Triage</span>
+        <span class="tag">Exploit Dev</span>
+      </div>
+    </div>
+
+    <div class="arch-card" style="--card-color: var(--purple);">
+      <div class="arch-card-num">SUBSYSTEM 03</div>
+      <h3>Sandboxed Evaluation Environment</h3>
+      <p>Three-tier target range: single-container app targets (L1), enterprise
+         multi-segment networks (L2), and OT/ICS critical infrastructure simulation (L3).
+         Full network isolation on all attack containers.</p>
+      <div class="tag-row">
+        <span class="tag">Docker</span>
+        <span class="tag">QEMU/KVM</span>
+        <span class="tag">Air-gapped</span>
+        <span class="tag">L1–L3 Range</span>
+      </div>
+    </div>
+
+    <div class="arch-card" style="--card-color: var(--orange);">
+      <div class="arch-card-num">SUBSYSTEM 04</div>
+      <h3>Supply Chain Security</h3>
+      <p>Slopsquatting hallucination detection — cross-reference AI-recommended
+         packages against real registries. Behavioral sandbox analysis for newly
+         registered packages. Agent dependency install interception.</p>
+      <div class="tag-row">
+        <span class="tag">Slopsquatting</span>
+        <span class="tag">npm / pip</span>
+        <span class="tag">Behavior Analysis</span>
+        <span class="tag">Install Hook</span>
+      </div>
+    </div>
+
+    <div class="arch-card" style="--card-color: var(--yellow);">
+      <div class="arch-card-num">SUBSYSTEM 05</div>
+      <h3>Agent Behavior Monitor</h3>
+      <p>12-class anomaly detection covering sandbox escape attempts, credential
+         search, deceptive output, evaluator injection, git history tampering,
+         and evaluation-awareness signals. Three-tier alert system.</p>
+      <div class="tag-row">
+        <span class="tag">12 Anomaly Classes</span>
+        <span class="tag">Escape Detection</span>
+        <span class="tag">3-Tier Alerts</span>
+      </div>
+    </div>
+
+    <div class="arch-card" style="--card-color: var(--red);">
+      <div class="arch-card-num">SUBSYSTEM 06</div>
+      <h3>Red-Blue Adversarial Engine</h3>
+      <p>Autonomous red-team agents (OODA-loop situational awareness, multi-agent
+         squad tactics) vs. blue-team agents (kernel hot-patch via kpatch/eBPF,
+         SDN dynamic network defense, moving target defense). 10 adversarial scenarios.</p>
+      <div class="tag-row">
+        <span class="tag">Red Agent</span>
+        <span class="tag">Blue Agent</span>
+        <span class="tag">kpatch / eBPF</span>
+        <span class="tag">SDN / OpenFlow</span>
+        <span class="tag">MTD</span>
+      </div>
+    </div>
+
+    <div class="arch-card" style="--card-color: var(--green); grid-column: span 1;">
+      <div class="arch-card-num">SUBSYSTEM 07</div>
+      <h3>Security Capability Tracker</h3>
+      <p>Multi-dimensional benchmark tracking across models: CyberGym score,
+         crash triage accuracy, N-day exploit rate, cost-per-vulnerability.
+         Doubling-time measurement and capability emergence detection.</p>
+      <div class="tag-row">
+        <span class="tag">CyberGym</span>
+        <span class="tag">Doubling Time</span>
+        <span class="tag">Emergence Detection</span>
+        <span class="tag">Model Comparison</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── FINDINGS ── -->
+<div class="full-bleed">
+<section id="findings" style="max-width:1200px; margin:0 auto;">
+  <div class="section-label">// 02 · RESULTS</div>
+  <h2>Research Findings</h2>
+  <p class="section-desc">
+    Phase 1 scanning covered 8 open-source targets. Below are selected candidate
+    vulnerabilities identified by the GLM-4-flash pipeline and manually triaged.
+    All upstream disclosures follow a 90-day coordinated policy.
+  </p>
+  <div class="findings-grid">
+
+    <div class="finding-card">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">CAND-008 · Mosquitto 2.0.21</div>
+          <h3>MQTT 5.0 Property Length Integer Underflow</h3>
+        </div>
+        <span class="severity-badge sev-medium">MEDIUM · 5.3</span>
+      </div>
+      <p>
+        <code>uint32_t proplen</code> underflow in <code>property__read()</code>:
+        a declared <code>property_length=1</code> with a 2-byte property causes
+        <code>0 - 1 = 0xFFFFFFFF</code>, triggering unbounded iteration over all
+        remaining packet bytes — one 48-byte heap allocation per 2 bytes consumed.
+        Exploitable via both CONNECT (pre-auth) and PUBLISH vectors. At 50 concurrent
+        attackers × 5 MB packets: 20× mean / 33× P99 latency increase for legitimate
+        clients.
+      </p>
+      <div class="finding-meta">
+        <span><span class="dot-status status-reported"></span>Disclosed to upstream</span>
+        <span>CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L</span>
+      </div>
+    </div>
+
+    <div class="finding-card">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">CAND-005 · ImageMagick 7.1.2</div>
+          <h3>HeapOverflowSanityCheck Wrong Parameter</h3>
+        </div>
+        <span class="severity-badge sev-high">HIGH</span>
+      </div>
+      <p>
+        In TIFF decoder tiling path: <code>HeapOverflowSanityCheck(rows,
+        sizeof(*tile_pixels))</code> passes <code>rows</code> instead of
+        the full tile size. The check may pass while the subsequent allocation
+        is undersized, leading to an out-of-bounds write during tile pixel
+        aggregation. Triggered by crafted multi-strip TIFF files.
+      </p>
+      <div class="finding-meta">
+        <span><span class="dot-status status-ongoing"></span>Under analysis</span>
+        <span>ImageMagick · coders/tiff.c</span>
+      </div>
+    </div>
+
+    <div class="finding-card">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">CAND-006/007 · Mosquitto 2.0.21</div>
+          <h3>Persistence File Parsing Underflow</h3>
+        </div>
+        <span class="severity-badge sev-medium">MEDIUM</span>
+      </div>
+      <p>
+        Two candidate underflow conditions in the Mosquitto persistence file
+        (<code>.db</code>) parsing path, potentially triggering local denial-of-service
+        when the broker restarts and reads a malformed state file.
+        Deeper analysis pending to confirm exploitability and impact scope.
+      </p>
+      <div class="finding-meta">
+        <span><span class="dot-status status-ongoing"></span>Deep analysis pending</span>
+        <span>Mosquitto · persist/read.c</span>
+      </div>
+    </div>
+
+    <div class="finding-card">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">Phase 2 · Linux Kernel</div>
+          <h3>eBPF / KVM / USB Scan in Progress</h3>
+        </div>
+        <span class="severity-badge sev-critical">CRITICAL ·  P0</span>
+      </div>
+      <p>
+        Phase 2 scans targeting Linux 6.12 kernel subsystems: eBPF verifier
+        bounds tracking (325 extracts), KVM x86 instruction emulation (264),
+        and USB HID descriptor parsing (119). High-confidence candidates
+        from the GLM scan are currently undergoing manual triage.
+      </p>
+      <div class="finding-meta">
+        <span><span class="dot-status status-confirmed"></span>Scanning active</span>
+        <span>kernel/bpf · virt/kvm · drivers/usb</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+</div>
+
+<!-- ── METHODOLOGY ── -->
+<section id="methodology">
+  <div class="section-label">// 03 · METHODOLOGY</div>
+  <h2>Scanning Methodology</h2>
+  <p class="section-desc">
+    Four automated pipelines cover the full spectrum from lightweight per-file
+    scanning to containerized end-to-end exploit development.
+  </p>
+  <div class="pipeline-grid">
+    <div class="pipeline-card">
+      <div class="pipeline-letter">A</div>
+      <h3>Carlini File Scanning</h3>
+      <p>Extract 5,000-char segments from C/C++ source files. Feed each segment
+         to an LLM with a security-focused CTF prompt. Confidence threshold at 70%.
+         Rate-limited at 20 s/call to respect API quotas. Results written to JSONL.</p>
+    </div>
+    <div class="pipeline-card">
+      <div class="pipeline-letter">B</div>
+      <h3>Containerized Full-Project</h3>
+      <p>Air-gapped Docker container with full source + compiled binary + toolchain.
+         Agent autonomously builds, runs, debugs, and writes findings to <code>/output</code>.
+         Up to 1M token budget per target, 1-hour time limit.</p>
+    </div>
+    <div class="pipeline-card">
+      <div class="pipeline-letter">C</div>
+      <h3>Fuzzer Crash Triage</h3>
+      <p>Triage OSS-Fuzz or custom fuzzer output. Agent classifies crashes into
+         5 tiers (0.0–1.0): from basic crash through controlled crash, info leak,
+         partial control-flow hijack, to full RCE. Develop exploit primitives
+         for tier-4/5 bugs.</p>
+    </div>
+    <div class="pipeline-card">
+      <div class="pipeline-letter">D</div>
+      <h3>N-day CVE Automation</h3>
+      <p>Given a list of public CVEs, agent selects exploitable candidates,
+         builds the affected binary version in QEMU, develops an exploit,
+         and reports success rate and cost per successful exploit.
+         Baseline: &lt;$2,000 per Linux kernel exploit.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── PHASE 2 TARGETS ── -->
+<div class="full-bleed">
+<section id="phase2" style="max-width:1200px; margin:0 auto;">
+  <div class="section-label">// 04 · PHASE 2</div>
+  <h2>Phase 2 Target Coverage</h2>
+  <p class="section-desc">
+    Deep scanning of six high-priority attack surfaces representing real-world
+    threat scenarios: container escape, hypervisor escape, USB driver crash,
+    and supply-chain attacks.
+  </p>
+
+  <table class="targets-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Target</th>
+        <th>Version</th>
+        <th>Threat Scenario</th>
+        <th>Extracts</th>
+        <th>Priority</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="text-mono text-green">01</td>
+        <td>Linux kernel / eBPF</td>
+        <td class="text-mono">6.12</td>
+        <td>Container escape via eBPF verifier bypass</td>
+        <td class="text-mono">325</td>
+        <td><span class="priority-p0">P0 🔴</span></td>
+      </tr>
+      <tr>
+        <td class="text-mono text-green">02</td>
+        <td>Linux kernel / KVM</td>
+        <td class="text-mono">6.12</td>
+        <td>VM guest-to-host escape via hypercall OOB</td>
+        <td class="text-mono">264</td>
+        <td><span class="priority-p0">P0 🔴</span></td>
+      </tr>
+      <tr>
+        <td class="text-mono text-green">03</td>
+        <td>Linux kernel / USB HID</td>
+        <td class="text-mono">6.12</td>
+        <td>Kernel crash on USB device connect (probe RCE)</td>
+        <td class="text-mono">119</td>
+        <td><span class="priority-p1">P1 🟠</span></td>
+      </tr>
+      <tr>
+        <td class="text-mono text-green">04</td>
+        <td>ImageMagick</td>
+        <td class="text-mono">7.1.2-19</td>
+        <td>OOB read/write — open file → crash/RCE</td>
+        <td class="text-mono">514</td>
+        <td><span class="priority-p1">P1 🟠</span></td>
+      </tr>
+      <tr>
+        <td class="text-mono text-green">05</td>
+        <td>Poppler</td>
+        <td class="text-mono">26.04.0</td>
+        <td>PDF parsing DoS / integer overflow / RCE</td>
+        <td class="text-mono">359</td>
+        <td><span class="priority-p2">P2 🟡</span></td>
+      </tr>
+      <tr>
+        <td class="text-mono text-green">06</td>
+        <td>libxml2</td>
+        <td class="text-mono">2.13.5</td>
+        <td>Supply chain: embedded in PHP, Python, Ruby, Node.js</td>
+        <td class="text-mono">~200</td>
+        <td><span class="priority-p2">P2 🟡</span></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+</div>
+
+<!-- ── CTA ── -->
+<div class="cta-section">
+  <div class="section-label" style="text-align:center; margin-bottom:1rem;">// OPEN SOURCE</div>
+  <h2>Built in the Open</h2>
+  <p>
+    All scanning infrastructure, triage methodology, and (post-disclosure)
+    vulnerability analysis are published on GitHub under a coordinated
+    disclosure policy. Contributions and collaboration welcome.
+  </p>
+  <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+    <a href="https://github.com/fxp/cyberai" class="btn btn-primary" target="_blank">
+      View on GitHub →
+    </a>
+    <a href="mailto:fxp007@gmail.com" class="btn btn-outline">
+      Contact Research Team
+    </a>
+  </div>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div>CyberAI Security Research &nbsp;·&nbsp; 2026</div>
+  <div class="footer-row">
+    <a href="https://github.com/fxp/cyberai" target="_blank">GitHub</a>
+    <a href="mailto:fxp007@gmail.com">Contact</a>
+    <span>Coordinated Disclosure Policy: 90 days</span>
+  </div>
+  <div style="margin-top:0.75rem; font-size:0.72rem;">
+    All vulnerability research conducted in isolated sandbox environments.
+    Upstream vendors notified before public disclosure.
+  </div>
+</footer>
+
+</body>
+</html>
