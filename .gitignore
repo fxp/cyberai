@@ -30,3 +30,4 @@ Thumbs.db
 
 # Docker
 docker-compose.override.yml
+targets/linux-6.12-sparse/
