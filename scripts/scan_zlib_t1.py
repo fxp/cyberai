@@ -98,7 +98,7 @@ async def main():
 
     import os
     from cyberai.models.glm import GLMAdapter
-    api_key = os.environ.get("GLM_API_KEY", "GLM_KEY_REMOVED")
+    api_key = os.environ.get("GLM_API_KEY", "")
     agent = GLMAdapter(model_name="glm-5.1", api_key=api_key)
 
     results = []
