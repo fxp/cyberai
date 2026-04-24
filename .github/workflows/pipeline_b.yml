@@ -1,0 +1,232 @@
+name: Pipeline B — Agentic Scan (VIDOC-style)
+
+# Pipeline B 改进点（对标 VIDOC 方法论）：
+#   1. 模型可调用工具查看任意文件（解决 Pipeline A 的上下文隔离问题）
+#   2. 两步流程：先规划切块，再按块并行检测
+#   3. 使用更强模型（Claude Opus / GLM-5.1 工具调用模式）
+#   4. 支持自定义目标 repo（不限于预置 extracts）
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_repo:
+        description: "目标 repo URL（例：https://github.com/eclipse/mosquitto）"
+        required: true
+      target_ref:
+        description: "Tag / branch / commit（默认 HEAD）"
+        required: false
+        default: "HEAD"
+      target_paths:
+        description: "只扫这些路径，逗号分隔（留空=全部.c/.cc）"
+        required: false
+        default: ""
+      model:
+        description: "使用模型"
+        required: false
+        type: choice
+        default: "claude-opus-4-6"
+        options:
+          - claude-opus-4-6
+          - glm-5.1
+          - gpt-5.4
+      max_files:
+        description: "最多扫描文件数"
+        required: false
+        default: "50"
+
+jobs:
+  # ── Step 1: Clone & plan ──────────────────────────────────────
+  plan:
+    name: Clone target & generate scan plan
+    runs-on: ubuntu-latest
+    outputs:
+      file_matrix: ${{ steps.planner.outputs.matrix }}
+      total_files: ${{ steps.planner.outputs.total }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e .
+
+      - name: Clone target repo
+        run: |
+          git clone --depth=1 \
+            ${{ github.event.inputs.target_repo }} /tmp/target
+          cd /tmp/target && git checkout ${{ github.event.inputs.target_ref }} || true
+
+      - name: Generate file scan plan
+        id: planner
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GLM_API_KEY: ${{ secrets.GLM_API_KEY }}
+          TARGET_PATHS: ${{ github.event.inputs.target_paths }}
+          MAX_FILES: ${{ github.event.inputs.max_files }}
+          MODEL: ${{ github.event.inputs.model }}
+        run: |
+          python scripts/pipeline_b_plan.py \
+            --target /tmp/target \
+            --max-files "$MAX_FILES" \
+            --paths "$TARGET_PATHS" \
+            --model "$MODEL" \
+            --output /tmp/scan_plan.json
+          # 输出 JSON matrix 供后续 job 使用
+          MATRIX=$(python -c "
+          import json
+          plan = json.load(open('/tmp/scan_plan.json'))
+          files = plan['files'][:int('$MAX_FILES')]
+          chunks = [files[i:i+5] for i in range(0, len(files), 5)]
+          print(json.dumps({'chunk': [{'id': i, 'files': c} for i, c in enumerate(chunks)]}))
+          ")
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          echo "total=$(python -c "import json; print(len(json.load(open('/tmp/scan_plan.json'))['files']))")" >> $GITHUB_OUTPUT
+
+      - name: Upload scan plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-plan
+          path: /tmp/scan_plan.json
+
+  # ── Step 2: Parallel detection (1 job per 5-file chunk) ──────
+  detect:
+    name: Detect chunk ${{ matrix.chunk.id }}
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      matrix: ${{ fromJson(needs.plan.outputs.file_matrix) }}
+      fail-fast: false
+      max-parallel: 8  # 最多 8 个并行 job
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e .
+
+      - name: Clone target repo
+        run: |
+          git clone --depth=1 \
+            ${{ github.event.inputs.target_repo }} /tmp/target
+          cd /tmp/target && git checkout ${{ github.event.inputs.target_ref }} || true
+
+      - name: Download scan plan
+        uses: actions/download-artifact@v4
+        with:
+          name: scan-plan
+          path: /tmp/
+
+      - name: Run agentic detection
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GLM_API_KEY: ${{ secrets.GLM_API_KEY }}
+          MODEL: ${{ github.event.inputs.model }}
+          CHUNK_FILES: ${{ toJson(matrix.chunk.files) }}
+          CHUNK_ID: ${{ matrix.chunk.id }}
+        run: |
+          python scripts/pipeline_b_detect.py \
+            --target /tmp/target \
+            --files "$CHUNK_FILES" \
+            --model "$MODEL" \
+            --output results/chunk_${{ matrix.chunk.id }}.jsonl
+
+      - name: Upload chunk results
+        uses: actions/upload-artifact@v4
+        with:
+          name: chunk-${{ matrix.chunk.id }}
+          path: results/chunk_${{ matrix.chunk.id }}.jsonl
+
+  # ── Step 3: Aggregate & verify ───────────────────────────────
+  aggregate:
+    name: Aggregate results & second-pass verify
+    needs: detect
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e ".[aliyun]"
+
+      - name: Download all chunk results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: chunk-*
+          merge-multiple: true
+          path: results/
+
+      - name: Merge & verify top candidates
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GLM_API_KEY: ${{ secrets.GLM_API_KEY }}
+          MODEL: ${{ github.event.inputs.model }}
+        run: |
+          python scripts/verify_candidates.py \
+            --input-dir results/ \
+            --model "$MODEL" \
+            --output results/verified.jsonl
+
+      - name: Generate triage report
+        run: |
+          python scripts/process_scan_results.py \
+            --input results/verified.jsonl \
+            --output results/triage_report.md \
+            --target "${{ github.event.inputs.target_repo }}"
+
+      - name: Upload final results
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-b-results-${{ github.run_id }}
+          path: results/
+          retention-days: 90
+
+      - name: Push results to OSS
+        if: always()
+        env:
+          ALIYUN_ACCESS_KEY_ID: ${{ secrets.ALIYUN_ACCESS_KEY_ID }}
+          ALIYUN_ACCESS_KEY_SECRET: ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }}
+          ALIYUN_OSS_BUCKET: ${{ secrets.ALIYUN_OSS_BUCKET }}
+        run: |
+          python - <<'EOF'
+          import oss2, os, glob, pathlib
+          auth = oss2.Auth(
+              os.environ["ALIYUN_ACCESS_KEY_ID"],
+              os.environ["ALIYUN_ACCESS_KEY_SECRET"]
+          )
+          bucket = oss2.Bucket(auth, "https://oss-us-west-1.aliyuncs.com",
+                               os.environ["ALIYUN_OSS_BUCKET"])
+          run_id = os.environ.get("GITHUB_RUN_ID", "unknown")
+          repo = os.environ.get("GITHUB_REPOSITORY", "unknown")
+          for f in glob.glob("results/**/*", recursive=True):
+              if pathlib.Path(f).is_file():
+                  key = f"pipeline-b/{run_id}/{pathlib.Path(f).name}"
+                  bucket.put_object_from_file(key, f)
+                  print(f"uploaded: {key}")
+          EOF
+
+      - name: Print triage summary
+        run: |
+          echo "## Pipeline B Scan Complete" >> $GITHUB_STEP_SUMMARY
+          echo "- Target: ${{ github.event.inputs.target_repo }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Model: ${{ github.event.inputs.model }}" >> $GITHUB_STEP_SUMMARY
+          if [ -f results/triage_report.md ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            cat results/triage_report.md >> $GITHUB_STEP_SUMMARY
+          fi

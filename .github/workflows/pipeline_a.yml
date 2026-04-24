@@ -1,0 +1,101 @@
+name: Pipeline A — GLM Batch Scan
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "扫描目标 (linux_bpf / linux_kvm / poppler / libxml2 / custom)"
+        required: true
+        type: choice
+        options:
+          - linux_bpf
+          - linux_kvm
+          - linux_usb
+          - imagemagick
+          - poppler
+          - libxml2
+      target_repo:
+        description: "自定义目标 repo URL（target=custom 时填写）"
+        required: false
+      confidence_threshold:
+        description: "最低置信度（0-100）"
+        required: false
+        default: "80"
+  schedule:
+    # 每周一 UTC 02:00 自动扫描（可按需调整）
+    - cron: "0 2 * * 1"
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  scan:
+    name: Scan ${{ github.event.inputs.target || 'scheduled' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e ".[aliyun]"
+
+      - name: Run Pipeline A scan
+        env:
+          GLM_API_KEY: ${{ secrets.GLM_API_KEY }}
+          TARGET: ${{ github.event.inputs.target }}
+          CONFIDENCE_THRESHOLD: ${{ github.event.inputs.confidence_threshold }}
+        run: |
+          python scripts/scan_phase2.py \
+            --target "$TARGET" \
+            --confidence "$CONFIDENCE_THRESHOLD" \
+            --output-dir results/
+
+      - name: Upload results as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-a-${{ github.event.inputs.target }}-${{ github.run_id }}
+          path: results/
+          retention-days: 30
+
+      - name: Push results to OSS
+        if: always()
+        env:
+          ALIYUN_ACCESS_KEY_ID: ${{ secrets.ALIYUN_ACCESS_KEY_ID }}
+          ALIYUN_ACCESS_KEY_SECRET: ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }}
+          ALIYUN_OSS_BUCKET: ${{ secrets.ALIYUN_OSS_BUCKET }}
+        run: |
+          pip install oss2
+          python - <<'EOF'
+          import oss2, os, glob, pathlib
+          auth = oss2.Auth(
+              os.environ["ALIYUN_ACCESS_KEY_ID"],
+              os.environ["ALIYUN_ACCESS_KEY_SECRET"]
+          )
+          bucket = oss2.Bucket(auth, "https://oss-us-west-1.aliyuncs.com",
+                               os.environ["ALIYUN_OSS_BUCKET"])
+          run_id = os.environ.get("GITHUB_RUN_ID", "unknown")
+          target = os.environ.get("TARGET", "unknown")
+          for f in glob.glob("results/**/*.jsonl", recursive=True):
+              key = f"raw/{target}/{run_id}/{pathlib.Path(f).name}"
+              bucket.put_object_from_file(key, f)
+              print(f"uploaded: {key}")
+          EOF
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Pipeline A Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Target: ${{ github.event.inputs.target }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Run ID: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          if [ -f results/*.jsonl ]; then
+            COUNT=$(cat results/*.jsonl | wc -l)
+            echo "- Findings: $COUNT" >> $GITHUB_STEP_SUMMARY
+          fi

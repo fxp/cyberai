@@ -31,3 +31,16 @@ Thumbs.db
 # Docker
 docker-compose.override.yml
 targets/linux-6.12-sparse/
+
+# Terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/terraform.tfvars
+/tmp/cyberai-github-actions-ak.json
+
+# Research data (large binaries / extracted source — not for git)
+targets/
+scripts/extracts/
+research/**/*.jsonl
