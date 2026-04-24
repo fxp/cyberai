@@ -33,7 +33,7 @@ dev = [
     "ruff>=0.6.0",
 ]
 aliyun = [
-    "alibabacloud-eci20180808>=3.0.0",
+    "alibabacloud-eci20180808>=2.0.0",
     "alibabacloud-tea-openapi>=0.3.0",
 ]
 
