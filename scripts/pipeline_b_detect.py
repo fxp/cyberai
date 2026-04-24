@@ -344,7 +344,7 @@ def main():
     parser = argparse.ArgumentParser(description="Pipeline B agentic detector")
     parser.add_argument("--target", required=True, help="Target repo path")
     parser.add_argument("--files", required=True, help="JSON array of file paths to scan")
-    parser.add_argument("--model", default="claude-opus-4-6")
+    parser.add_argument("--model", default="glm-4-plus")
     parser.add_argument("--output", required=True, help="Output JSONL path")
     args = parser.parse_args()
 

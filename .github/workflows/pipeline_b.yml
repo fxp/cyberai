@@ -3,7 +3,7 @@ name: Pipeline B — Agentic Scan (VIDOC-style)
 # Pipeline B 改进点（对标 VIDOC 方法论）：
 #   1. 模型可调用工具查看任意文件（解决 Pipeline A 的上下文隔离问题）
 #   2. 两步流程：先规划切块，再按块并行检测
-#   3. 使用更强模型（Claude Opus / GLM-5.1 工具调用模式）
+#   3. 使用更强模型（glm-4-plus 工具调用模式 / glm-z1-flash 推理模式）
 #   4. 支持自定义目标 repo（不限于预置 extracts）
 
 on:
@@ -24,11 +24,12 @@ on:
         description: "使用模型"
         required: false
         type: choice
-        default: "claude-opus-4-6"
+        default: "glm-4-plus"
         options:
+          - glm-4-plus
+          - glm-4-flash
+          - glm-z1-flash
           - claude-opus-4-6
-          - glm-5.1
-          - gpt-5.4
       max_files:
         description: "最多扫描文件数"
         required: false

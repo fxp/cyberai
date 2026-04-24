@@ -113,7 +113,7 @@ def main():
     parser.add_argument("--target", required=True, help="Target repo path")
     parser.add_argument("--max-files", type=int, default=50)
     parser.add_argument("--paths", default="", help="Comma-separated sub-paths to scan")
-    parser.add_argument("--model", default="claude-opus-4-6")
+    parser.add_argument("--model", default="glm-4-plus")
     parser.add_argument("--output", default="/tmp/scan_plan.json")
     args = parser.parse_args()
 
