@@ -1,22 +1,37 @@
 #!/usr/bin/env python3
 """
-Phase 2 统一扫描脚本 — GLM-5.1 Carlini Pipeline A
-用法: python3 scan_phase2.py <target>
-target: imagemagick | poppler | linux_bpf | linux_kvm | linux_usb | libxml2
+Phase 2 统一扫描脚本 — GLM-4-flash Carlini Pipeline A
+用法:
+  python3 scan_phase2.py --target libxml2
+  python3 scan_phase2.py --target linux_bpf --confidence 85 --output-dir /tmp/results
 """
-import os, sys, json, time, glob, re
+import os, sys, json, time, argparse
 from pathlib import Path
 from datetime import datetime
 
 try:
     from zhipuai import ZhipuAI
     HAS_ZHIPU = True
-except:
+except ImportError:
     HAS_ZHIPU = False
 
-TARGET = sys.argv[1] if len(sys.argv) > 1 else "libxml2"
+# ── 参数解析 ──────────────────────────────────────────────────────
+parser = argparse.ArgumentParser(description="Pipeline A GLM batch scanner")
+parser.add_argument("--target", required=True,
+                    choices=["imagemagick","poppler","linux_bpf","linux_kvm",
+                             "linux_usb","libxml2","libtiff"],
+                    help="Target to scan")
+parser.add_argument("--confidence", type=int, default=70,
+                    help="Minimum confidence threshold (0-100, default 70)")
+parser.add_argument("--output-dir", default=None,
+                    help="Output directory (default: <repo>/research/<target>)")
+args = parser.parse_args()
 
-BASE = Path("/Users/xiaopingfeng/Projects/cyberai")
+TARGET = args.target
+CONFIDENCE_THRESHOLD = args.confidence
+
+# BASE = repo root（脚本在 scripts/ 里，所以 parent.parent = repo root）
+BASE = Path(__file__).resolve().parent.parent
 EXTRACTS_MAP = {
     "imagemagick":  BASE / "scripts/extracts/imagemagick_712",
     "poppler":      BASE / "scripts/extracts/poppler",
@@ -46,7 +61,7 @@ if not GLM_KEY:
                 GLM_KEY = line.split("=", 1)[1].strip()
 
 if not GLM_KEY:
-    print("❌ GLM_API_KEY not found")
+    print("❌ GLM_API_KEY not found (set env var or add to .env)")
     sys.exit(1)
 
 client = ZhipuAI(api_key=GLM_KEY) if HAS_ZHIPU else None
@@ -101,7 +116,10 @@ files = sorted(extracts_dir.glob("*.c"))
 print(f"🔍 扫描目标: {TARGET} ({len(files)} 个 extracts)")
 print(f"📌 关注点: {focus[:80]}...")
 
-results_dir = BASE / f"research/{TARGET}"
+if args.output_dir:
+    results_dir = Path(args.output_dir)
+else:
+    results_dir = BASE / f"research/{TARGET}"
 results_dir.mkdir(parents=True, exist_ok=True)
 out_file = results_dir / f"t1_glm_phase2_{datetime.now().strftime('%H%M')}.jsonl"
 
@@ -135,7 +153,7 @@ for i, fpath in enumerate(files):
             if obj.get("result") == "clean":
                 clean += 1
                 continue
-            if obj.get("confidence", 0) >= 70:
+            if obj.get("confidence", 0) >= CONFIDENCE_THRESHOLD:
                 obj["source_file"] = str(fpath.name)
                 findings.append(obj)
                 with open(out_file, 'a') as f:

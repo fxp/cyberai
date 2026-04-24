@@ -154,17 +154,105 @@ def update_vulnerability_report(target: str, data: dict) -> None:
     print(f"  ✅ Updated: {report_path}")
 
 
+def generate_triage_report(input_jsonl: pathlib.Path, output_md: pathlib.Path,
+                           target_label: str = "Pipeline B") -> None:
+    """Pipeline B mode: generate markdown triage report from a JSONL file."""
+    findings = []
+    if input_jsonl.exists():
+        with open(input_jsonl) as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    try:
+                        obj = json.loads(line)
+                        # unwrap verify_candidates wrapper if present
+                        if "_finding" in obj:
+                            finding = obj["_finding"]
+                            finding["_verdict"] = obj.get("verdict", "UNVERIFIED")
+                            finding["_verify_reason"] = obj.get("reason", "")
+                            findings.append(finding)
+                        else:
+                            findings.append(obj)
+                    except Exception:
+                        pass
+
+    confirmed = [f for f in findings if f.get("_verdict") == "CONFIRMED"]
+    fps = [f for f in findings if f.get("_verdict") == "FALSE_POSITIVE"]
+    unverified = [f for f in findings if "_verdict" not in f or f.get("_verdict") == "UNVERIFIED"]
+
+    lines = [
+        f"# Triage Report: {target_label}",
+        f"",
+        f"**Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}  ",
+        f"**Total findings**: {len(findings)} | "
+        f"**Confirmed**: {len(confirmed)} | "
+        f"**False Positives**: {len(fps)} | "
+        f"**Unverified**: {len(unverified)}",
+        "",
+        "---",
+        "",
+    ]
+
+    if confirmed:
+        lines += ["## 🔴 Confirmed Vulnerabilities", ""]
+        for f in confirmed:
+            lines += [
+                f"### {f.get('type','?')} — {f.get('location') or f.get('source_file','?')}",
+                f"- **Severity**: {f.get('severity','?')} | **Confidence**: {f.get('confidence','?')}",
+                f"- **Description**: {f.get('description','?')}",
+                f"- **Exploit path**: {f.get('exploit_path') or f.get('poc_hint','N/A')}",
+                f"- **Verify reason**: {f.get('_verify_reason','?')}",
+                "",
+            ]
+    else:
+        lines += ["## ✅ No Confirmed Vulnerabilities", ""]
+        lines += ["All candidates evaluated as false positives or unverified.", ""]
+
+    if unverified:
+        lines += ["## ⚠️ Unverified Candidates (manual review needed)", ""]
+        for f in unverified[:10]:
+            lines += [
+                f"- **{f.get('severity','?')}** {f.get('type','?')} "
+                f"@ `{f.get('location') or f.get('source_file','?')}` "
+                f"(conf={f.get('confidence','?')})",
+            ]
+        if len(unverified) > 10:
+            lines += [f"- ... and {len(unverified)-10} more"]
+        lines += [""]
+
+    output_md.parent.mkdir(parents=True, exist_ok=True)
+    output_md.write_text("\n".join(lines))
+    print(f"✅ Triage report: {output_md}")
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--target", choices=list(TARGETS.keys()))
-    parser.add_argument("--all", action="store_true")
+    # Pipeline B mode: read from a JSONL file directly
+    parser.add_argument("--input", type=pathlib.Path, default=None,
+                        help="Pipeline B: input JSONL (verified.jsonl from verify_candidates)")
+    parser.add_argument("--output", type=pathlib.Path, default=None,
+                        help="Pipeline B: output markdown path")
+    # Pipeline A / research mode: read from research/<target>/ directory
+    parser.add_argument("--target", choices=list(TARGETS.keys()),
+                        help="Pipeline A: target name")
+    parser.add_argument("--all", action="store_true",
+                        help="Pipeline A: process all targets")
     parser.add_argument("--update-report", action="store_true", default=True)
     args = parser.parse_args()
 
-    targets_to_process = list(TARGETS.keys()) if args.all else ([args.target] if args.target else [])
+    # ── Pipeline B mode ──
+    if args.input is not None:
+        out = args.output or args.input.parent / "triage_report.md"
+        label = str(args.input.parent)
+        generate_triage_report(args.input, out, target_label=label)
+        return
 
+    # ── Pipeline A / research mode ──
+    targets_to_process = list(TARGETS.keys()) if args.all else (
+        [args.target] if args.target else []
+    )
     if not targets_to_process:
-        print("Specify --target <name> or --all")
+        parser.print_help()
         sys.exit(1)
 
     for target in targets_to_process:

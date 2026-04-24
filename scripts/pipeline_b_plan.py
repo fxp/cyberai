@@ -93,12 +93,16 @@ def count_lines(path: Path) -> int:
 
 
 def get_git_blame_score(path: Path, repo_root: Path) -> int:
-    """文件最近修改次数（越多=越活跃=优先级加分）"""
+    """文件最近修改次数（越多=越活跃=优先级加分）。
+    在 shallow clone（GitHub Actions --depth=1）中 log 输出为空，返回 0 即可。
+    """
     try:
         result = subprocess.run(
-            ["git", "log", "--oneline", "-20", "--", str(path)],
+            ["git", "log", "--oneline", "-20", "--", str(path.relative_to(repo_root))],
             cwd=repo_root, capture_output=True, text=True, timeout=5
         )
+        if result.returncode != 0:
+            return 0
         return min(len(result.stdout.strip().splitlines()), 10)
     except Exception:
         return 0

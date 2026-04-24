@@ -7,12 +7,16 @@ terraform {
     }
   }
 
-  # 状态文件存在 OSS（初次 apply 前先手动创建 bucket 或用 local backend）
+  # ⚠️  先决条件：OSS tfstate bucket 必须已存在。
+  #    首次部署请先运行:  ./terraform/bootstrap.sh
+  #    它会自动创建 bucket 并执行 terraform init。
   backend "oss" {
     bucket   = "cyberai-tfstate-uswest"
     prefix   = "terraform/state"
     region   = "us-west-1"
     endpoint = "oss-us-west-1.aliyuncs.com"
+    # access_key 和 secret_key 通过 bootstrap.sh 的 -backend-config 传入，
+    # 不写在此处以避免凭证泄露到 git。
   }
 }
 

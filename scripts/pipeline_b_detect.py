@@ -351,10 +351,17 @@ def main():
     repo_root = Path(args.target).resolve()
 
     try:
-        files = json.loads(args.files)
+        parsed = json.loads(args.files)
+        # workflow 传入的是对象数组 [{"path":..., "priority":...}, ...]
+        # 也接受纯字符串数组 ["a.c", "b.c"]
+        if parsed and isinstance(parsed[0], dict):
+            files = [item["path"] for item in parsed if "path" in item]
+        else:
+            files = [str(f) for f in parsed]
     except Exception:
-        # 也接受换行分隔的文件列表
-        files = [f.strip() for f in args.files.splitlines() if f.strip()]
+        # 降级：换行或逗号分隔的路径列表
+        raw = args.files.replace(",", "\n")
+        files = [f.strip() for f in raw.splitlines() if f.strip()]
 
     provider, client = get_client(args.model)
     print(f"🤖 模型: {args.model} ({provider})")

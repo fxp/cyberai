@@ -187,8 +187,7 @@ jobs:
         run: |
           python scripts/process_scan_results.py \
             --input results/verified.jsonl \
-            --output results/triage_report.md \
-            --target "${{ github.event.inputs.target_repo }}"
+            --output results/triage_report.md
 
       - name: Upload final results
         uses: actions/upload-artifact@v4
