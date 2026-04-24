@@ -1,0 +1,22 @@
+{
+  "applied_at": "2026-04-24",
+  "status": "4/5 resources created (OSS bucket exists via bootstrap.sh, terraform state blocked by proxy)",
+  "resources_created": {
+    "alicloud_ram_user": "cyberai-github-actions (id=206317777033057664)",
+    "alicloud_ram_policy": "cyberai-oss-write",
+    "alicloud_ram_user_policy_attachment": "user:cyberai-oss-write:Custom:cyberai-github-actions",
+    "alicloud_ram_access_key": "<redacted> (saved to /tmp/cyberai-github-actions-ak.json, already set in GitHub secrets)"
+  },
+  "oss_buckets": {
+    "tfstate": "cyberai-tfstate-uswest (us-west-1, created by bootstrap.sh)",
+    "results": "cyberai-results-uswest (us-west-1, created by bootstrap.sh)"
+  },
+  "github_secrets_to_add": {
+    "ALIYUN_ACCESS_KEY_ID": "<see /tmp/cyberai-github-actions-ak.json — already set in GitHub>",
+    "ALIYUN_ACCESS_KEY_SECRET": "<see /tmp/cyberai-github-actions-ak.json — already set in GitHub>",
+    "ALIYUN_OSS_BUCKET": "cyberai-results-uswest",
+    "GLM_API_KEY": "<from .env — already set in GitHub>",
+    "ANTHROPIC_API_KEY": "<add manually from Anthropic console>"
+  },
+  "note": "ClashX TUN mode blocks OSS SDK calls to oss-us-west-1.aliyuncs.com (198.18.19.x). Terraform can manage RAM/ECS but not OSS resources until proxy is disabled."
+}

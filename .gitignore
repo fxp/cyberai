@@ -44,3 +44,6 @@ terraform/terraform.tfvars
 targets/
 scripts/extracts/
 research/**/*.jsonl
+terraform/backend_override.tf
+terraform/.terraform/
+terraform/.terraform.lock.hcl

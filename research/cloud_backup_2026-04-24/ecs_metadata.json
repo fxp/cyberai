@@ -1,0 +1,41 @@
+{
+  "saved_at": "2026-04-24",
+  "note": "ECS instance metadata saved before teardown. RunCommand blocked by ClashX TUN routing (198.18.19.34 reset), so no live logs. ECS was never used for cyberai deployments — all scans ran locally.",
+  "instance": {
+    "InstanceId": "i-rj98syymj0ved1w5r0lb",
+    "InstanceName": "cyberai-main",
+    "Region": "us-west-1",
+    "Zone": "us-west-1a",
+    "Status": "Running",
+    "Type": "ecs.t6-c1m4.large",
+    "CPU": 2,
+    "MemoryMB": 8192,
+    "OS": "Ubuntu 22.04 64bit",
+    "ImageId": "ubuntu_22_04_x64_20G_alibase_20260316.vhd",
+    "CreationTime": "2026-04-12T03:45Z",
+    "ChargeType": "PostPaid",
+    "HostName": "cyberai"
+  },
+  "network": {
+    "PublicIp": "47.251.76.188",
+    "EipId": "eip-rj9t6iaqitkcykfupuukz",
+    "EipBandwidthMbps": 10,
+    "PrivateIp": "172.16.2.231",
+    "VpcId": "vpc-rj9aoq74m81fp6oclz1gi",
+    "VSwitchId": "vsw-rj9x86il8m97guvo38jk9",
+    "SecurityGroupId": "sg-rj99e1ymp8yqq6wj8ii1"
+  },
+  "teardown_order": [
+    "1. Stop ECS: aliyun ecs StopInstance --InstanceId i-rj98syymj0ved1w5r0lb",
+    "2. Unassociate EIP: aliyun ecs UnassociateEipAddress --AllocationId eip-rj9t6iaqitkcykfupuukz --InstanceId i-rj98syymj0ved1w5r0lb",
+    "3. Release EIP: aliyun ecs ReleaseEipAddress --AllocationId eip-rj9t6iaqitkcykfupuukz",
+    "4. Delete ECS: aliyun ecs DeleteInstance --InstanceId i-rj98syymj0ved1w5r0lb --Force true",
+    "5. terraform destroy (for OSS + RAM if already applied)",
+    "6. Delete VPC (optional, or reuse for new ECS)"
+  ],
+  "cost_estimate_monthly_cny": {
+    "ecs_t6_c1m4": "~120 (postpaid)",
+    "eip_10mbps": "~35",
+    "total": "~155"
+  }
+}
