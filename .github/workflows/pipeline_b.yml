@@ -24,10 +24,10 @@ on:
         description: "使用模型"
         required: false
         type: choice
-        default: "glm-4-plus"
+        default: "glm-4-flash"
         options:
-          - glm-4-plus
           - glm-4-flash
+          - glm-4-plus
           - glm-z1-flash
           - claude-opus-4-6
       max_files:
@@ -102,7 +102,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.plan.outputs.file_matrix) }}
       fail-fast: false
-      max-parallel: 8  # 最多 8 个并行 job
+      max-parallel: 3  # glm-4-flash 免费套餐限速，降低并发避免 429
 
     steps:
       - uses: actions/checkout@v4

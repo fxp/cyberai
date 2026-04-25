@@ -260,8 +260,36 @@ Remember: only report_finding when you have traced the full exploit path."""
     return findings
 
 
+def glm_chat_with_retry(client, model, messages, tools, max_retries=5):
+    """ZhipuAI chat with exponential backoff on 429 rate-limit errors."""
+    import time
+    delay = 10
+    for attempt in range(max_retries):
+        try:
+            return client.chat.completions.create(
+                model=model,
+                messages=messages,
+                tools=tools,
+                tool_choice="auto",
+                max_tokens=4096,
+                temperature=0.05,
+            )
+        except Exception as e:
+            err = str(e)
+            if "429" in err or "1313" in err or "rate" in err.lower():
+                if attempt < max_retries - 1:
+                    wait = delay * (2 ** attempt)
+                    print(f"    ⏳ 429 rate limit, retrying in {wait}s (attempt {attempt+1}/{max_retries})")
+                    time.sleep(wait)
+                else:
+                    raise
+            else:
+                raise
+    raise RuntimeError("GLM retry exhausted")
+
+
 def scan_file_glm(client, model: str, repo_root: Path, file_path: str) -> list[dict]:
-    """Run agentic scan using ZhipuAI (GLM-5.1) tool calling."""
+    """Run agentic scan using ZhipuAI tool calling."""
     full_path = repo_root / file_path
     try:
         content = full_path.read_text(errors="replace")
@@ -298,14 +326,7 @@ def scan_file_glm(client, model: str, repo_root: Path, file_path: str) -> list[d
     tool_calls_count = 0
 
     while tool_calls_count < 15:
-        resp = client.chat.completions.create(
-            model=model,
-            messages=messages,
-            tools=glm_tools,
-            tool_choice="auto",
-            max_tokens=4096,
-            temperature=0.05,
-        )
+        resp = glm_chat_with_retry(client, model, messages, glm_tools)
         msg = resp.choices[0].message
         messages.append(msg.model_dump())
 
@@ -344,7 +365,7 @@ def main():
     parser = argparse.ArgumentParser(description="Pipeline B agentic detector")
     parser.add_argument("--target", required=True, help="Target repo path")
     parser.add_argument("--files", required=True, help="JSON array of file paths to scan")
-    parser.add_argument("--model", default="glm-4-plus")
+    parser.add_argument("--model", default="glm-4-flash")
     parser.add_argument("--output", required=True, help="Output JSONL path")
     args = parser.parse_args()
 
