@@ -1,10 +1,10 @@
 output "results_bucket_name" {
-  value       = alicloud_oss_bucket.results.bucket
-  description = "OSS bucket for scan results"
+  value       = var.results_bucket
+  description = "OSS bucket for scan results (created via bootstrap.sh)"
 }
 
 output "results_bucket_endpoint" {
-  value       = "https://${alicloud_oss_bucket.results.bucket}.oss-${var.region}.aliyuncs.com"
+  value       = "https://${var.results_bucket}.oss-${var.region}.aliyuncs.com"
   description = "OSS bucket endpoint"
 }
 
@@ -21,7 +21,7 @@ output "github_secrets_instructions" {
     ALIYUN_ACCESS_KEY_SECRET  → from /tmp/cyberai-github-actions-ak.json
     GLM_API_KEY               → your BigModel API key
     ANTHROPIC_API_KEY         → your Anthropic API key (for Pipeline B)
-    ALIYUN_OSS_BUCKET         → ${alicloud_oss_bucket.results.bucket}
+    ALIYUN_OSS_BUCKET         → ${var.results_bucket}
   EOT
   description = "Instructions for setting GitHub Secrets"
 }

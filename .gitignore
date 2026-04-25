@@ -47,3 +47,5 @@ research/**/*.jsonl
 terraform/backend_override.tf
 terraform/.terraform/
 terraform/.terraform.lock.hcl
+*.tfstate.backup
+.terraform/

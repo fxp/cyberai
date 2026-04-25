@@ -7,44 +7,18 @@ terraform {
     }
   }
 
-  # ⚠️  先决条件：OSS tfstate bucket 必须已存在。
-  #    首次部署请先运行:  ./terraform/bootstrap.sh
-  #    它会自动创建 bucket 并执行 terraform init。
-  backend "oss" {
-    bucket   = "cyberai-tfstate-uswest"
-    prefix   = "terraform/state"
-    region   = "us-west-1"
-    endpoint = "oss-us-west-1.aliyuncs.com"
-    # access_key 和 secret_key 通过 bootstrap.sh 的 -backend-config 传入，
-    # 不写在此处以避免凭证泄露到 git。
-  }
+  # State 存本地（单人项目，terraform.tfstate 加入 .gitignore）
+  # 如需远程 state：参考 bootstrap.sh 中的 OSS backend 配置说明
 }
 
 provider "alicloud" {
   region = var.region
 }
 
-# ─── OSS：扫描结果存储 ────────────────────────────────────────────
-resource "alicloud_oss_bucket" "results" {
-  bucket        = var.results_bucket
-  acl           = "private"
-  force_destroy = false
-
-  lifecycle_rule {
-    id      = "expire-raw-findings"
-    enabled = true
-    prefix  = "raw/"
-
-    expiration {
-      days = 90 # 原始 findings 保留 90 天
-    }
-  }
-
-  tags = {
-    project = "cyberai"
-    env     = var.env
-  }
-}
+# ─── OSS bucket 由 bootstrap.sh 通过 aliyun CLI 创建 ────────────
+# terraform alicloud provider 在境外访问 us-west-1 OSS 时使用 internal
+# endpoint，无法从本地 import/apply OSS 资源。bucket 手动管理即可：
+#   aliyun oss mb oss://cyberai-scan-results-us1 --region us-west-1 --acl private
 
 # ─── RAM：GitHub Actions 专用账号 ────────────────────────────────
 resource "alicloud_ram_user" "github_actions" {

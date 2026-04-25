@@ -13,5 +13,5 @@ variable "env" {
 variable "results_bucket" {
   description = "OSS bucket name for scan results"
   type        = string
-  default     = "cyberai-results-uswest"
+  default     = "cyberai-scan-results-us1"
 }

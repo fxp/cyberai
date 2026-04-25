@@ -12,7 +12,7 @@ set -euo pipefail
 
 REGION="us-west-1"
 TFSTATE_BUCKET="cyberai-tfstate-uswest"
-RESULTS_BUCKET="cyberai-results-uswest"
+RESULTS_BUCKET="cyberai-scan-results-us1"
 
 echo "🚀 CyberAI Terraform Bootstrap"
 echo "   Region:         $REGION"
@@ -70,12 +70,15 @@ aliyun oss mb "oss://$RESULTS_BUCKET" \
   2>&1 | grep -v "BucketAlreadyExists" || true
 echo "   ✅ $RESULTS_BUCKET ready"
 
-# ── terraform init ────────────────────────────────────────────────
-echo "3/3 terraform init"
+# ── terraform init（local backend，凭证走 env var）────────────────
+echo "3/3 terraform init + apply"
 cd "$SCRIPT_DIR"
-terraform init \
-  -backend-config="access_key=$AK_ID" \
-  -backend-config="secret_key=$AK_SECRET"
+ALICLOUD_ACCESS_KEY="$AK_ID" ALICLOUD_SECRET_KEY="$AK_SECRET" ALICLOUD_REGION="$REGION" \
+  NO_PROXY="*" HTTP_PROXY="" HTTPS_PROXY="" http_proxy="" https_proxy="" \
+  terraform init -reconfigure
+ALICLOUD_ACCESS_KEY="$AK_ID" ALICLOUD_SECRET_KEY="$AK_SECRET" ALICLOUD_REGION="$REGION" \
+  NO_PROXY="*" HTTP_PROXY="" HTTPS_PROXY="" http_proxy="" https_proxy="" \
+  terraform apply -auto-approve
 
 echo ""
 echo "✅ Bootstrap 完成！下一步:"
