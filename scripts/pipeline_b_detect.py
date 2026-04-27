@@ -85,9 +85,20 @@ TOOLS = [
     {
         "name": "report_finding",
         "description": (
-            "Report a confirmed vulnerability. Only call this if you can trace the full "
-            "exploit path — input source → vulnerable operation — with no blocking guards "
-            "in the call chain. Do NOT report if any caller validates the input."
+            "Report a CONFIRMED vulnerability. Call ONLY when ALL of the following are true:\n"
+            "1. You have read the actual vulnerable code with read_file (not guessed).\n"
+            "2. You have traced the COMPLETE path: external_input → call chain → vulnerable op.\n"
+            "3. You have grepped for guards/validators in ALL callers and found NONE.\n"
+            "4. The input is reachable from an unprivileged network/file/user source.\n"
+            "5. confidence >= 85.\n\n"
+            "DO NOT call for:\n"
+            "- strdup(s), strndup(s,n): these allocate dynamically, no fixed buffer.\n"
+            "- malloc(strlen(s)+1): dynamic allocation, cannot overflow.\n"
+            "- snprintf(buf, sizeof(buf), ...): bounded by sizeof, safe by definition.\n"
+            "- calloc(n, sz): overflow-safe in POSIX libc (returns NULL on overflow).\n"
+            "- Any function in test/, tests/, examples/, doc/ directories.\n"
+            "- Anything where you found a guard but 'aren't sure if it's sufficient'.\n"
+            "- Patterns that look dangerous but where you haven't read the calling code."
         ),
         "input_schema": {
             "type": "object",
@@ -102,7 +113,7 @@ TOOLS = [
                 },
                 "confidence": {
                     "type": "integer",
-                    "description": "0-100. Only report if >= 80 and full exploit path traced."
+                    "description": "0-100. Must be >= 85 to call this tool."
                 },
                 "location": {
                     "type": "string",
@@ -112,13 +123,17 @@ TOOLS = [
                     "type": "string",
                     "description": "Precise technical description of the vulnerability"
                 },
+                "input_source": {
+                    "type": "string",
+                    "description": "Where the attacker-controlled input enters (e.g. 'network packet field', 'XML attribute value', 'filename argument')"
+                },
                 "exploit_path": {
                     "type": "string",
-                    "description": "Full call chain from external input to vulnerable operation"
+                    "description": "Full call chain: func_a() -> func_b(tainted) -> vulnerable_op. Must include actual function names and line numbers."
                 },
-                "existing_guards": {
+                "guards_checked": {
                     "type": "string",
-                    "description": "List any guards you found and why they do NOT prevent exploitation"
+                    "description": "REQUIRED: List every validation/guard you checked in callers, and explain specifically why each one does NOT prevent exploitation."
                 },
                 "poc_hint": {
                     "type": "string",
@@ -126,28 +141,43 @@ TOOLS = [
                 }
             },
             "required": ["type", "severity", "confidence", "location",
-                         "description", "exploit_path"]
+                         "description", "input_source", "exploit_path", "guards_checked"]
         }
     }
 ]
 
-SYSTEM_PROMPT = """You are a senior security researcher performing a deep code audit.
+SYSTEM_PROMPT = """You are a senior security researcher performing a conservative, skeptical code audit.
 
-Your task: find real, exploitable vulnerabilities in the target file.
+Your ONLY job is to find vulnerabilities that are:
+  (a) reachable from an external attacker (network, file, user input)
+  (b) not blocked by any existing guard in the call chain
+  (c) actually exploitable (not just theoretically dangerous)
 
-Rules:
-1. You MUST use read_file and grep_repo to verify any claim before reporting.
-   - If you see a suspicious pattern, READ the callers to check for input validation.
-   - If you see an allocation, GREP for where the size parameter comes from.
-   - If you see a bounds check is missing, CHECK if the caller validates bounds instead.
-2. Only call report_finding if you have traced the FULL exploit path:
-   external input → function → vulnerable operation, with NO blocking guards found.
-3. Be skeptical. Assume guards exist. Prove they don't before reporting.
-4. A finding where you cannot identify the input source is NOT reportable — mark it SKIP.
-5. Cost of a false positive: wasted human review time. Cost of a false negative: missed bug.
-   Prefer precision over recall.
+## Workflow for each suspicious pattern
 
-You may make up to 15 tool calls per file. Use them wisely."""
+1. read_file to see the exact code (never guess from partial context).
+2. grep_repo to find ALL callers of the suspicious function.
+3. For EACH caller: check if it validates the input BEFORE calling.
+4. Only if NO caller provides a guard: report_finding.
+
+## Known-safe patterns — NEVER report these
+
+- `strdup(s)` / `strndup(s, n)` — heap-allocates len(s)+1 bytes, no fixed buffer.
+- `malloc(strlen(s) + 1)` — same, dynamic allocation.
+- `snprintf(buf, sizeof(buf), ...)` — sizeof bound makes it safe.
+- `calloc(n, sz)` — POSIX libc returns NULL on n*sz overflow; caller checks NULL.
+- `realloc(p, n)` preceded by an explicit size check.
+- Any NULL-check after allocation (UAF requires the pointer to be freed AND reused).
+- Code in directories: test/, tests/, examples/, docs/, fuzz/, bench/
+
+## Precision rules
+
+- If you found a guard but are "not sure if it's sufficient" → DO NOT report.
+- If you cannot name the external input source → DO NOT report.
+- If the dangerous operation is inside a function only called with compile-time constants → DO NOT report.
+- confidence must be >= 85 to call report_finding.
+
+You have up to 25 tool calls. Spend them on verification, not exploration."""
 
 
 def execute_tool(name: str, inputs: dict, repo_root: Path) -> str:
@@ -216,13 +246,13 @@ File: {file_path}
 ```
 
 Use read_file and grep_repo to verify any suspicious pattern before reporting.
-Remember: only report_finding when you have traced the full exploit path."""
+Remember: only report_finding when confidence >= 85 AND you have read all callers."""
 
     messages = [{"role": "user", "content": user_msg}]
     findings = []
     tool_calls = 0
 
-    while tool_calls < 15:
+    while tool_calls < 25:
         response = client.messages.create(
             model=model,
             max_tokens=4096,
@@ -231,11 +261,13 @@ Remember: only report_finding when you have traced the full exploit path."""
             messages=messages,
         )
 
-        # 收集 report_finding 调用
+        # 收集 report_finding 调用（强制 confidence >= 85）
         tool_uses = [b for b in response.content if b.type == "tool_use"]
         for tu in tool_uses:
             if tu.name == "report_finding":
                 finding = tu.input.copy()
+                if finding.get("confidence", 0) < 85:
+                    continue  # 低置信度直接丢弃
                 finding["source_file"] = file_path
                 finding["model"] = model
                 findings.append(finding)
@@ -318,14 +350,15 @@ def scan_file_glm(client, model: str, repo_root: Path, file_path: str) -> list[d
         {"role": "user", "content": (
             f"Audit this file for security vulnerabilities.\n\nFile: {file_path}\n\n"
             f"```c\n{initial_code}\n```\n\n"
-            "Use read_file and grep_repo to verify any suspicious pattern before reporting."
+            "Use read_file and grep_repo to verify any suspicious pattern before reporting.\n"
+            "Remember: confidence must be >= 85 and you must have read all callers."
         )},
     ]
 
     findings = []
     tool_calls_count = 0
 
-    while tool_calls_count < 15:
+    while tool_calls_count < 25:
         resp = glm_chat_with_retry(client, model, messages, glm_tools)
         msg = resp.choices[0].message
         messages.append(msg.model_dump())
@@ -342,10 +375,12 @@ def scan_file_glm(client, model: str, repo_root: Path, file_path: str) -> list[d
                 inputs = {}
 
             if tc.function.name == "report_finding":
-                finding = inputs.copy()
-                finding["source_file"] = file_path
-                finding["model"] = model
-                findings.append(finding)
+                # 强制 confidence >= 85
+                if inputs.get("confidence", 0) >= 85:
+                    finding = inputs.copy()
+                    finding["source_file"] = file_path
+                    finding["model"] = model
+                    findings.append(finding)
                 result = "FINDING_RECORDED"
             else:
                 result = execute_tool(tc.function.name, inputs, repo_root)

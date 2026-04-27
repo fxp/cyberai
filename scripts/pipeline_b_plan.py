@@ -32,12 +32,17 @@ PRIORITY_RULES = [
     # 中等：文件 I/O / 路径处理
     (60,  ["file", "path", "dir", "open", "close", "read", "write",
            "seek", "mmap", "fopen", "fread"]),
-    # 低价值：测试 / 工具
-    (10,  ["test", "bench", "example", "demo", "sample", "tool", "util"]),
-    # 跳过：文档 / 生成文件
-    (0,   ["doc", "docs", "generated", "autogen", "third_party", "vendor",
+    # 低价值：工具类
+    (10,  ["bench", "sample", "demo", "util"]),
+    # 跳过：测试 / 文档 / 生成文件（高 FP 率，verifier 无法验证）
+    (0,   ["test", "tests", "testing", "example", "examples", "fuzz",
+           "doc", "docs", "generated", "autogen", "third_party", "vendor",
            "compat", "compat_"]),
 ]
+
+# 明确跳过的路径前缀（路径中只要包含就跳过）
+SKIP_PATH_SEGMENTS = {"test", "tests", "testing", "examples", "example",
+                      "fuzz", "fuzzing", "docs", "doc", "vendor", "third_party"}
 
 SKIP_EXTENSIONS = {".h", ".hpp", ".md", ".txt", ".rst", ".cmake",
                    ".mk", ".am", ".ac", ".m4", ".py", ".sh"}
@@ -47,7 +52,13 @@ TARGET_EXTENSIONS = {".c", ".cc", ".cpp", ".cxx"}
 def score_file(path: Path, repo_root: Path) -> tuple[int, str]:
     """返回 (priority_score, reason)"""
     rel = str(path.relative_to(repo_root)).lower()
+    rel_parts = set(Path(rel).parts)
     name = path.stem.lower()
+
+    # 路径包含跳过段 → 直接 0
+    if rel_parts & SKIP_PATH_SEGMENTS:
+        matched = (rel_parts & SKIP_PATH_SEGMENTS).pop()
+        return 0, f"skip: path segment '{matched}'"
 
     for score, keywords in PRIORITY_RULES:
         for kw in keywords:
