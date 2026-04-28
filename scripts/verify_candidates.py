@@ -14,6 +14,7 @@
   python verify_candidates.py --phase2
 """
 import os, sys, json, time, argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 try:
@@ -239,17 +240,36 @@ def run_pipeline_b_mode(input_dir: Path, output: Path, model: str,
     confirmed = []
     output.parent.mkdir(parents=True, exist_ok=True)
 
+    # 并发验证（5 workers）— 去掉逐个 sleep，改为批量并发
+    VERIFY_CONCURRENCY = 5
+    raw_results: dict[int, dict] = {}
+
+    with ThreadPoolExecutor(max_workers=VERIFY_CONCURRENCY) as executor:
+        future_map = {
+            executor.submit(verify_one, cand, client, model, repo_root): i
+            for i, cand in enumerate(candidates)
+        }
+        done = 0
+        for future in as_completed(future_map):
+            i = future_map[future]
+            try:
+                raw_results[i] = future.result()
+            except Exception as e:
+                raw_results[i] = {"verdict": "ERROR", "reason": str(e)}
+            done += 1
+            print(f"  ⏳ 进度: {done}/{len(candidates)}", end="\r", flush=True)
+
+    print()  # clear progress line
+
     with open(output, "w") as out:
         for i, cand in enumerate(candidates):
+            result = raw_results.get(i, {"verdict": "ERROR", "reason": "missing"})
             src = cand.get("source_file") or cand.get("location") or "?"
             label = cand.get("type", "?")
-            print(f"  [{i+1:2d}/{len(candidates)}] "
-                  f"{str(label)[:28]:<30} {src[:33]:<35}", end=" ", flush=True)
-
-            result = verify_one(cand, client, model, repo_root)
             verdict = result.get("verdict", "?")
             reason = result.get("reason", "")[:55]
-            print(f"{verdict:<15} {reason}")
+            print(f"  [{i+1:2d}/{len(candidates)}] "
+                  f"{str(label)[:28]:<30} {src[:33]:<35} {verdict:<15} {reason}")
 
             result["_finding"] = cand
             results.append(result)
@@ -257,8 +277,6 @@ def run_pipeline_b_mode(input_dir: Path, output: Path, model: str,
 
             if verdict == "CONFIRMED":
                 confirmed.append((cand, result))
-
-            time.sleep(3)  # rate limit
 
     print(f"\n{'='*70}")
     print(f"✅ 验证完成: {len(results)} 个")

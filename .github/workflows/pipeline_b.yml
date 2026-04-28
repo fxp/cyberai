@@ -106,7 +106,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.plan.outputs.file_matrix) }}
       fail-fast: false
-      max-parallel: 3  # glm-4-flash 免费套餐限速，降低并发避免 429
+      max-parallel: 6  # glm-4-plus 有更高限额；429 时 detect.py 内有 retry，可承受
 
     steps:
       - uses: actions/checkout@v4

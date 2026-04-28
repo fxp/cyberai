@@ -126,6 +126,46 @@ def _extract_json_objects(text: str) -> list[dict]:
     return objects
 
 
+def _call_chain_llm(signals: list[dict], client, model: str,
+                    round_label: str) -> list[dict]:
+    """Send one batch of signals to the LLM and extract kill chain JSON objects.
+
+    Returns a list of parsed dicts (may include no_chains sentinel or error entries).
+    """
+    if not signals:
+        return []
+
+    signals_text = build_signals_summary(signals)
+    prompt = f"""Analyze these security signals from the codebase and find kill chains.
+
+{signals_text}
+
+Look for combinations that form complete exploit chains.
+Output one JSON chain per line. If none viable, output the no_chains sentinel."""
+
+    print(f"  🔗 {round_label} ({len(signals)} signals, model={model})...")
+    try:
+        resp = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": CHAIN_SYSTEM},
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=4096,
+            temperature=0.1,
+        )
+        raw = resp.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"  ❌ LLM call failed: {e}")
+        return [{"error": str(e)}]
+
+    extracted = _extract_json_objects(raw)
+    if extracted:
+        return extracted
+    print(f"  ⚠️  无法解析 LLM 输出 ({len(raw)} chars)")
+    return [{"raw_response": raw}]
+
+
 def build_signals_summary(signals: list[dict]) -> str:
     """Format signals for the LLM prompt."""
     by_type = {}
@@ -204,61 +244,42 @@ def run_chain_builder(input_dir: Path, output: Path, model: str,
                                       "reason": "No signals or findings collected"}) + "\n")
             return
 
-        # 按信号类型分组，若信号太多则截取最有价值的
-        signals_for_prompt = all_signals
-        if len(all_signals) > 60:
-            # 优先保留 TAINT_SOURCE, TAINT_SINK, INFO_LEAK
-            priority = ["TAINT_SOURCE", "TAINT_SINK", "INFO_LEAK",
-                        "PARTIAL_CORRUPTION", "DOUBLE_FREE_RISK"]
-            scored = sorted(all_signals,
-                            key=lambda s: (priority.index(s.get("signal_type", ""))
-                                           if s.get("signal_type") in priority else 99,
-                                           -s.get("confidence", 0)))
-            signals_for_prompt = scored[:60]
-            print(f"  (truncated to top 60 signals by priority)")
+        # ── 两轮信号处理 ────────────────────────────────────────────
+        # Round 1: 主链路信号（污点传播、内存损坏、信息泄露）— 最多 50 个
+        # Round 2: 特殊信号（竞态、类型混淆、权限转换）— 最多 30 个
+        # 分开送 LLM，避免高噪信号稀释低频但高价值的 race/type confusion 信号
+        HIGH_PRIORITY = {"TAINT_SOURCE", "TAINT_SINK", "INFO_LEAK",
+                         "PARTIAL_CORRUPTION", "DOUBLE_FREE_RISK"}
+        SPECIAL_TYPES = {"RACE_WINDOW", "TYPE_CONFUSION", "PRIVILEGE_TRANSITION"}
 
-        signals_text = build_signals_summary(signals_for_prompt)
+        high_sigs = sorted(
+            [s for s in all_signals if s.get("signal_type") in HIGH_PRIORITY],
+            key=lambda s: -s.get("confidence", 0)
+        )[:50]
 
-        prompt = f"""Analyze these security signals from the codebase and find kill chains.
+        special_sigs = sorted(
+            [s for s in all_signals if s.get("signal_type") in SPECIAL_TYPES],
+            key=lambda s: -s.get("confidence", 0)
+        )[:30]
 
-{signals_text}
+        print(f"🔗 Kill chain builder: "
+              f"{len(high_sigs)} 主链路信号 + {len(special_sigs)} 特殊信号")
 
-Look for combinations that form complete exploit chains.
-Output one JSON chain per line. If none viable, output the no_chains sentinel."""
+        r1_objects = _call_chain_llm(high_sigs, client, model,
+                                     "Round 1 — taint/corruption/leak")
+        r2_objects = (_call_chain_llm(special_sigs, client, model,
+                                      "Round 2 — race/type-confusion/privilege")
+                      if special_sigs else [])
 
-        print(f"🔗 运行 kill chain builder (model={model})...")
-        try:
-            resp = client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": CHAIN_SYSTEM},
-                    {"role": "user", "content": prompt},
-                ],
-                max_tokens=4096,
-                temperature=0.1,
-            )
-            raw = resp.choices[0].message.content.strip()
-        except Exception as e:
-            print(f"❌ LLM call failed: {e}")
-            out.write(json.dumps({"error": str(e)}) + "\n")
-            return
-
-        # 解析输出 — GLM 可能返回单行 JSON 或缩进多行 JSON
-        # 用深度匹配提取所有顶层 JSON 对象（兼容两种格式）
+        # 合并两轮结果，顺序重新编号 chain_id 避免冲突
         chain_count = 0
-        extracted = _extract_json_objects(raw)
-        if extracted:
-            for obj in extracted:
-                obj["_source"] = "chain_builder"
-                out.write(json.dumps(obj, ensure_ascii=False) + "\n")
-                chains.append(obj)
-                if "chain_id" in obj:
-                    chain_count += 1
-        else:
-            # 完全无法解析，保存原始响应（不截断）
-            out.write(json.dumps({"raw_response": raw,
-                                  "_source": "chain_builder"}) + "\n")
-            print(f"⚠️  无法从响应中提取 JSON，已保存原始响应 ({len(raw)} chars)")
+        for obj in r1_objects + r2_objects:
+            obj["_source"] = "chain_builder"
+            if "chain_id" in obj:
+                chain_count += 1
+                obj["chain_id"] = f"chain_{chain_count:03d}"
+            out.write(json.dumps(obj, ensure_ascii=False) + "\n")
+            chains.append(obj)
 
     # 打印摘要
     confirmed_chains = [c for c in chains if "chain_id" in c]
