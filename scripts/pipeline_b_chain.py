@@ -97,6 +97,35 @@ Output only chains with confidence >= 50. If no viable chain exists, output exac
 """
 
 
+def _extract_json_objects(text: str) -> list[dict]:
+    """Extract all top-level JSON objects from text using brace depth tracking.
+
+    Handles both one-JSON-per-line and pretty-printed multi-line JSON.
+    Strips markdown code fences if present.
+    """
+    # Strip markdown fences
+    text = text.replace("```json", "").replace("```", "")
+    objects = []
+    depth = 0
+    start = None
+    for i, ch in enumerate(text):
+        if ch == "{":
+            if depth == 0:
+                start = i
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0 and start is not None:
+                fragment = text[start:i + 1]
+                try:
+                    obj = json.loads(fragment)
+                    objects.append(obj)
+                except Exception:
+                    pass
+                start = None
+    return objects
+
+
 def build_signals_summary(signals: list[dict]) -> str:
     """Format signals for the LLM prompt."""
     by_type = {}
@@ -213,33 +242,22 @@ Output one JSON chain per line. If none viable, output the no_chains sentinel.""
             out.write(json.dumps({"error": str(e)}) + "\n")
             return
 
-        # 解析输出的 JSON 行
+        # 解析输出 — GLM 可能返回单行 JSON 或缩进多行 JSON
+        # 用深度匹配提取所有顶层 JSON 对象（兼容两种格式）
         chain_count = 0
-        for line in raw.splitlines():
-            line = line.strip()
-            if not line or line.startswith("```"):
-                continue
-            try:
-                obj = json.loads(line)
+        extracted = _extract_json_objects(raw)
+        if extracted:
+            for obj in extracted:
                 obj["_source"] = "chain_builder"
                 out.write(json.dumps(obj, ensure_ascii=False) + "\n")
                 chains.append(obj)
                 if "chain_id" in obj:
                     chain_count += 1
-            except Exception:
-                pass
-
-        if chain_count == 0:
-            # 尝试提取整个响应作为单个 JSON
-            try:
-                obj = json.loads(raw)
-                obj["_source"] = "chain_builder"
-                out.write(json.dumps(obj, ensure_ascii=False) + "\n")
-                chains.append(obj)
-            except Exception:
-                # 保存原始响应
-                out.write(json.dumps({"raw_response": raw[:2000],
-                                      "_source": "chain_builder"}) + "\n")
+        else:
+            # 完全无法解析，保存原始响应（不截断）
+            out.write(json.dumps({"raw_response": raw,
+                                  "_source": "chain_builder"}) + "\n")
+            print(f"⚠️  无法从响应中提取 JSON，已保存原始响应 ({len(raw)} chars)")
 
     # 打印摘要
     confirmed_chains = [c for c in chains if "chain_id" in c]
