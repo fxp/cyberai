@@ -35,6 +35,10 @@ on:
         required: false
         default: "50"
 
+permissions:
+  actions: write   # needed to trigger verify_chain.yml via gh workflow run
+  contents: read
+
 jobs:
   # ── Step 1: Clone & plan ──────────────────────────────────────
   plan:
@@ -195,6 +199,111 @@ jobs:
         with:
           name: chains
           path: results/chains.jsonl
+
+      # ── 发现 kill chain 立即触发深度复核 pipeline ──────────────
+      - name: Dispatch deep verify & notify Slack
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          TARGET_REPO: ${{ github.event.inputs.target_repo }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+        run: |
+          python - <<'PYEOF'
+          import json, os, subprocess, urllib.request
+
+          chains_file = "results/chains.jsonl"
+          kill_chains = []
+          try:
+              with open(chains_file) as f:
+                  for line in f:
+                      line = line.strip()
+                      if not line: continue
+                      obj = json.loads(line)
+                      if "chain_id" in obj:
+                          kill_chains.append(obj)
+          except Exception as e:
+              print(f"⚠️  Could not read chains.jsonl: {e}")
+
+          if not kill_chains:
+              print("ℹ️  No kill chains found — skipping dispatch and notification")
+              exit(0)
+
+          # ── Slack 通知（第一条：发现了 kill chain）─────────────
+          repo_name = os.environ["TARGET_REPO"].rstrip("/").split("/")[-1]
+          run_id    = os.environ["GITHUB_RUN_ID"]
+          repo_full = os.environ["GITHUB_REPOSITORY"]
+          srv_url   = os.environ["GITHUB_SERVER_URL"]
+          run_url   = f"{srv_url}/{repo_full}/actions/runs/{run_id}"
+          webhook   = os.environ.get("SLACK_WEBHOOK_URL", "")
+
+          # 按严重度排序
+          kill_chains.sort(key=lambda c: (
+              0 if c.get("severity") == "CRITICAL" else 1,
+              -c.get("confidence", 0)
+          ))
+
+          chain_lines = []
+          for c in kill_chains:
+              sev  = c.get("severity", "?")
+              conf = c.get("confidence", "?")
+              ct   = c.get("chain_type", "?")
+              cid  = c.get("chain_id", "?")
+              sev_emoji = "🔴" if sev == "CRITICAL" else "🟠" if sev == "HIGH" else "🟡"
+              chain_lines.append(f"{sev_emoji} *{cid}* [{sev}/conf={conf}]\n`{ct}`")
+              steps = c.get("steps", [])
+              for step in steps:
+                  loc = step.get("location", "?")
+                  sig = step.get("signal_type", "?")
+                  chain_lines.append(f"  ↳ Step {step.get('step')}: [{sig}] `{loc}`")
+              if c.get("attack_narrative"):
+                  chain_lines.append(f"  📝 {c['attack_narrative'][:180]}")
+              chain_lines.append("")
+
+          blocks = [
+              {"type": "header", "text": {"type": "plain_text",
+               "text": f"🔗 CyberAI — Kill Chain(s) Detected"}},
+              {"type": "section", "text": {"type": "mrkdwn",
+               "text": f"*{len(kill_chains)} kill chain(s)* found in `{repo_name}`\n"
+                       f"Deep verification triggered automatically ↓"}},
+              {"type": "section", "text": {"type": "mrkdwn",
+               "text": "\n".join(chain_lines) or "(none)"}},
+              {"type": "context", "elements": [{"type": "mrkdwn",
+               "text": f"<{run_url}|View Pipeline B run>"}]},
+          ]
+
+          if webhook:
+              payload = json.dumps({"blocks": blocks}).encode()
+              req = urllib.request.Request(webhook, data=payload,
+                                           headers={"Content-Type": "application/json"})
+              try:
+                  urllib.request.urlopen(req, timeout=10)
+                  print(f"✅ Slack notified: {len(kill_chains)} kill chains in {repo_name}")
+              except Exception as e:
+                  print(f"⚠️  Slack send failed: {e}")
+          else:
+              print("ℹ️  SLACK_WEBHOOK_URL not set, skipping Slack notification")
+
+          # ── 触发 verify_chain.yml ───────────────────────────────
+          try:
+              result = subprocess.run(
+                  ["gh", "workflow", "run", "verify_chain.yml",
+                   "--field", f"source_run_id={run_id}",
+                   "--field", f"target_repo={os.environ['TARGET_REPO']}",
+                   "--field", "model=glm-4-plus",
+                   "--field", "min_confidence=60",
+                   "--repo", repo_full],
+                  capture_output=True, text=True
+              )
+              if result.returncode == 0:
+                  print(f"🚀 verify_chain.yml triggered (source_run_id={run_id})")
+              else:
+                  print(f"⚠️  workflow dispatch failed: {result.stderr[:200]}")
+          except Exception as e:
+              print(f"⚠️  Could not trigger verify_chain: {e}")
+          PYEOF
 
   # ── Step 3: Aggregate & verify ───────────────────────────────
   aggregate:

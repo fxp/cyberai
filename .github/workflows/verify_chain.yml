@@ -1,0 +1,221 @@
+name: Verify Kill Chain (deep)
+
+# 由 Pipeline B chain_build job 自动触发，也可手动运行
+# 对每条 kill chain 拉取真实源码，逐步追踪验证可利用性
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: "Pipeline B run ID (chains artifact 来源)"
+        required: true
+      target_repo:
+        description: "目标 repo URL"
+        required: true
+      target_ref:
+        description: "Tag / branch / commit"
+        required: false
+        default: "HEAD"
+      model:
+        description: "验证模型"
+        required: false
+        type: choice
+        default: "glm-4-plus"
+        options:
+          - glm-4-plus
+          - glm-z1-flash
+      min_confidence:
+        description: "最低置信度门槛（低于此不验证）"
+        required: false
+        default: "60"
+
+jobs:
+  deep_verify:
+    name: Deep verify kill chains
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      actions: read   # needed to download artifacts from other runs
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e .
+
+      - name: Clone target repo
+        run: |
+          git clone --depth=1 \
+            ${{ github.event.inputs.target_repo }} /tmp/target
+          cd /tmp/target && git checkout ${{ github.event.inputs.target_ref }} || true
+
+      - name: Download chains artifact from source run
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "⬇️  Downloading chains from run ${{ github.event.inputs.source_run_id }}"
+          gh run download ${{ github.event.inputs.source_run_id }} \
+            --name chains \
+            --dir results/ \
+            --repo ${{ github.repository }}
+          echo "chains.jsonl content:"
+          cat results/chains.jsonl | python3 -c "
+          import json, sys
+          for line in sys.stdin:
+              obj = json.loads(line.strip())
+              if 'chain_id' in obj:
+                  print(f\"  {obj['chain_id']}: {obj.get('chain_type','?')} [{obj.get('severity','?')}/conf={obj.get('confidence','?')}]\")
+          "
+
+      - name: Deep verify kill chains
+        env:
+          GLM_API_KEY: ${{ secrets.GLM_API_KEY }}
+          MODEL: ${{ github.event.inputs.model }}
+          MIN_CONF: ${{ github.event.inputs.min_confidence }}
+        run: |
+          python scripts/deep_verify_chain.py \
+            --chains results/chains.jsonl \
+            --repo /tmp/target \
+            --model "${MODEL:-glm-4-plus}" \
+            --output results/deep_verified.jsonl \
+            --min-confidence "${MIN_CONF:-60}"
+
+      - name: Upload deep verification results
+        uses: actions/upload-artifact@v4
+        with:
+          name: deep-verified-${{ github.run_id }}
+          path: results/deep_verified.jsonl
+          retention-days: 90
+
+      - name: Post results to Slack
+        if: always()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SOURCE_RUN_ID: ${{ github.event.inputs.source_run_id }}
+          TARGET_REPO: ${{ github.event.inputs.target_repo }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+        run: |
+          python - <<'PYEOF'
+          import json, os, urllib.request
+
+          webhook = os.environ.get("SLACK_WEBHOOK_URL", "")
+          if not webhook:
+              print("⚠️  SLACK_WEBHOOK_URL not set, skipping notification")
+              exit(0)
+
+          repo = os.environ["TARGET_REPO"].split("/")[-1]
+          run_url = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
+
+          results = []
+          try:
+              with open("results/deep_verified.jsonl") as f:
+                  for line in f:
+                      line = line.strip()
+                      if line:
+                          results.append(json.loads(line))
+          except Exception:
+              pass
+
+          confirmed = [r for r in results if r.get("verdict") == "CONFIRMED"]
+          partial   = [r for r in results if r.get("verdict") == "PARTIAL"]
+          total     = len(results)
+
+          if confirmed:
+              header_emoji = "🔴"
+              header_text  = f"*{len(confirmed)} CONFIRMED kill chain(s)* in `{repo}`"
+          elif partial:
+              header_emoji = "🟡"
+              header_text  = f"*{len(partial)} PARTIAL chain(s)* in `{repo}`"
+          else:
+              header_emoji = "⚪"
+              header_text  = f"*No confirmed chains* in `{repo}` ({total} checked)"
+
+          blocks = [
+              {"type": "header", "text": {"type": "plain_text",
+               "text": f"{header_emoji} CyberAI — Deep Chain Verification"}},
+              {"type": "section", "text": {"type": "mrkdwn", "text": header_text}},
+          ]
+
+          for r in confirmed + partial:
+              chain  = r.get("_chain", {})
+              v      = r.get("verdict", "?")
+              emoji  = "🔴" if v == "CONFIRMED" else "🟡"
+              cid    = chain.get("chain_id", "?")
+              ctype  = chain.get("chain_type", "?")
+              sev    = chain.get("severity", "?")
+              conf   = r.get("confidence", "?")
+              reason = r.get("reason", "")[:200]
+              exact  = r.get("exact_input", "")[:150]
+              cvss   = r.get("cvss_estimate", "")
+              text   = (f"{emoji} *{cid}* [{sev}/conf={conf}]\n"
+                        f"`{ctype}`\n"
+                        f"{reason}")
+              if exact:
+                  text += f"\n*Exact input:* `{exact}`"
+              if cvss:
+                  text += f"\n*CVSS:* `{cvss}`"
+              blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": text}})
+              blocks.append({"type": "divider"})
+
+          blocks.append({
+              "type": "context",
+              "elements": [{"type": "mrkdwn",
+                "text": f"<{run_url}|View deep verify run> · Source Pipeline B run: {os.environ['SOURCE_RUN_ID']}"}]
+          })
+
+          payload = json.dumps({"blocks": blocks}).encode()
+          req = urllib.request.Request(webhook, data=payload,
+                                       headers={"Content-Type": "application/json"})
+          try:
+              urllib.request.urlopen(req, timeout=10)
+              print("✅ Slack notification sent")
+          except Exception as e:
+              print(f"⚠️  Slack send failed: {e}")
+          PYEOF
+
+      - name: Print summary
+        if: always()
+        run: |
+          echo "## Deep Kill Chain Verification" >> $GITHUB_STEP_SUMMARY
+          echo "- Source Pipeline B run: ${{ github.event.inputs.source_run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Target: ${{ github.event.inputs.target_repo }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f results/deep_verified.jsonl ]; then
+            python3 - <<'PYEOF'
+          import json
+          confirmed, partial, fp, other = [], [], [], []
+          with open("results/deep_verified.jsonl") as f:
+              for line in f:
+                  line = line.strip()
+                  if not line: continue
+                  r = json.loads(line)
+                  v = r.get("verdict","?")
+                  chain = r.get("_chain",{})
+                  entry = f"- **{chain.get('chain_id','?')}** `{chain.get('chain_type','?')}` [{chain.get('severity','?')}] conf={r.get('confidence','?')}"
+                  if v == "CONFIRMED": confirmed.append(entry)
+                  elif v == "PARTIAL": partial.append(entry)
+                  elif v == "FALSE_POSITIVE": fp.append(entry)
+                  else: other.append(entry)
+          import subprocess, os
+          def gh_summary(text):
+              with open(os.environ.get("GITHUB_STEP_SUMMARY",""), "a") as f:
+                  f.write(text + "\n")
+          if confirmed:
+              gh_summary(f"### 🔴 CONFIRMED ({len(confirmed)})")
+              for e in confirmed: gh_summary(e)
+          if partial:
+              gh_summary(f"\n### 🟡 PARTIAL ({len(partial)})")
+              for e in partial: gh_summary(e)
+          if fp:
+              gh_summary(f"\n### ⚪ FALSE_POSITIVE ({len(fp)})")
+              for e in fp: gh_summary(e)
+          PYEOF
+          fi
