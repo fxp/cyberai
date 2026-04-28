@@ -35,6 +35,61 @@ def get_client(model: str):
 # ── 工具定义（tool use schema） ───────────────────────────────────
 TOOLS = [
     {
+        "name": "note_signal",
+        "description": (
+            "Record a weak security signal that alone may NOT be fully exploitable, "
+            "but could combine with other signals across files to form a kill chain.\n\n"
+            "Use for:\n"
+            "- INFO_LEAK: any read of internal pointer/address/heap metadata exposed to attacker\n"
+            "- PARTIAL_CORRUPTION: off-by-one, truncation, integer wrap that might be chained\n"
+            "- TYPE_CONFUSION: value interpreted as wrong type if attacker controls union/cast\n"
+            "- PRIVILEGE_TRANSITION: point where privilege level changes or can be influenced\n"
+            "- TAINT_SOURCE: attacker-controlled value enters the codebase here\n"
+            "- TAINT_SINK: dangerous operation (exec/write/free) that accepts tainted data\n"
+            "- DOUBLE_FREE_RISK: pointer freed in one branch but potentially accessible elsewhere\n"
+            "- RACE_WINDOW: TOCTOU gap where state can change between check and use\n\n"
+            "Lower bar than report_finding — you only need to be 60% confident the signal "
+            "exists and is reachable. The chain builder will correlate signals later."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "signal_type": {
+                    "type": "string",
+                    "enum": ["INFO_LEAK", "PARTIAL_CORRUPTION", "TYPE_CONFUSION",
+                             "PRIVILEGE_TRANSITION", "TAINT_SOURCE", "TAINT_SINK",
+                             "DOUBLE_FREE_RISK", "RACE_WINDOW"]
+                },
+                "location": {
+                    "type": "string",
+                    "description": "file:function:line"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "What specifically happens at this point"
+                },
+                "data_involved": {
+                    "type": "string",
+                    "description": "What data is leaked/corrupted/tainted (type, size, content)"
+                },
+                "attacker_reach": {
+                    "type": "string",
+                    "description": "How an attacker can reach this code path (even if not fully traced)"
+                },
+                "chain_potential": {
+                    "type": "string",
+                    "description": "What signal type would combine with this to complete an exploit (e.g. 'INFO_LEAK here + PARTIAL_CORRUPTION in heap allocator = ASLR bypass + RCE')"
+                },
+                "confidence": {
+                    "type": "integer",
+                    "description": "0-100, minimum 60 to call this tool"
+                }
+            },
+            "required": ["signal_type", "location", "description",
+                         "attacker_reach", "chain_potential", "confidence"]
+        }
+    },
+    {
         "name": "read_file",
         "description": (
             "Read the content of any source file in the target repository. "
@@ -146,38 +201,45 @@ TOOLS = [
     }
 ]
 
-SYSTEM_PROMPT = """You are a senior security researcher performing a conservative, skeptical code audit.
+SYSTEM_PROMPT = """You are an expert offensive security researcher building a kill chain map of a codebase.
 
-Your ONLY job is to find vulnerabilities that are:
-  (a) reachable from an external attacker (network, file, user input)
-  (b) not blocked by any existing guard in the call chain
-  (c) actually exploitable (not just theoretically dangerous)
+## Primary goal: map ALL weak signals, not just standalone bugs
 
-## Workflow for each suspicious pattern
+Real-world exploits are rarely a single bug. They are chains:
+  INFO_LEAK → ASLR bypass → PARTIAL_CORRUPTION → arbitrary write → RCE
+  TAINT_SOURCE → TAINT_SINK → command injection
+  RACE_WINDOW + DOUBLE_FREE_RISK → UAF → controlled allocation → code exec
 
-1. read_file to see the exact code (never guess from partial context).
-2. grep_repo to find ALL callers of the suspicious function.
-3. For EACH caller: check if it validates the input BEFORE calling.
-4. Only if NO caller provides a guard: report_finding.
+Your job is TWO things:
+  1. note_signal for EVERY interesting weak point (low bar: confidence >= 60)
+  2. report_finding ONLY for standalone fully-confirmed bugs (high bar: confidence >= 85)
 
-## Known-safe patterns — NEVER report these
+## What to note_signal
 
-- `strdup(s)` / `strndup(s, n)` — heap-allocates len(s)+1 bytes, no fixed buffer.
-- `malloc(strlen(s) + 1)` — same, dynamic allocation.
-- `snprintf(buf, sizeof(buf), ...)` — sizeof bound makes it safe.
-- `calloc(n, sz)` — POSIX libc returns NULL on n*sz overflow; caller checks NULL.
-- `realloc(p, n)` preceded by an explicit size check.
-- Any NULL-check after allocation (UAF requires the pointer to be freed AND reused).
-- Code in directories: test/, tests/, examples/, docs/, fuzz/, bench/
+Think like an attacker building a chain:
+- Anywhere attacker-controlled data enters without full sanitization → TAINT_SOURCE
+- Anywhere a dangerous op (exec, write-to-fd, free, memcpy-to-stack) takes externally-derived size or pointer → TAINT_SINK
+- Anywhere an internal address, heap pointer, or secret is accessible to an attacker → INFO_LEAK
+- Any integer that could wrap under attacker control → PARTIAL_CORRUPTION
+- Any union/type cast where attacker controls the active member → TYPE_CONFUSION
+- Any TOCTOU gap (check then use with a window in between) → RACE_WINDOW
+- Any pointer freed in one branch with a code path that accesses it in another → DOUBLE_FREE_RISK
 
-## Precision rules
+## Investigation workflow
 
-- If you found a guard but are "not sure if it's sufficient" → DO NOT report.
-- If you cannot name the external input source → DO NOT report.
-- If the dangerous operation is inside a function only called with compile-time constants → DO NOT report.
-- confidence must be >= 85 to call report_finding.
+1. read_file: see the code for real before noting anything.
+2. grep_repo: find callers, definitions, where data comes from.
+3. note_signal: record every interesting point with chain_potential filled in.
+4. If you find a case where two signals you noted IN THIS FILE already form a complete chain: call report_finding.
 
-You have up to 25 tool calls. Spend them on verification, not exploration."""
+## Known-safe (do NOT even note_signal)
+
+- `strdup(s)` / `malloc(strlen(s)+1)`: dynamic, no overflow.
+- `snprintf(buf, sizeof(buf), ...)`: bounded.
+- `calloc(n, sz)`: overflow-safe by POSIX.
+- Files in test/, tests/, examples/, fuzz/, docs/.
+
+You have 25 tool calls. Use them to build a complete signal map, not to find one perfect bug."""
 
 
 def execute_tool(name: str, inputs: dict, repo_root: Path) -> str:
@@ -217,6 +279,9 @@ def execute_tool(name: str, inputs: dict, repo_root: Path) -> str:
         except Exception as e:
             return f"ERROR: {e}"
 
+    elif name == "note_signal":
+        return "SIGNAL_RECORDED"
+
     elif name == "report_finding":
         return "FINDING_RECORDED"
 
@@ -237,7 +302,7 @@ def scan_file_anthropic(client, model: str, repo_root: Path, file_path: str) -> 
     if len(content) > 8000:
         initial_code += f"\n\n// ... [{len(content)-8000} more bytes — use read_file to see more] ..."
 
-    user_msg = f"""Audit this file for security vulnerabilities.
+    user_msg = f"""Map all security signals in this file for kill chain analysis.
 
 File: {file_path}
 
@@ -245,11 +310,13 @@ File: {file_path}
 {initial_code}
 ```
 
-Use read_file and grep_repo to verify any suspicious pattern before reporting.
-Remember: only report_finding when confidence >= 85 AND you have read all callers."""
+Use note_signal for every interesting weak point (confidence >= 60).
+Use read_file/grep_repo to verify before noting.
+Use report_finding only for standalone confirmed bugs (confidence >= 85)."""
 
     messages = [{"role": "user", "content": user_msg}]
-    findings = []
+    findings = []   # confirmed standalone bugs
+    signals = []    # weak signals for chain analysis
     tool_calls = 0
 
     while tool_calls < 25:
@@ -261,21 +328,26 @@ Remember: only report_finding when confidence >= 85 AND you have read all caller
             messages=messages,
         )
 
-        # 收集 report_finding 调用（强制 confidence >= 85）
         tool_uses = [b for b in response.content if b.type == "tool_use"]
         for tu in tool_uses:
-            if tu.name == "report_finding":
+            if tu.name == "note_signal":
+                sig = tu.input.copy()
+                if sig.get("confidence", 0) >= 60:
+                    sig["source_file"] = file_path
+                    sig["model"] = model
+                    sig["_record_type"] = "signal"
+                    signals.append(sig)
+            elif tu.name == "report_finding":
                 finding = tu.input.copy()
-                if finding.get("confidence", 0) < 85:
-                    continue  # 低置信度直接丢弃
-                finding["source_file"] = file_path
-                finding["model"] = model
-                findings.append(finding)
+                if finding.get("confidence", 0) >= 85:
+                    finding["source_file"] = file_path
+                    finding["model"] = model
+                    finding["_record_type"] = "finding"
+                    findings.append(finding)
 
         if response.stop_reason == "end_turn" or not tool_uses:
             break
 
-        # 执行工具调用，返回结果
         tool_results = []
         for tu in tool_uses:
             tool_calls += 1
@@ -289,7 +361,7 @@ Remember: only report_finding when confidence >= 85 AND you have read all caller
         messages.append({"role": "assistant", "content": response.content})
         messages.append({"role": "user", "content": tool_results})
 
-    return findings
+    return findings + signals  # 合并输出，chain builder 区分 _record_type
 
 
 def glm_chat_with_retry(client, model, messages, tools, max_retries=5):
@@ -348,14 +420,15 @@ def scan_file_glm(client, model: str, repo_root: Path, file_path: str) -> list[d
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": (
-            f"Audit this file for security vulnerabilities.\n\nFile: {file_path}\n\n"
-            f"```c\n{initial_code}\n```\n\n"
-            "Use read_file and grep_repo to verify any suspicious pattern before reporting.\n"
-            "Remember: confidence must be >= 85 and you must have read all callers."
+            f"Map all security signals in this file for kill chain analysis.\n\n"
+            f"File: {file_path}\n\n```c\n{initial_code}\n```\n\n"
+            "Use note_signal for every weak point (confidence >= 60).\n"
+            "Use read_file/grep_repo to verify. report_finding only for confirmed bugs (>= 85)."
         )},
     ]
 
     findings = []
+    signals = []
     tool_calls_count = 0
 
     while tool_calls_count < 25:
@@ -374,12 +447,20 @@ def scan_file_glm(client, model: str, repo_root: Path, file_path: str) -> list[d
             except Exception:
                 inputs = {}
 
-            if tc.function.name == "report_finding":
-                # 强制 confidence >= 85
+            if tc.function.name == "note_signal":
+                if inputs.get("confidence", 0) >= 60:
+                    sig = inputs.copy()
+                    sig["source_file"] = file_path
+                    sig["model"] = model
+                    sig["_record_type"] = "signal"
+                    signals.append(sig)
+                result = "SIGNAL_RECORDED"
+            elif tc.function.name == "report_finding":
                 if inputs.get("confidence", 0) >= 85:
                     finding = inputs.copy()
                     finding["source_file"] = file_path
                     finding["model"] = model
+                    finding["_record_type"] = "finding"
                     findings.append(finding)
                 result = "FINDING_RECORDED"
             else:
@@ -393,7 +474,7 @@ def scan_file_glm(client, model: str, repo_root: Path, file_path: str) -> list[d
 
         messages.extend(tool_results)
 
-    return findings
+    return findings + signals
 
 
 def main():

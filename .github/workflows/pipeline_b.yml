@@ -24,10 +24,10 @@ on:
         description: "使用模型"
         required: false
         type: choice
-        default: "glm-4-flash"
+        default: "glm-4-plus"
         options:
-          - glm-4-flash
           - glm-4-plus
+          - glm-4-flash
           - glm-z1-flash
           - claude-opus-4-6
       max_files:
@@ -148,10 +148,58 @@ jobs:
           name: chunk-${{ matrix.chunk.id }}
           path: results/chunk_${{ matrix.chunk.id }}.jsonl
 
+  # ── Step 2.5: Build kill chains from signals ─────────────────
+  chain_build:
+    name: Build kill chains from signals
+    needs: detect
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e .
+
+      - name: Clone target repo
+        run: |
+          git clone --depth=1 \
+            ${{ github.event.inputs.target_repo }} /tmp/target
+          cd /tmp/target && git checkout ${{ github.event.inputs.target_ref }} || true
+
+      - name: Download all chunk results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: chunk-*
+          merge-multiple: true
+          path: results/
+
+      - name: Build kill chains
+        env:
+          GLM_API_KEY: ${{ secrets.GLM_API_KEY }}
+          MODEL: ${{ github.event.inputs.model }}
+        run: |
+          python scripts/pipeline_b_chain.py \
+            --input-dir results/ \
+            --model "${MODEL:-glm-4-plus}" \
+            --output results/chains.jsonl \
+            --repo /tmp/target
+
+      - name: Upload chains
+        uses: actions/upload-artifact@v4
+        with:
+          name: chains
+          path: results/chains.jsonl
+
   # ── Step 3: Aggregate & verify ───────────────────────────────
   aggregate:
     name: Aggregate results & second-pass verify
-    needs: detect
+    needs: chain_build
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -166,11 +214,10 @@ jobs:
       - name: Install dependencies
         run: pip install -e ".[aliyun]"
 
-      - name: Download all chunk results
+      - name: Download chains
         uses: actions/download-artifact@v4
         with:
-          pattern: chunk-*
-          merge-multiple: true
+          name: chains
           path: results/
 
       - name: Merge & verify top candidates

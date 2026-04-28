@@ -70,29 +70,77 @@ def verify_one(finding: dict, client, model: str,
                repo_root: Path | None = None) -> dict:
     """Run second-pass verification on a single finding."""
 
+    # ── Kill chain format vs single finding format ─────────────
+    is_chain = "chain_id" in finding
+
+    if is_chain:
+        # chains have steps[], attack_narrative, poc_sketch
+        steps = finding.get("steps", [])
+        locations = " → ".join(
+            s.get("location", "?") for s in steps
+        ) if steps else "?"
+        description = finding.get("attack_narrative", "?")
+        poc_hint = finding.get("poc_sketch", "?")
+        finding_type = finding.get("chain_type", "kill_chain")
+        source_file = locations
+        # Attempt to read source for first step
+        first_loc = steps[0].get("location", "") if steps else ""
+        # location format: "src/net.c:func:line" — extract file part
+        file_part = first_loc.split(":")[0] if ":" in first_loc else first_loc
+    else:
+        finding_type = finding.get("type", "?")
+        description = finding.get("description", "?")
+        poc_hint = finding.get("poc_hint") or finding.get("exploit_path") or "?"
+        source_file = finding.get("location") or finding.get("source_file", "?")
+        file_part = finding.get("source_file", "")
+
     # 构建代码上下文
     code_context = ""
 
     # Pipeline B findings 包含 exploit_path，直接用
-    if finding.get("exploit_path"):
+    if not is_chain and finding.get("exploit_path"):
         code_context = f"[Exploit path traced by detector]: {finding['exploit_path']}"
 
-    # Pipeline A findings 有 source_file，尝试读取 extract
-    src_file = finding.get("source_file", "")
-    if not code_context and src_file and repo_root:
-        candidate = repo_root / src_file
+    # 尝试读取源文件
+    if not code_context and file_part and repo_root:
+        candidate = repo_root / file_part
         if candidate.exists():
             code_context = candidate.read_text(errors="replace")[:6000]
 
     if not code_context:
         code_context = "(source code not available — verify based on description only)"
 
-    claim = f"""Claimed vulnerability:
-- Type: {finding.get('type', '?')}
+    if is_chain:
+        steps_text = "\n".join(
+            f"  Step {s.get('step')}: [{s.get('signal_type')}] @ {s.get('location','?')}\n"
+            f"    Role: {s.get('role','?')}\n"
+            f"    Provides: {s.get('provides','?')}  Requires: {s.get('requires','none')}"
+            for s in steps
+        )
+        claim = f"""Claimed kill chain:
+- Chain type: {finding_type}
 - Severity: {finding.get('severity', '?')}
-- Description: {finding.get('description', '?')}
-- PoC hint: {finding.get('poc_hint') or finding.get('exploit_path') or '?'}
-- Location: {finding.get('location') or finding.get('source_file', '?')}
+- Confidence: {finding.get('confidence', '?')}
+- Missing pieces: {finding.get('missing_pieces', 'none stated')}
+
+Steps:
+{steps_text}
+
+Attack narrative:
+{description}
+
+PoC sketch:
+{poc_hint}
+
+Code context (first step file):
+{code_context}"""
+    else:
+        claim = f"""Claimed vulnerability:
+- Type: {finding_type}
+- Severity: {finding.get('severity', '?')}
+- Description: {description}
+- PoC hint: {poc_hint}
+- Location: {source_file}
 
 Code / context:
 {code_context}"""
@@ -126,8 +174,9 @@ def run_pipeline_b_mode(input_dir: Path, output: Path, model: str,
     """Read all JSONL from input_dir, verify top candidates, write verified.jsonl"""
     client, model = get_glm_client(model)
 
-    # 收集所有 findings
+    # 收集所有 findings（跳过原始信号 — 信号已由 chain builder 处理）
     all_findings = []
+    raw_signals = 0
     for jf in sorted(input_dir.glob("**/*.jsonl")):
         with open(jf) as f:
             for line in f:
@@ -135,10 +184,20 @@ def run_pipeline_b_mode(input_dir: Path, output: Path, model: str,
                 if line:
                     try:
                         obj = json.loads(line)
+                        # 跳过原始弱信号（_record_type=="signal"）和空条目
+                        if obj.get("_record_type") == "signal":
+                            raw_signals += 1
+                            continue
+                        # 跳过 no_chains sentinel 和错误记录
+                        if "no_chains" in obj or "error" in obj or "raw_response" in obj:
+                            continue
                         obj.setdefault("_source_file", str(jf.name))
                         all_findings.append(obj)
                     except Exception:
                         pass
+
+    if raw_signals:
+        print(f"ℹ️  跳过 {raw_signals} 个原始信号（已由 chain builder 聚合）")
 
     if not all_findings:
         print("⚠️  No findings found in input-dir")
@@ -146,25 +205,50 @@ def run_pipeline_b_mode(input_dir: Path, output: Path, model: str,
         output.write_text("")
         return
 
-    # 排序：CRITICAL 优先，然后按置信度
-    all_findings.sort(key=lambda x: (
+    # 分离 kill chain 和单点 findings，分别排序
+    chains = [f for f in all_findings if "chain_id" in f]
+    singles = [f for f in all_findings if "chain_id" not in f]
+
+    # 单点 findings: CRITICAL 优先，然后按置信度
+    singles.sort(key=lambda x: (
+        0 if x.get("severity") == "CRITICAL" else 1,
+        -x.get("confidence", 0)
+    ))
+    # Kill chains: CRITICAL 优先，高 confidence 优先
+    chains.sort(key=lambda x: (
         0 if x.get("severity") == "CRITICAL" else 1,
         -x.get("confidence", 0)
     ))
 
-    # 去重（同类型+同文件最多保留1个）
+    # 去重单点 findings（同类型+同文件最多保留1个）
     seen = set()
-    unique = []
-    for f in all_findings:
+    unique_singles = []
+    for f in singles:
         key = (f.get("type", "")[:25], f.get("source_file", f.get("location", ""))[:35])
         if key not in seen:
             seen.add(key)
-            unique.append(f)
+            unique_singles.append(f)
 
-    candidates = unique[:top_n]
-    print(f"🔍 二次验证: {len(candidates)} 个候选 (原始 {len(all_findings)} findings)")
-    print(f"{'#':<4} {'Type':<28} {'File':<35} {'Verdict':<15} Reason")
-    print("-" * 110)
+    # Kill chains 去重（同 chain_type 最多保留 3 个）
+    seen_chain_types: dict[str, int] = {}
+    unique_chains = []
+    for c in chains:
+        ct = c.get("chain_type", "")[:40]
+        if seen_chain_types.get(ct, 0) < 3:
+            seen_chain_types[ct] = seen_chain_types.get(ct, 0) + 1
+            unique_chains.append(c)
+
+    # Kill chains 优先验证（最多 top_n//2），单点 findings 补足
+    chain_quota = min(len(unique_chains), top_n // 2)
+    single_quota = top_n - chain_quota
+    candidates = unique_chains[:chain_quota] + unique_singles[:single_quota]
+
+    print(f"🔍 二次验证: {len(candidates)} 个候选 "
+          f"({len(unique_chains[:chain_quota])} kill chains + "
+          f"{len(unique_singles[:single_quota])} single findings)")
+    print(f"   (原始总计: {len(chains)} chains + {len(singles)} singles)")
+    print(f"{'#':<4} {'Type':<30} {'Location':<33} {'Verdict':<15} Reason")
+    print("-" * 115)
 
     results = []
     confirmed = []
@@ -172,9 +256,18 @@ def run_pipeline_b_mode(input_dir: Path, output: Path, model: str,
 
     with open(output, "w") as out:
         for i, cand in enumerate(candidates):
-            src = cand.get("source_file") or cand.get("location") or "?"
-            print(f"  [{i+1:2d}/{len(candidates)}] "
-                  f"{cand.get('type','?')[:26]:<28} {src[:33]:<35}", end=" ", flush=True)
+            is_chain = "chain_id" in cand
+            label = cand.get("chain_type") if is_chain else cand.get("type", "?")
+            if is_chain:
+                steps = cand.get("steps", [])
+                src = " → ".join(s.get("location","?").split(":")[0]
+                                 for s in steps[:2])
+                src = src or "?"
+            else:
+                src = cand.get("source_file") or cand.get("location") or "?"
+            prefix = "🔗" if is_chain else "  "
+            print(f"{prefix}[{i+1:2d}/{len(candidates)}] "
+                  f"{str(label)[:28]:<30} {src[:31]:<33}", end=" ", flush=True)
 
             result = verify_one(cand, client, model, repo_root)
             verdict = result.get("verdict", "?")
@@ -196,14 +289,25 @@ def run_pipeline_b_mode(input_dir: Path, output: Path, model: str,
     print(f"📄 结果: {output}")
 
     if confirmed:
-        print("\n🔴 已确认漏洞:")
+        print("\n🔴 已确认漏洞/攻击链:")
         for finding, result in confirmed:
-            print(f"\n  {finding.get('source_file') or finding.get('location')}")
-            print(f"  类型: {finding.get('type')} | 严重性: {finding.get('severity')} "
-                  f"| 置信度: {finding.get('confidence')}")
-            print(f"  描述: {str(finding.get('description',''))[:120]}")
-            print(f"  验证: {result.get('reason','')[:120]}")
-            print(f"  PoC:  {result.get('poc_path','N/A')[:120]}")
+            is_chain = "chain_id" in finding
+            if is_chain:
+                print(f"\n  🔗 Kill Chain: {finding.get('chain_id')} — {finding.get('chain_type')}")
+                print(f"  严重性: {finding.get('severity')} | 置信度: {finding.get('confidence')}")
+                for step in finding.get("steps", []):
+                    print(f"    Step {step.get('step')}: [{step.get('signal_type')}] "
+                          f"@ {step.get('location','?')}")
+                print(f"  攻击路径: {str(finding.get('attack_narrative',''))[:150]}")
+                print(f"  验证意见: {result.get('reason','')[:120]}")
+                print(f"  PoC:  {result.get('poc_path','N/A')[:120]}")
+            else:
+                print(f"\n  {finding.get('source_file') or finding.get('location')}")
+                print(f"  类型: {finding.get('type')} | 严重性: {finding.get('severity')} "
+                      f"| 置信度: {finding.get('confidence')}")
+                print(f"  描述: {str(finding.get('description',''))[:120]}")
+                print(f"  验证: {result.get('reason','')[:120]}")
+                print(f"  PoC:  {result.get('poc_path','N/A')[:120]}")
     else:
         print("\n⚠️  没有候选通过二次验证")
 
