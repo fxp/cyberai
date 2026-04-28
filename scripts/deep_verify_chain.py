@@ -108,13 +108,19 @@ def read_source_context(repo_root: Path, location: str, context_lines: int = 40)
 
     candidate = repo_root / file_part
     if not candidate.exists():
-        # try stripping leading path components
+        # try stripping leading path components (e.g. "src/net.c" → "net.c")
+        found = False
         for depth in range(1, 4):
-            stripped = Path(*Path(file_part).parts[depth:])
+            parts_stripped = Path(file_part).parts[depth:]
+            if not parts_stripped:
+                break
+            stripped = Path(*parts_stripped)
             candidate = repo_root / stripped
             if candidate.exists():
+                found = True
                 break
-        else:
+        if not found:
+            print(f"    ⚠️  source not found: {file_part} (tried {repo_root})")
             return f"(file not found: {file_part})"
 
     try:

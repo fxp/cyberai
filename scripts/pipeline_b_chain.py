@@ -177,7 +177,8 @@ def run_chain_builder(input_dir: Path, output: Path, model: str,
                     obj = json.loads(line)
                     rt = obj.get("_record_type", "finding")
                     if rt == "signal":
-                        all_signals.append(obj)
+                        if obj.get("confidence", 0) >= 60:
+                            all_signals.append(obj)
                     else:
                         all_findings.append(obj)
                 except Exception:

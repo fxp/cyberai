@@ -138,10 +138,12 @@ jobs:
               header_emoji = "⚪"
               header_text  = f"*No confirmed chains* in `{repo}` ({total} checked)"
 
+          # 这是第二条 Slack 消息 — 深度复核最终结论（第一条在 chain_build 发现时发送）
           blocks = [
               {"type": "header", "text": {"type": "plain_text",
-               "text": f"{header_emoji} CyberAI — Deep Chain Verification"}},
-              {"type": "section", "text": {"type": "mrkdwn", "text": header_text}},
+               "text": f"{header_emoji} CyberAI — Kill Chain Verdict (Deep Verify)"}},
+              {"type": "section", "text": {"type": "mrkdwn",
+               "text": f"Deep verification complete for `{repo}`\n{header_text}"}},
           ]
 
           for r in confirmed + partial:

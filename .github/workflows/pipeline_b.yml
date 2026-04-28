@@ -340,6 +340,40 @@ jobs:
             --model "$MODEL" \
             --output results/verified.jsonl
 
+      # 尝试合并 verify_chain.yml 的深度复核结果（best-effort：可能尚未完成）
+      - name: Merge deep-verified chains (best-effort)
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 找到本次 pipeline run 触发的 verify_chain run（如果已完成）
+          VERIFY_RUN=$(gh run list \
+            --workflow=verify_chain.yml \
+            --limit=5 \
+            --json databaseId,status,createdAt \
+            --repo ${{ github.repository }} \
+            | python3 -c "
+          import json, sys
+          runs = json.load(sys.stdin)
+          # 取最近完成的一个
+          for r in runs:
+              if r['status'] == 'completed':
+                  print(r['databaseId'])
+                  break
+          " 2>/dev/null || true)
+
+          if [ -n "$VERIFY_RUN" ]; then
+            echo "Found completed verify_chain run: $VERIFY_RUN"
+            gh run download "$VERIFY_RUN" \
+              --pattern "deep-verified-*" \
+              --dir results/ \
+              --repo ${{ github.repository }} 2>/dev/null && \
+            echo "✅ Merged deep_verified.jsonl" || \
+            echo "ℹ️  deep_verified artifact not yet available (verify_chain still running)"
+          else
+            echo "ℹ️  No completed verify_chain run found yet"
+          fi
+
       - name: Generate triage report
         run: |
           python scripts/process_scan_results.py \

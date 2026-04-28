@@ -174,9 +174,13 @@ def run_pipeline_b_mode(input_dir: Path, output: Path, model: str,
     """Read all JSONL from input_dir, verify top candidates, write verified.jsonl"""
     client, model = get_glm_client(model)
 
-    # 收集所有 findings（跳过原始信号 — 信号已由 chain builder 处理）
+    # 收集 standalone findings（跳过以下三类）:
+    #   - _record_type=="signal"  → 已由 chain builder 聚合成 kill chain
+    #   - chain_id 存在            → kill chain，由 verify_chain.yml / deep_verify_chain.py 处理
+    #   - no_chains / error 哨兵  → 元数据记录，无需验证
     all_findings = []
     raw_signals = 0
+    skipped_chains = 0
     for jf in sorted(input_dir.glob("**/*.jsonl")):
         with open(jf) as f:
             for line in f:
@@ -184,11 +188,13 @@ def run_pipeline_b_mode(input_dir: Path, output: Path, model: str,
                 if line:
                     try:
                         obj = json.loads(line)
-                        # 跳过原始弱信号（_record_type=="signal"）和空条目
                         if obj.get("_record_type") == "signal":
                             raw_signals += 1
                             continue
-                        # 跳过 no_chains sentinel 和错误记录
+                        if "chain_id" in obj:
+                            # kill chain → deep_verify_chain.py 负责，这里跳过
+                            skipped_chains += 1
+                            continue
                         if "no_chains" in obj or "error" in obj or "raw_response" in obj:
                             continue
                         obj.setdefault("_source_file", str(jf.name))
@@ -198,6 +204,8 @@ def run_pipeline_b_mode(input_dir: Path, output: Path, model: str,
 
     if raw_signals:
         print(f"ℹ️  跳过 {raw_signals} 个原始信号（已由 chain builder 聚合）")
+    if skipped_chains:
+        print(f"ℹ️  跳过 {skipped_chains} 条 kill chain（由 verify_chain.yml 深度复核）")
 
     if not all_findings:
         print("⚠️  No findings found in input-dir")
@@ -205,50 +213,27 @@ def run_pipeline_b_mode(input_dir: Path, output: Path, model: str,
         output.write_text("")
         return
 
-    # 分离 kill chain 和单点 findings，分别排序
-    chains = [f for f in all_findings if "chain_id" in f]
-    singles = [f for f in all_findings if "chain_id" not in f]
-
-    # 单点 findings: CRITICAL 优先，然后按置信度
-    singles.sort(key=lambda x: (
-        0 if x.get("severity") == "CRITICAL" else 1,
-        -x.get("confidence", 0)
-    ))
-    # Kill chains: CRITICAL 优先，高 confidence 优先
-    chains.sort(key=lambda x: (
+    # all_findings 此时全部是 standalone findings（kill chain 已在上面过滤掉）
+    # CRITICAL 优先，然后按置信度
+    all_findings.sort(key=lambda x: (
         0 if x.get("severity") == "CRITICAL" else 1,
         -x.get("confidence", 0)
     ))
 
-    # 去重单点 findings（同类型+同文件最多保留1个）
+    # 去重（同类型+同文件最多保留1个）
     seen = set()
-    unique_singles = []
-    for f in singles:
+    unique = []
+    for f in all_findings:
         key = (f.get("type", "")[:25], f.get("source_file", f.get("location", ""))[:35])
         if key not in seen:
             seen.add(key)
-            unique_singles.append(f)
+            unique.append(f)
 
-    # Kill chains 去重（同 chain_type 最多保留 3 个）
-    seen_chain_types: dict[str, int] = {}
-    unique_chains = []
-    for c in chains:
-        ct = c.get("chain_type", "")[:40]
-        if seen_chain_types.get(ct, 0) < 3:
-            seen_chain_types[ct] = seen_chain_types.get(ct, 0) + 1
-            unique_chains.append(c)
+    candidates = unique[:top_n]
 
-    # Kill chains 优先验证（最多 top_n//2），单点 findings 补足
-    chain_quota = min(len(unique_chains), top_n // 2)
-    single_quota = top_n - chain_quota
-    candidates = unique_chains[:chain_quota] + unique_singles[:single_quota]
-
-    print(f"🔍 二次验证: {len(candidates)} 个候选 "
-          f"({len(unique_chains[:chain_quota])} kill chains + "
-          f"{len(unique_singles[:single_quota])} single findings)")
-    print(f"   (原始总计: {len(chains)} chains + {len(singles)} singles)")
-    print(f"{'#':<4} {'Type':<30} {'Location':<33} {'Verdict':<15} Reason")
-    print("-" * 115)
+    print(f"🔍 二次验证: {len(candidates)} 个 standalone findings（共 {len(all_findings)} 个）")
+    print(f"{'#':<4} {'Type':<30} {'Location':<35} {'Verdict':<15} Reason")
+    print("-" * 110)
 
     results = []
     confirmed = []
@@ -256,18 +241,10 @@ def run_pipeline_b_mode(input_dir: Path, output: Path, model: str,
 
     with open(output, "w") as out:
         for i, cand in enumerate(candidates):
-            is_chain = "chain_id" in cand
-            label = cand.get("chain_type") if is_chain else cand.get("type", "?")
-            if is_chain:
-                steps = cand.get("steps", [])
-                src = " → ".join(s.get("location","?").split(":")[0]
-                                 for s in steps[:2])
-                src = src or "?"
-            else:
-                src = cand.get("source_file") or cand.get("location") or "?"
-            prefix = "🔗" if is_chain else "  "
-            print(f"{prefix}[{i+1:2d}/{len(candidates)}] "
-                  f"{str(label)[:28]:<30} {src[:31]:<33}", end=" ", flush=True)
+            src = cand.get("source_file") or cand.get("location") or "?"
+            label = cand.get("type", "?")
+            print(f"  [{i+1:2d}/{len(candidates)}] "
+                  f"{str(label)[:28]:<30} {src[:33]:<35}", end=" ", flush=True)
 
             result = verify_one(cand, client, model, repo_root)
             verdict = result.get("verdict", "?")
@@ -289,25 +266,14 @@ def run_pipeline_b_mode(input_dir: Path, output: Path, model: str,
     print(f"📄 结果: {output}")
 
     if confirmed:
-        print("\n🔴 已确认漏洞/攻击链:")
+        print("\n🔴 已确认漏洞:")
         for finding, result in confirmed:
-            is_chain = "chain_id" in finding
-            if is_chain:
-                print(f"\n  🔗 Kill Chain: {finding.get('chain_id')} — {finding.get('chain_type')}")
-                print(f"  严重性: {finding.get('severity')} | 置信度: {finding.get('confidence')}")
-                for step in finding.get("steps", []):
-                    print(f"    Step {step.get('step')}: [{step.get('signal_type')}] "
-                          f"@ {step.get('location','?')}")
-                print(f"  攻击路径: {str(finding.get('attack_narrative',''))[:150]}")
-                print(f"  验证意见: {result.get('reason','')[:120]}")
-                print(f"  PoC:  {result.get('poc_path','N/A')[:120]}")
-            else:
-                print(f"\n  {finding.get('source_file') or finding.get('location')}")
-                print(f"  类型: {finding.get('type')} | 严重性: {finding.get('severity')} "
-                      f"| 置信度: {finding.get('confidence')}")
-                print(f"  描述: {str(finding.get('description',''))[:120]}")
-                print(f"  验证: {result.get('reason','')[:120]}")
-                print(f"  PoC:  {result.get('poc_path','N/A')[:120]}")
+            print(f"\n  {finding.get('source_file') or finding.get('location')}")
+            print(f"  类型: {finding.get('type')} | 严重性: {finding.get('severity')} "
+                  f"| 置信度: {finding.get('confidence')}")
+            print(f"  描述: {str(finding.get('description',''))[:120]}")
+            print(f"  验证: {result.get('reason','')[:120]}")
+            print(f"  PoC:  {result.get('poc_path','N/A')[:120]}")
     else:
         print("\n⚠️  没有候选通过二次验证")
 
