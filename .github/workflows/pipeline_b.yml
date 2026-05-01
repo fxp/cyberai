@@ -24,8 +24,9 @@ on:
         description: "使用模型"
         required: false
         type: choice
-        default: "glm-4-plus"
+        default: "glm-5.1"
         options:
+          - glm-5.1
           - glm-4-plus
           - glm-4-flash
           - glm-z1-flash
@@ -208,6 +209,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           TARGET_REPO: ${{ github.event.inputs.target_repo }}
           GITHUB_RUN_ID: ${{ github.run_id }}
+          PARENT_MODEL: ${{ github.event.inputs.model }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_SERVER_URL: ${{ github.server_url }}
         run: |
@@ -287,12 +289,15 @@ jobs:
               print("ℹ️  SLACK_WEBHOOK_URL not set, skipping Slack notification")
 
           # ── 触发 verify_chain.yml ───────────────────────────────
+          # Inherit verify model from parent unless it's flash (need stronger model for deep verify)
+          parent_model = os.environ.get("PARENT_MODEL", "glm-5.1")
+          verify_model = "glm-5.1" if parent_model in ("glm-4-flash", "glm-z1-flash") else parent_model
           try:
               result = subprocess.run(
                   ["gh", "workflow", "run", "verify_chain.yml",
                    "--field", f"source_run_id={run_id}",
                    "--field", f"target_repo={os.environ['TARGET_REPO']}",
-                   "--field", "model=glm-4-plus",
+                   "--field", f"model={verify_model}",
                    "--field", "min_confidence=60",
                    "--repo", repo_full],
                   capture_output=True, text=True
