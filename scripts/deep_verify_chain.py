@@ -181,8 +181,45 @@ def build_chain_prompt(chain: dict, repo_root: Path) -> str:
     return "\n".join(sections)
 
 
+def _extract_message_content(resp) -> str:
+    """Extract text from chat completion, handling reasoning models.
+
+    GLM-5.1 / glm-z1-* are reasoning models: when the model emits a
+    visible answer, it goes to `message.content`; the chain-of-thought
+    goes to `message.reasoning_content`. For some prompts (especially
+    short or strict-JSON), the model puts the JSON in reasoning_content
+    and leaves content empty. Fall back to reasoning_content in that
+    case so we don't lose the answer.
+    """
+    msg = resp.choices[0].message
+    content = (getattr(msg, "content", None) or "").strip()
+    if content:
+        return content
+    reasoning = (getattr(msg, "reasoning_content", None) or "").strip()
+    return reasoning
+
+
+_FENCE_RE = re.compile(
+    r"^```(?:json|javascript|js)?\s*\n?(.*?)\n?```\s*$",
+    re.DOTALL,
+)
+
+
 def _extract_json(text: str) -> dict | None:
-    """Extract first JSON object from text."""
+    """Extract a JSON object from text. Robust to markdown fences."""
+    text = (text or "").strip()
+    if not text:
+        return None
+    # Strip markdown fence if the whole response is fenced
+    m = _FENCE_RE.match(text)
+    if m:
+        text = m.group(1).strip()
+    # Direct parse
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+    # Brace-match fallback (first balanced { ... })
     depth = 0
     start = None
     for i, ch in enumerate(text):
@@ -195,32 +232,48 @@ def _extract_json(text: str) -> dict | None:
             if depth == 0 and start is not None:
                 try:
                     return json.loads(text[start:i + 1])
-                except Exception:
+                except json.JSONDecodeError:
                     start = None
     return None
 
 
+_JSON_ONLY_REMINDER = (
+    "Output ONLY a single JSON object with the required schema. "
+    "No prose, no markdown fences. Start with `{` and end with `}`."
+)
+
+
 def deep_verify_chain(chain: dict, client, model: str,
                       repo_root: Path) -> dict:
-    """Run deep verification on a single kill chain."""
+    """Run deep verification on a single kill chain.
+
+    Tries up to 2 attempts: if the first response can't be parsed,
+    retries with a stronger json-only reminder appended to the prompt.
+    """
     prompt = build_chain_prompt(chain, repo_root)
-    try:
-        resp = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": DEEP_VERIFY_SYSTEM},
-                {"role": "user", "content": prompt},
-            ],
-            max_tokens=1200,
-            temperature=0.05,
+    last_raw = ""
+    for attempt in range(2):
+        user_content = prompt if attempt == 0 else (
+            prompt + "\n\n---\n" + _JSON_ONLY_REMINDER
         )
-        raw = resp.choices[0].message.content.strip()
-        result = _extract_json(raw)
+        try:
+            resp = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": DEEP_VERIFY_SYSTEM},
+                    {"role": "user", "content": user_content},
+                ],
+                max_tokens=4096,
+                temperature=0.05,
+            )
+        except Exception as e:
+            return {"verdict": "ERROR", "reason": str(e)}
+        last_raw = _extract_message_content(resp)
+        result = _extract_json(last_raw)
         if result:
             return result
-        return {"verdict": "PARSE_ERROR", "raw": raw[:300]}
-    except Exception as e:
-        return {"verdict": "ERROR", "reason": str(e)}
+        # else: retry once with stronger reminder
+    return {"verdict": "PARSE_ERROR", "raw": last_raw[:300]}
 
 
 def main():
