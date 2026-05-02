@@ -242,10 +242,10 @@ def build_signals_summary(signals: list[dict]) -> str:
         lines.append(f"\n## {sig_type} ({len(items)} signals)")
         for i, s in enumerate(items, 1):
             lines.append(f"\n  [{i}] Location: {s.get('location', s.get('source_file', '?'))}")
-            lines.append(f"      Description: {s.get('description', '?')[:120]}")
-            lines.append(f"      Data: {s.get('data_involved', '?')[:80]}")
-            lines.append(f"      Reach: {s.get('attacker_reach', '?')[:80]}")
-            lines.append(f"      Chain potential: {s.get('chain_potential', '?')[:100]}")
+            lines.append(f"      Description: {(s.get('description') or '?')[:120]}")
+            lines.append(f"      Data: {(s.get('data_involved') or '?')[:80]}")
+            lines.append(f"      Reach: {(s.get('attacker_reach') or '?')[:80]}")
+            lines.append(f"      Chain potential: {(s.get('chain_potential') or '?')[:100]}")
             lines.append(f"      Confidence: {s.get('confidence', '?')}")
 
     return "\n".join(lines)
@@ -360,10 +360,11 @@ def run_chain_builder(input_dir: Path, output: Path, model: str,
         ctype = c.get("chain_type", "?")
         print(f"\n  🔗 [{sev}] {ctype} (conf={conf})")
         for step in c.get("steps", []):
-            print(f"     Step {step.get('step')}: {step.get('signal_type')} @ {step.get('location','?')}")
-            print(f"       → {step.get('role','?')[:80]}")
-        if c.get("attack_narrative"):
-            print(f"     narrative: {c['attack_narrative'][:150]}")
+            print(f"     Step {step.get('step')}: {step.get('signal_type')} @ {step.get('location') or '?'}")
+            print(f"       → {(step.get('role') or '?')[:80]}")
+        narrative = c.get("attack_narrative") or ""
+        if narrative:
+            print(f"     narrative: {narrative[:150]}")
 
 
 def main():

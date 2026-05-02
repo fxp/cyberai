@@ -323,8 +323,8 @@ def main():
 
     with open(args.output, "w") as out:
         for chain in chains:
-            cid = chain.get("chain_id", "?")
-            ctype = chain.get("chain_type", "?")[:38]
+            cid = chain.get("chain_id") or "?"
+            ctype = (chain.get("chain_type") or "?")[:38]
             print(f"  {cid:<13} {ctype:<40}", end=" ", flush=True)
 
             result = deep_verify_chain(chain, client, model, repo_root)
@@ -352,16 +352,16 @@ def main():
     for chain, result in confirmed:
         print(f"\n  🔴 {chain.get('chain_id')} — {chain.get('chain_type')}")
         print(f"     Severity: {chain.get('severity')} | Conf: {result.get('confidence')}")
-        print(f"     Input: {result.get('exact_input','?')[:120]}")
-        print(f"     CVSS: {result.get('cvss_estimate','?')}")
-        print(f"     Reason: {result.get('reason','')[:150]}")
+        print(f"     Input: {(result.get('exact_input') or '?')[:120]}")
+        print(f"     CVSS: {result.get('cvss_estimate', '?')}")
+        print(f"     Reason: {(result.get('reason') or '')[:150]}")
 
     for chain, result in partial:
-        sub = result.get("exploitable_as", "?")
-        broken = result.get("broken_at", "?")
+        sub = result.get("exploitable_as") or "?"
+        broken = result.get("broken_at") or "?"
         print(f"\n  🟡 {chain.get('chain_id')} PARTIAL — breaks at step {broken}")
         print(f"     Sub-chain still exploitable: {sub}")
-        print(f"     Break reason: {result.get('break_reason','')[:100]}")
+        print(f"     Break reason: {(result.get('break_reason') or '')[:100]}")
 
     if not confirmed and not partial:
         print("\n  ⚪ 所有 kill chain 均为 FALSE_POSITIVE 或需要更多上下文")
