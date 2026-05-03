@@ -1,0 +1,14 @@
+[Unit]
+Description=CyberAI daily LLM scan batch
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/root/cyberai
+EnvironmentFile=/root/cyberai/.env
+Environment=PATH=/root/cyberai/.venv/bin:/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/bin/bash /root/cyberai/scripts/run_daily_scans.sh --all
+StandardOutput=append:/var/log/cyberai-daily-scan.log
+StandardError=append:/var/log/cyberai-daily-scan.log
+TimeoutStartSec=14h

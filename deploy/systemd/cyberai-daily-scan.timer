@@ -1,0 +1,10 @@
+[Unit]
+Description=Run CyberAI daily scan at 00:05 UTC (08:05 BJT)
+
+[Timer]
+OnCalendar=*-*-* 00:05:00
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target
