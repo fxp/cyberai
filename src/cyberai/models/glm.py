@@ -241,15 +241,21 @@ class GLMAdapter(SecurityAgent):
         *,
         prompt_strategy: str = "ctf",
         token_budget: int = 100_000,
+        timeout: float = 600.0,
     ) -> ScanResult:
-        """Scan a single file using CTF prompt strategy (Carlini method)."""
+        """Scan a single file using CTF prompt strategy (Carlini method).
+
+        timeout is passed through to the underlying chat() call. Per-file
+        scans on large extracts can take 5+ minutes, so the default 300s
+        chat timeout is too tight here — bump to 600s.
+        """
         result = ScanResult(target=file_path, model=self.model_name)
 
         prompt = CTF_SCAN_PROMPT.format(file_path=file_path, file_content=file_content)
         messages = [{"role": "user", "content": prompt}]
 
         try:
-            response_text, usage = await self.chat(messages)
+            response_text, usage = await self.chat(messages, timeout=timeout)
             result.usage = usage
 
             # Parse JSON from response
