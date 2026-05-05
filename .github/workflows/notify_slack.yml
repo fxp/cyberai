@@ -1,0 +1,53 @@
+name: Slack notify
+
+on:
+  workflow_dispatch:
+    inputs:
+      title:
+        description: "Slack title"
+        required: true
+        default: "CyberAI scan complete"
+      summary:
+        description: "Markdown body (multi-line)"
+        required: true
+      color:
+        description: "good | warning | danger"
+        required: false
+        default: "good"
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post to Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          TITLE: ${{ github.event.inputs.title }}
+          SUMMARY: ${{ github.event.inputs.summary }}
+          COLOR: ${{ github.event.inputs.color }}
+        run: |
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "SLACK_WEBHOOK_URL not set, skipping"; exit 0
+          fi
+          python3 - <<'PYEOF'
+          import os, json, urllib.request
+          payload = {
+              "attachments": [{
+                  "color": os.environ.get("COLOR", "good"),
+                  "title": os.environ["TITLE"],
+                  "text": os.environ["SUMMARY"],
+                  "mrkdwn_in": ["text"],
+              }]
+          }
+          req = urllib.request.Request(
+              os.environ["SLACK_WEBHOOK_URL"],
+              data=json.dumps(payload).encode("utf-8"),
+              headers={"Content-Type": "application/json"},
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=15) as r:
+                  print("Slack:", r.status, r.read().decode("utf-8")[:200])
+          except Exception as e:
+              print("Slack post failed:", e)
+              raise
+          PYEOF
