@@ -1,0 +1,10 @@
+[Unit]
+Description=Run CyberAI weekly verify pipeline at 06:00 UTC every Sunday
+
+[Timer]
+OnCalendar=Sun *-*-* 06:00:00
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target
