@@ -9,10 +9,12 @@
 
 ```
 Pipeline A scan (20h)            ─→ 630 raw findings (57 CRITICAL + 170 HIGH + ...)
-  └─ Adversarial verify (3.5h)   ─→ 70 actionable (58 CONFIRMED + 12 PARTIAL)
-                                                 vs 98 FALSE_POSITIVE / 68 timeout
-  └─ Validate (J1+J2+J3) [next]  ─→ filter via NVD + grounding + glm-4-plus
-  └─ Draft (J5) [next]           ─→ disclosure email per surviving finding
+  └─ H. Adversarial verify       ─→ 70 actionable (58 CONFIRMED + 12 PARTIAL)
+     glm-5.1, 3.5h, $0.45                  vs 98 FALSE_POSITIVE / 68 timeout
+  └─ Validate (J1+J2+J3)         ─→ 2 high-confidence survivors
+     ~17min, $1.5                       J1 NVD + J2 grounding + J3 glm-4-plus
+  └─ Drafts (J5)                 ─→ 2 coordinated-disclosure email drafts
+     glm-5.1, 4min, $0.003              ready in drafts/ for human review
 ```
 
 ## H — Adversarial verify (2026-05-05, glm-5.1, $0.45)
@@ -37,6 +39,40 @@ GLM-recalled CVEs: `CVE-2022-25235` (expat) · `CVE-2019-8457` (sqlite) · `CVE-
 **Per-finding outputs**:
 - Raw verdicts: [`verify/verify_20260505_175238.jsonl`](./verify/verify_20260505_175238.jsonl)
 - Stats summary: [`verify/verify_20260505_175238_summary.json`](./verify/verify_20260505_175238_summary.json)
+
+## Validate (J1+J2+J3) — 2026-05-07
+
+70 CONFIRMED+PARTIAL findings put through three filters:
+
+| Stage | What it does | Filtered |
+|---|---|---:|
+| **J1: NVD cross-ref** | Public NVD keyword search per finding (Python httpx, no LLM, ~7s/req rate-limited) | 0 |
+| **J2: source-extract grounding** | Locate the actual `.c` extract that was scanned, read it. Filter `NO_EXTRACT` if the extract can't be matched (these are findings the scanner emitted at lines outside its own context) | 24 |
+| **J3: glm-4-plus cross-check** | Re-verify with the actual code in context using a different BigModel model than glm-5.1. Filter `FALSE_POSITIVE`, `NEEDS_MORE_CONTEXT`, `code_match=no` | 44 |
+| **Survivors** | Findings that pass all three | **2** |
+
+Cost: J1 free, J3 ~$1.5 in glm-4-plus tokens. Total wall: ~17 min for 70 findings.
+
+### 2 survivors
+
+| # | Target | Sev | Conf | glm-4-plus | Title |
+|---|---|---|---:|---|---|
+| 1 | **libpng** | HIGH | 0.85 | CONFIRMED match=yes (0.9) | Integer Overflow in end_mask Calculation Due to Unchecked pixel_depth × row_width |
+| 2 | **libxml2** | HIGH | 0.95 | PARTIAL match=yes (0.8) | Type confusion in namespace node ancestor traversal |
+
+**Per-finding outputs**:
+- All 70 with annotations: [`validate/validated_20260507_065336.jsonl`](./validate/validated_20260507_065336.jsonl)
+- Survivors only: [`validate/survivors_20260507_065336.jsonl`](./validate/survivors_20260507_065336.jsonl)
+
+## J5 — Disclosure drafts
+
+GLM-5.1 authored a coordinated-disclosure email draft for each survivor:
+
+- [`drafts/INDEX.md`](./drafts/INDEX.md) — index
+- [`drafts/001_libpng_pngrutil_c__png_combine_row_.md`](./drafts/001_libpng_pngrutil_c__png_combine_row_.md)
+- [`drafts/002_libxml2_libxml2_xpath_c__xmlXPathNextAncestor__ancestor_axis_travers.md`](./drafts/002_libxml2_libxml2_xpath_c__xmlXPathNextAncestor__ancestor_axis_travers.md)
+
+Each draft has subject, summary, affected versions, vulnerability detail, repro sketch, suggested mitigation, and 90-day disclosure clause. **Drafts need human review before sending** — they are GLM-authored boilerplate, not vetted security content.
 
 ## Overall results
 
