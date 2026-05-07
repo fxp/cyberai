@@ -523,9 +523,17 @@ We follow Google Project Zero 90-day coordinated disclosure:
 6. Public disclosure (writeup, blog post, github issue) only **after**
    patch is shipped or the 90-day window closes, whichever first.
 
-The first disclosure cycle (CAND-008, Mosquitto integer underflow) is
-documented in `research/disclosures/mosquitto_CAND-008_*` (gitignored
-mosquitto draft, but `mosquitto_CAND-008_followup_apr25.md` is tracked).
+The first disclosure cycle (CAND-008, Mosquitto integer underflow) was
+reported to security@mosquitto.org on 2026-04-18 and **deprioritized on
+2026-05-07 after expert review judged it low-severity** (Medium DoS,
+not a credible risk for typical Mosquitto deployments). No follow-up
+email was sent. Public disclosure deadline (2026-07-17) is moot. If the
+maintainer responds at any point, fold the response back into research
+notes; otherwise treat as closed-out research.
+
+The current primary disclosure candidate is **libpng `png_combine_row`
+heap overflow** (32-bit + `png_set_user_limits()` override), grounded
+in `research/disclosures/libpng_png_combine_row_overflow.md`.
 
 ---
 
@@ -533,27 +541,38 @@ mosquitto draft, but `mosquitto_CAND-008_followup_apr25.md` is tracked).
 
 These are documented for the next agent:
 
-1. **Fix per-target timeout** in `run_daily_scans.sh` to be 360s+. The
+1. **Pursue libpng disclosure (current primary lead).** Build 32-bit
+   ASAN PoC, search png-mng-implement archives for prior discussion,
+   sample real-world tools that override `PNG_USER_WIDTH_MAX`, then
+   send to upstream. Doc:
+   `research/disclosures/libpng_png_combine_row_overflow.md`.
+2. **Fix per-target timeout** in `run_daily_scans.sh` to be 360s+. The
    current 240s causes ~30% spurious timeouts on glm-5.1.
-2. **Retry mechanism for verify ERRORs.** 68/236 verifies hit 300s
-   timeout in the 2026-05-04 run. A second-pass retry would recover most.
-3. **Batch upload to OSS.** Currently each script writes to ECS local
+3. **Retry mechanism for verify ERRORs.** 68/236 verifies hit 300s
+   timeout in the 2026-05-04 run. A second-pass retry would recover
+   most.
+4. **Batch upload to OSS.** Currently each script writes to ECS local
    then a separate OSS upload step. Should write directly to OSS with
    a temp local copy.
-4. **Add Anthropic-backed verifier** as optional J4 (when
+5. **Fix J2 source-extract grounding.** 24/70 findings dropped because
+   `find_extract()` couldn't locate the file. libssh2 and freetype lost
+   most of their candidates here. Improve by loading each scan_*.py's
+   SCANS list explicitly rather than greppin for function names.
+6. **Add Anthropic-backed verifier** as optional J4 (when
    `ANTHROPIC_API_KEY` is configured) for a true cross-vendor check.
    Currently we only have BigModel diversity (glm-5.1 vs glm-4-plus).
-5. **Fix scan plan keyword bias** (`pipeline_b_plan.py`). Image format
-   keywords (`tiff`, `png`, etc.) are missing from the priority weights,
-   so codec-heavy targets get poor file selection. Add format/coder
-   keywords or move plan to LLM-driven.
-6. **Build sanitizer pipeline.** Currently we have no automated way to
+   The user explicitly prefers GLM-only, so this is opt-in only.
+7. **Fix Pipeline B scan plan keyword bias** (`pipeline_b_plan.py`).
+   Image format keywords (`tiff`, `png`, etc.) are missing from the
+   priority weights, so codec-heavy targets get poor file selection.
+   Add format/coder keywords or move plan to LLM-driven.
+8. **Build sanitizer pipeline.** Currently we have no automated way to
    confirm a finding triggers ASAN. Should add a `build_sanitizer.sh`
    that compiles target with ASAN+UBSAN and a `try_poc.sh` that runs
    the PoC sketch.
-7. **Re-run with newer model when it ships.** glm-5.1 was current as
-   of 2026-05. Periodic re-scans with newer models (or different families
-   like glm-z2-flash-reasoning) for benchmark progression.
+9. **Re-run with newer model when it ships.** glm-5.1 was current as
+   of 2026-05. Periodic re-scans with newer models (or different
+   families like glm-z2-flash-reasoning) for benchmark progression.
 
 ---
 

@@ -28,20 +28,20 @@ candidate findings per ~$20 spend.
 
 ## Targets scanned
 
-| Target | Confirmed | Status |
-|---|---:|---|
-| Eclipse Mosquitto 2.0.21 | 1 | 🔴 In disclosure (CAND-008) |
-| ImageMagick 7.1.2 | 2 | ⚠ Pending verification |
-| libpng 1.6.45 | 1 | 🟢 In J5 draft |
-| libxml2 2.13.5 | 1 | 🟢 In J5 draft |
-| libssh2 1.11.1 | 14+ | ⚠ In review (high CRITICAL count, needs deeper grounding) |
-| freetype 2.13.3 | 15+ | ⚠ In review |
-| expat 2.6.4 | — | ⚠ In review |
-| sqlite 3.49.1 | — | ✓ Audited (mostly known CVE recall) |
-| openssl 3.4.1 | — | ✓ Audited |
-| nginx 1.27.4 | — | ✓ Audited |
-| zlib 1.3.1 | — | ✓ Clean |
-| curl 8.11.0 | — | ✓ Clean |
+| Target | Status |
+|---|---|
+| **libpng 1.6.45 — 1.6.58** | 🟢 **Primary lead** — `png_combine_row` integer overflow grounded; 32-bit ASAN PoC pending |
+| libxml2 2.13.5 | 🟡 J3 partial — `xmlXPathNextAncestor` type confusion, exploitability narrow |
+| ImageMagick 7.1.2 | ⚠ Pending verification (CAND-005, 006/007) |
+| Eclipse Mosquitto 2.0.21 | ⚪ Reported 2026-04-18, deprioritized after expert review (low severity DoS) |
+| libssh2 1.11.1 | ⚠ Many H-CONFIRMED but J3 grounding failed; needs better extracts |
+| freetype 2.13.3 | ⚠ Same as libssh2 |
+| expat 2.6.4 | ⚠ Same |
+| sqlite 3.49.1 | ✓ Audited (mostly known-CVE recall) |
+| openssl 3.4.1 | ✓ Audited |
+| nginx 1.27.4 | ✓ Audited |
+| zlib 1.3.1 | ✓ Clean |
+| curl 8.11.0 | ✓ Clean |
 
 The latest run summary is at
 [`research/scan-2026-05-04/README.md`](./research/scan-2026-05-04/README.md).
