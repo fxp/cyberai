@@ -1,0 +1,19 @@
+{
+  "timestamp": "20260505_175238",
+  "total_verified": 236,
+  "by_severity_verdict": {
+    "HIGH": {
+      "ERROR": 49,
+      "FALSE_POSITIVE": 75,
+      "CONFIRMED": 40,
+      "PARTIAL": 8
+    },
+    "CRITICAL": {
+      "FALSE_POSITIVE": 23,
+      "CONFIRMED": 18,
+      "ERROR": 19,
+      "PARTIAL": 4
+    }
+  },
+  "total_cost_usd": 0.4488
+}

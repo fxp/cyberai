@@ -5,6 +5,39 @@
 **Model**: glm-5.1
 **Source**: GitHub fxp/cyberai @ HEAD `a1590119` + the timeout patch series
 
+## Pipeline overview
+
+```
+Pipeline A scan (20h)            ─→ 630 raw findings (57 CRITICAL + 170 HIGH + ...)
+  └─ Adversarial verify (3.5h)   ─→ 70 actionable (58 CONFIRMED + 12 PARTIAL)
+                                                 vs 98 FALSE_POSITIVE / 68 timeout
+  └─ Validate (J1+J2+J3) [next]  ─→ filter via NVD + grounding + glm-4-plus
+  └─ Draft (J5) [next]           ─→ disclosure email per surviving finding
+```
+
+## H — Adversarial verify (2026-05-05, glm-5.1, $0.45)
+
+236 CRITICAL+HIGH findings re-judged on the ECS. Verifier prompt asked for
+verdict + exploitability + known-CVE recall per finding.
+
+| Severity | CONFIRMED | PARTIAL | FALSE_POSITIVE | ERROR (300s timeout) |
+|---|---:|---:|---:|---:|
+| CRITICAL | 18 | 4 | 23 | 19 |
+| HIGH | 40 | 8 | 75 | 49 |
+| **Total** | **58** | **12** | **98** | **68** |
+
+GLM-recalled CVEs: `CVE-2022-25235` (expat) · `CVE-2019-8457` (sqlite) · `CVE-2023-5678` (openssl) · `CVE-2022-40303` / `CVE-2022-40304` (libxml2). These are **already-fixed published CVEs** and add no new disclosure value, but they show the static scanner has decent CVE recall on hardened libraries.
+
+**Top concentrations** (CONFIRMED+PARTIAL, suggests true-positive hotspots):
+- libssh2 — 18
+- freetype — 16
+- expat — 8
+- libxml2 — 7
+
+**Per-finding outputs**:
+- Raw verdicts: [`verify/verify_20260505_175238.jsonl`](./verify/verify_20260505_175238.jsonl)
+- Stats summary: [`verify/verify_20260505_175238_summary.json`](./verify/verify_20260505_175238_summary.json)
+
 ## Overall results
 
 | Target | Segments | C 🔴 | H 🟠 | M 🟡 | L 🔵 | I ⚪ | Total | Report |
