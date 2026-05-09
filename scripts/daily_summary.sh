@@ -69,18 +69,23 @@ async def go():
 asyncio.run(go())
 PYEOF
 
-# 2. Build full Slack body
-BODY="*Daily scan complete — ${DATE_TAG}*
+# 2. POST directly to Slack incoming webhook (no gh CLI dependency)
+test -n "${SLACK_WEBHOOK_URL:-}" || { echo "[daily_summary] SLACK_WEBHOOK_URL not set, skipping"; exit 0; }
 
-$(cat "$PROSE_FILE")
+PROSE=$(cat "$PROSE_FILE")
+PAYLOAD=$(python3 -c '
+import json, sys, os
+prose = open(sys.argv[1]).read().strip()
+date_tag = sys.argv[2]
+text = f"*CyberAI daily scan — {date_tag}*\n\n{prose}\n\nRaw: oss://cyberai-scan-results-us1/scans/{date_tag}/\nRepo: https://github.com/fxp/cyberai/tree/main/research"
+print(json.dumps({
+    "attachments": [{
+        "color": "good",
+        "blocks": [{"type": "section", "text": {"type": "mrkdwn", "text": text}}]
+    }]
+}))
+' "$PROSE_FILE" "$DATE_TAG")
 
-Raw output: oss://cyberai-scan-results-us1/scans/<latest>/
-Repo: https://github.com/fxp/cyberai/tree/main/research"
-
-# 3. Trigger notify_slack.yml via gh CLI
-gh workflow run notify_slack.yml -R fxp/cyberai --ref main \
-  -f title="CyberAI daily scan — ${DATE_TAG}" \
-  -f color="good" \
-  -f summary="$BODY"
-
-echo "[daily_summary] dispatched at $(date -u +%H:%M:%SZ), prose at $PROSE_FILE"
+curl -sS -X POST -H 'Content-Type: application/json' --data "$PAYLOAD" "$SLACK_WEBHOOK_URL"
+echo
+echo "[daily_summary] posted to Slack at $(date -u +%H:%M:%SZ), prose at $PROSE_FILE"

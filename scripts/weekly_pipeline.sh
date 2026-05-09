@@ -81,16 +81,21 @@ async def go():
 asyncio.run(go())
 PYEOF
 
-BODY="*CyberAI weekly verify pipeline — ${WEEK_TAG}*
+test -n "${SLACK_WEBHOOK_URL:-}" || { echo "[weekly] SLACK_WEBHOOK_URL not set, skipping Slack post"; exit 0; }
 
-$(cat "$PROSE_FILE")
+PAYLOAD=$(python3 -c '
+import json, sys
+prose = open(sys.argv[1]).read().strip()
+week_tag = sys.argv[2]
+text = f"*CyberAI weekly verify — {week_tag}*\n\n{prose}\n\nReports: https://github.com/fxp/cyberai/tree/main/research\nDrafts: research/validate_findings/drafts/INDEX.md"
+print(json.dumps({
+    "attachments": [{
+        "color": "good",
+        "blocks": [{"type": "section", "text": {"type": "mrkdwn", "text": text}}]
+    }]
+}))
+' "$PROSE_FILE" "$WEEK_TAG")
 
-Reports: https://github.com/fxp/cyberai/tree/main/research
-Drafts: research/validate_findings/drafts/INDEX.md"
-
-gh workflow run notify_slack.yml -R fxp/cyberai --ref main \
-  -f title="CyberAI weekly verify — ${WEEK_TAG}" \
-  -f color="good" \
-  -f summary="$BODY"
-
+curl -sS -X POST -H 'Content-Type: application/json' --data "$PAYLOAD" "$SLACK_WEBHOOK_URL"
+echo
 echo "[weekly] $(date -u +%FT%TZ) done — H=$H_DONE J=$J_DONE D=$D_DONE"
