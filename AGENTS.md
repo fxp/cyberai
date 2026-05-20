@@ -540,8 +540,22 @@ negative result in `research/disclosures/libpng_png_combine_row_overflow.md`.
 Notably both glm-5.1 (conf 0.85) and glm-4-plus (conf 0.9) plus a human
 code-read had judged it exploitable — only the empirical PoC caught it.
 
-No active disclosure candidate at present. The other PARTIAL survivor
-(libxml2 `xmlXPathNextAncestor`) is the next lead to ground + PoC.
+The other PARTIAL survivor (libxml2 `xmlXPathNextAncestor` namespace
+"type confusion") was also **REFUTED on 2026-05-20** — by code semantics,
+not even needing a PoC. The flagged `xmlNsPtr`→`xmlNodePtr` cast is
+intentional libxml2 design: XPath namespace nodes store the parent
+`xmlNode` in `ns->next` (see comment in `xmlXPathNodeSetCreate` and the
+assignment in `xmlXPathNodeSetDupNs`). The exploit presupposes a separate
+memory-corruption primitive, so it is not independently triggerable. The
+J5 draft's "CVE-2023-39615" attribution was also a hallucination (that CVE
+is `xmlSAX2StartElement` in SAX2.c). Documented in
+`research/disclosures/libxml2_xmlXPathNextAncestor_type_confusion.md`.
+
+**No active disclosure candidate.** Both 2026-05-04-cycle survivors are
+refuted. Both failed the same way: a single extracted function read out of
+context, missing the invariant/guard established in another function. The
+pipeline needs whole-subsystem grounding (improvement #5/#8) before its
+"survivors" can be trusted as real.
 
 ---
 
@@ -549,11 +563,18 @@ No active disclosure candidate at present. The other PARTIAL survivor
 
 These are documented for the next agent:
 
-1. **~~Pursue libpng disclosure~~ — DONE, REFUTED 2026-05-20.** 32-bit
-   ASAN PoC proved the overflow unreachable (png_check_IHDR guard fires
-   first). Kept as a documented negative result in
-   `research/disclosures/libpng_png_combine_row_overflow.md`. Next lead:
-   ground + PoC the libxml2 `xmlXPathNextAncestor` PARTIAL survivor.
+1. **~~Pursue libpng / libxml2 disclosures~~ — DONE, BOTH REFUTED 2026-05-20.**
+   - libpng `png_combine_row`: 32-bit ASAN PoC proved the overflow
+     unreachable (png_check_IHDR guard fires first).
+     `research/disclosures/libpng_png_combine_row_overflow.md`.
+   - libxml2 `xmlXPathNextAncestor`: refuted by code semantics — the cast
+     is intentional design (`ns->next` = parent node). CVE attribution was
+     hallucinated.
+     `research/disclosures/libxml2_xmlXPathNextAncestor_type_confusion.md`.
+   Root cause of both: single-function extracts miss invariants/guards in
+   sibling functions. **Top priority is now improvement #5 + #8** (whole-
+   subsystem grounding + sanitizer pipeline) so future survivors are
+   trustworthy — there is currently no validated novel finding to disclose.
 2. **Fix per-target timeout** in `run_daily_scans.sh` to be 360s+. The
    current 240s causes ~30% spurious timeouts on glm-5.1.
 3. **Retry mechanism for verify ERRORs.** 68/236 verifies hit 300s
