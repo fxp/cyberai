@@ -1,9 +1,36 @@
-# libpng — Heap Buffer Overflow in `png_combine_row` (32-bit, override `PNG_USER_WIDTH_MAX`)
+# libpng — `png_combine_row` overflow — ❌ FALSE POSITIVE (refuted by PoC, 2026-05-20)
 
-**Status**: Internal draft (NOT YET SENT to upstream)
-**Affected versions**: libpng 1.6.45 — libpng 1.6.58 (latest stable on libpng16 branch). Code unchanged across these versions.
-**Severity**: HIGH (CWE-190 → CWE-787 chain). CVSS 3.1: AV:L/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:H = 6.6 (Medium-High)
-**Reachability**: Application-dependent. Requires 32-bit build + `png_set_user_limits()` override.
+> **VERDICT: NOT EXPLOITABLE.** A 32-bit + ASAN PoC built on the ECS proved
+> the overflow is **unreachable**. libpng's `png_check_IHDR` (in `png.c`) has
+> an architecture-aware hard guard that rejects any IHDR whose width would
+> overflow the platform's `size_t` during row-size arithmetic — *before* any
+> row processing. Even with `png_set_user_limits(png, 0x7fffffff, ...)`
+> overriding the soft 1M ceiling, all crafted widths (0x20000001, 0x20000008,
+> 0x40000000) were rejected at `png_read_info()` with:
+>
+> ```
+> libpng warning: Image width is too large for this architecture
+> libpng error: Invalid IHDR data
+> ```
+>
+> `png_combine_row` is therefore never entered with an overflowing width.
+> **This finding will NOT be disclosed.** Kept as a documented negative result.
+>
+> **Lesson for the pipeline:** both glm-5.1 (H verify, conf 0.85) and glm-4-plus
+> (J3 cross-check, CONFIRMED conf 0.9) — and a careful human code-read — all
+> judged this exploitable, because the static extract showed `png_combine_row`
+> in isolation without the `png_check_IHDR` guard that runs earlier in a
+> different translation path. Only the empirical PoC caught it. **Always build
+> a sanitizer PoC before treating a memory-safety finding as real.**
+
+---
+
+## (Original analysis below — retained for the record, but REFUTED above)
+
+**Status**: ~~Internal draft~~ → REFUTED, will not send
+**Affected versions**: libpng 1.6.45 — 1.6.58 (code present but unreachable)
+**Severity**: ~~HIGH~~ → N/A (not exploitable)
+**Reachability**: **NONE** — blocked by `png_check_IHDR` architecture guard.
 
 ---
 
