@@ -531,9 +531,17 @@ email was sent. Public disclosure deadline (2026-07-17) is moot. If the
 maintainer responds at any point, fold the response back into research
 notes; otherwise treat as closed-out research.
 
-The current primary disclosure candidate is **libpng `png_combine_row`
-heap overflow** (32-bit + `png_set_user_limits()` override), grounded
-in `research/disclosures/libpng_png_combine_row_overflow.md`.
+The libpng `png_combine_row` heap overflow was investigated as the lead
+candidate but **REFUTED on 2026-05-20** by a 32-bit + ASAN PoC: libpng's
+`png_check_IHDR` architecture guard rejects any overflowing width at
+`png_read_info()` (even with `png_set_user_limits()` overriding the soft
+1M ceiling), so `png_combine_row` is never reached. Documented as a
+negative result in `research/disclosures/libpng_png_combine_row_overflow.md`.
+Notably both glm-5.1 (conf 0.85) and glm-4-plus (conf 0.9) plus a human
+code-read had judged it exploitable — only the empirical PoC caught it.
+
+No active disclosure candidate at present. The other PARTIAL survivor
+(libxml2 `xmlXPathNextAncestor`) is the next lead to ground + PoC.
 
 ---
 
@@ -541,11 +549,11 @@ in `research/disclosures/libpng_png_combine_row_overflow.md`.
 
 These are documented for the next agent:
 
-1. **Pursue libpng disclosure (current primary lead).** Build 32-bit
-   ASAN PoC, search png-mng-implement archives for prior discussion,
-   sample real-world tools that override `PNG_USER_WIDTH_MAX`, then
-   send to upstream. Doc:
-   `research/disclosures/libpng_png_combine_row_overflow.md`.
+1. **~~Pursue libpng disclosure~~ — DONE, REFUTED 2026-05-20.** 32-bit
+   ASAN PoC proved the overflow unreachable (png_check_IHDR guard fires
+   first). Kept as a documented negative result in
+   `research/disclosures/libpng_png_combine_row_overflow.md`. Next lead:
+   ground + PoC the libxml2 `xmlXPathNextAncestor` PARTIAL survivor.
 2. **Fix per-target timeout** in `run_daily_scans.sh` to be 360s+. The
    current 240s causes ~30% spurious timeouts on glm-5.1.
 3. **Retry mechanism for verify ERRORs.** 68/236 verifies hit 300s
