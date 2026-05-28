@@ -17,6 +17,7 @@ Usage:
 import argparse
 import json
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -97,32 +98,73 @@ Output only chains with confidence >= 50. If no viable chain exists, output exac
 """
 
 
+_FENCE_BLOCK_RE = re.compile(
+    r"```(?:json|javascript|js)?\s*\n?(.*?)\n?```",
+    re.DOTALL,
+)
+
+
+def _extract_message_content(resp) -> str:
+    """Extract text from a chat completion, handling reasoning models.
+
+    GLM-5.1 / glm-z1-* are reasoning models — when prompted for a
+    short JSON answer the model sometimes leaves `message.content`
+    empty and puts the answer into `message.reasoning_content`.
+    Fall back so we don't drop the response.
+    """
+    msg = resp.choices[0].message
+    content = (getattr(msg, "content", None) or "").strip()
+    if content:
+        return content
+    reasoning = (getattr(msg, "reasoning_content", None) or "").strip()
+    return reasoning
+
+
 def _extract_json_objects(text: str) -> list[dict]:
     """Extract all top-level JSON objects from text using brace depth tracking.
 
-    Handles both one-JSON-per-line and pretty-printed multi-line JSON.
-    Strips markdown code fences if present.
+    Handles markdown fenced blocks (```json … ```), one-JSON-per-line,
+    and pretty-printed multi-line JSON. Each fenced block is scanned
+    independently before falling back to scanning the whole stripped
+    text — this keeps a malformed fenced block from poisoning later
+    objects.
     """
-    # Strip markdown fences
-    text = text.replace("```json", "").replace("```", "")
-    objects = []
-    depth = 0
-    start = None
-    for i, ch in enumerate(text):
-        if ch == "{":
-            if depth == 0:
-                start = i
-            depth += 1
-        elif ch == "}":
-            depth -= 1
-            if depth == 0 and start is not None:
-                fragment = text[start:i + 1]
-                try:
-                    obj = json.loads(fragment)
-                    objects.append(obj)
-                except Exception:
-                    pass
-                start = None
+    text = (text or "").strip()
+    if not text:
+        return []
+
+    # First: extract content of every fenced block, scan each, then
+    # also remove fences and scan the remainder so unfenced JSON is
+    # still picked up.
+    fenced_segments = _FENCE_BLOCK_RE.findall(text)
+    unfenced = _FENCE_BLOCK_RE.sub("\n", text)
+    segments = list(fenced_segments) + [unfenced]
+
+    seen: set[str] = set()
+    objects: list[dict] = []
+    for seg in segments:
+        depth = 0
+        start = None
+        for i, ch in enumerate(seg):
+            if ch == "{":
+                if depth == 0:
+                    start = i
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0 and start is not None:
+                    fragment = seg[start:i + 1]
+                    try:
+                        obj = json.loads(fragment)
+                    except Exception:
+                        pass
+                    else:
+                        # de-dup identical objects across segments
+                        key = json.dumps(obj, sort_keys=True)[:512]
+                        if key not in seen:
+                            seen.add(key)
+                            objects.append(obj)
+                    start = None
     return objects
 
 
@@ -151,10 +193,10 @@ Output one JSON chain per line. If none viable, output the no_chains sentinel.""
                 {"role": "system", "content": CHAIN_SYSTEM},
                 {"role": "user", "content": prompt},
             ],
-            max_tokens=4096,
+            max_tokens=8192,
             temperature=0.1,
         )
-        raw = resp.choices[0].message.content.strip()
+        raw = _extract_message_content(resp)
     except Exception as e:
         print(f"  ❌ LLM call failed: {e}")
         return [{"error": str(e)}]
@@ -162,8 +204,30 @@ Output one JSON chain per line. If none viable, output the no_chains sentinel.""
     extracted = _extract_json_objects(raw)
     if extracted:
         return extracted
-    print(f"  ⚠️  无法解析 LLM 输出 ({len(raw)} chars)")
-    return [{"raw_response": raw}]
+    # One retry with stronger json-only nudge — reasoning models
+    # sometimes obey better on the second turn.
+    print(f"  ⚠️  无法解析 LLM 输出 ({len(raw)} chars), retrying with json-only nudge")
+    try:
+        resp = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": CHAIN_SYSTEM},
+                {"role": "user", "content": prompt + (
+                    "\n\n---\nOutput ONLY one or more JSON objects. "
+                    "No prose, no markdown fences. Each object on its own line."
+                )},
+            ],
+            max_tokens=8192,
+            temperature=0.05,
+        )
+        raw2 = _extract_message_content(resp)
+    except Exception as e:
+        print(f"  ❌ retry LLM call failed: {e}")
+        return [{"raw_response": raw}]
+    extracted = _extract_json_objects(raw2)
+    if extracted:
+        return extracted
+    return [{"raw_response": raw or raw2}]
 
 
 def build_signals_summary(signals: list[dict]) -> str:

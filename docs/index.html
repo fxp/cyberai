@@ -385,13 +385,15 @@
     <a href="#methodology">Methodology</a>
     <a href="#phase2">Phase 2</a>
     <a href="architecture.html">Diagram ↗</a>
+    <a href="guide.html" style="color:var(--yellow)">使用指南 ↗</a>
+    <a href="../research/llm_security_report/index.html" style="color:var(--orange)">AI 安全新范式 ↗</a>
     <a href="https://github.com/fxp/cyberai" target="_blank">GitHub ↗</a>
   </div>
 </nav>
 
 <!-- ── HERO ── -->
 <div class="hero">
-  <div class="hero-badge">ACTIVE RESEARCH &nbsp;·&nbsp; PHASE 2 SCANNING</div>
+  <div class="hero-badge">ACTIVE RESEARCH &nbsp;·&nbsp; PHASE 2 SCANNING &nbsp;·&nbsp; CVE DISCLOSURE DAY 29</div>
   <h1>
     AI-Powered<br/>
     <span class="accent">Security Research</span><br/>
@@ -401,6 +403,7 @@
     A systematic platform for AI-assisted vulnerability discovery,
     red-blue adversarial research, and security capability measurement —
     built on large language models and automated exploit pipelines.
+    AI attack capability is doubling every <span class="text-orange">4.7 months</span>.
   </p>
   <div class="hero-cta">
     <a href="#findings" class="btn btn-primary">View Findings ↓</a>
@@ -412,25 +415,24 @@
       <div class="dot dot-red"></div>
       <div class="dot dot-yellow"></div>
       <div class="dot dot-green"></div>
-      <div class="terminal-title">scan_phase2.py — GLM-4-flash · Carlini Pipeline A</div>
+      <div class="terminal-title">scan.py — GLM-5.1 · Pipeline A · libwebp 1.4.0</div>
     </div>
     <div class="terminal-body">
-<span class="t-prompt">$</span> <span class="t-cmd">python3 scan_phase2.py linux_bpf</span><br/>
-<span class="t-info">🔍 Target: linux_bpf (325 extracts)</span><br/>
-<span class="t-info">📌 Focus: container escape, eBPF verifier bypass, OOB map access...</span><br/>
+<span class="t-prompt">$</span> <span class="t-cmd">python3 scan.py libwebp --model glm-5.1 --pipeline A</span><br/>
+<span class="t-info">🔍 Target: libwebp 1.4.0 (271 extracts) — launched this week</span><br/>
+<span class="t-info">📌 Focus: WebP decoding, Huffman tree, VP8L, lossless transform...</span><br/>
 <br/>
-<span class="t-output">  [  1/325] verifier.c_extract_001.c </span><span class="t-success">✓</span><br/>
-<span class="t-output">  [  2/325] verifier.c_extract_002.c </span><span class="t-warn">🚨</span><br/>
-<span class="t-output">  [  3/325] syscall.c_extract_001.c  </span><span class="t-success">✓</span><br/>
-<span class="t-output">  [  4/325] btf.c_extract_001.c      </span><span class="t-success">✓</span><br/>
-<span class="t-output">  [  5/325] core.c_extract_001.c     </span><span class="t-warn">🚨</span><br/>
+<span class="t-output">  [  1/271] dec/vp8l_dec.c_extract_001.c </span><span class="t-success">✓</span><br/>
+<span class="t-output">  [  2/271] dec/vp8l_dec.c_extract_002.c </span><span class="t-warn">🚨</span><br/>
+<span class="t-output">  [  3/271] enc/huffman_encode_utils.c   </span><span class="t-success">✓</span><br/>
+<span class="t-output">  [  4/271] utils/bit_reader_utils.c     </span><span class="t-success">✓</span><br/>
+<span class="t-output">  [  5/271] dec/idec_dec.c_extract_001.c </span><span class="t-warn">🚨</span><br/>
 <span class="t-output">  ...</span><br/>
 <br/>
 <span class="t-info">════════════════════════════════════════════════════</span><br/>
-<span class="t-success">✅ Done: 12 findings, 280 clean, 3 errors</span><br/>
-<span class="t-yellow">🔴 High-confidence findings (5):</span><br/>
-<span class="t-output">  [HIGH] OOB map access @ verifier.c_extract_002.c (conf=85)</span><br/>
-<span class="t-output">  [HIGH] register range imprecision @ core.c_extract_001.c (conf=82)</span><br/>
+<span class="t-yellow">📋 Status: CAND-008 (libtiff) disclosure Day 29 / 90-day window</span><br/>
+<span class="t-warn">⚠  CAND-LJT-003/004 (libjpeg-turbo): PoC → segfault, ASAN analysis</span><br/>
+<span class="t-output">  [MEDIUM] potential OOB @ vp8l_dec.c_extract_002.c (conf=78)</span><br/>
     </div>
   </div>
 </div>
@@ -438,24 +440,24 @@
 <!-- ── STATS ── -->
 <div class="stats">
   <div class="stat">
-    <div class="stat-num">8</div>
-    <div class="stat-label">Targets Scanned</div>
+    <div class="stat-num">10+</div>
+    <div class="stat-label">Libraries Scanned</div>
   </div>
   <div class="stat">
-    <div class="stat-num">1,900+</div>
+    <div class="stat-num">3,200+</div>
     <div class="stat-label">Code Extracts</div>
   </div>
   <div class="stat">
-    <div class="stat-num">1</div>
-    <div class="stat-label">Confirmed CVE Candidate</div>
+    <div class="stat-num">7</div>
+    <div class="stat-label">CVE Candidates</div>
   </div>
   <div class="stat">
     <div class="stat-num">7</div>
     <div class="stat-label">Platform Subsystems</div>
   </div>
   <div class="stat">
-    <div class="stat-num">5.3</div>
-    <div class="stat-label">Highest CVSS Score</div>
+    <div class="stat-num" style="color:var(--orange)">4.7<span style="font-size:1.2rem">mo</span></div>
+    <div class="stat-label">AI Capability Doubling Time</div>
   </div>
 </div>
 
@@ -587,8 +589,8 @@
   <div class="section-label">// 02 · RESULTS</div>
   <h2>Research Findings</h2>
   <p class="section-desc">
-    Phase 1 scanning covered 8 open-source targets. Below are selected candidate
-    vulnerabilities identified by the GLM-4-flash pipeline and manually triaged.
+    Phase 1 &amp; 2 scanning covered 10+ open-source libraries. 7 CVE candidates identified;
+    CAND-008 is in active coordinated disclosure (Day 29 of 90-day window).
     All upstream disclosures follow a 90-day coordinated policy.
   </p>
   <div class="findings-grid">
@@ -660,23 +662,52 @@
     <div class="finding-card">
       <div class="finding-header">
         <div>
-          <div class="finding-id">Phase 2 · Linux Kernel</div>
-          <h3>eBPF / KVM / USB Scan in Progress</h3>
+          <div class="finding-id">CAND-LJT-003/004 · libjpeg-turbo</div>
+          <h3>PoC Segfault — ASAN Analysis In Progress</h3>
         </div>
-        <span class="severity-badge sev-critical">CRITICAL ·  P0</span>
+        <span class="severity-badge sev-high">HIGH · ACTIVE</span>
       </div>
       <p>
-        Phase 2 scans targeting Linux 6.12 kernel subsystems: eBPF verifier
-        bounds tracking (325 extracts), KVM x86 instruction emulation (264),
-        and USB HID descriptor parsing (119). High-confidence candidates
-        from the GLM scan are currently undergoing manual triage.
+        Two candidate vulnerabilities in libjpeg-turbo identified by Pipeline A.
+        Both have working PoC that reliably trigger segfault on crafted JPEG inputs.
+        ASAN-instrumented builds currently being analyzed to determine exploitability,
+        root cause and impact classification.
       </p>
       <div class="finding-meta">
-        <span><span class="dot-status status-confirmed"></span>Scanning active</span>
-        <span>kernel/bpf · virt/kvm · drivers/usb</span>
+        <span><span class="dot-status status-ongoing"></span>ASAN analysis active</span>
+        <span>libjpeg-turbo · PoC confirmed</span>
       </div>
     </div>
 
+    <div class="finding-card">
+      <div class="finding-header">
+        <div>
+          <div class="finding-id">CAND-010 · libtiff</div>
+          <h3>Integer Overflow — PoC Under Construction</h3>
+        </div>
+        <span class="severity-badge sev-high">HIGH · BUILDING</span>
+      </div>
+      <p>
+        Integer overflow candidate in libtiff TIFF decoding path identified via
+        Pipeline A cross-validation. Root cause confirmed by LLM-as-Judge.
+        Exploit PoC currently under construction to determine if overflow
+        is reachable and whether controlled write primitive can be achieved.
+      </p>
+      <div class="finding-meta">
+        <span><span class="dot-status status-confirmed"></span>PoC building</span>
+        <span>libtiff · integer overflow</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="margin-top:1.5rem; padding:1.25rem 1.5rem; background:rgba(88,166,255,.06); border:1px solid rgba(88,166,255,.2); border-radius:8px; font-size:0.83rem; color:var(--text2);">
+    <span class="text-cyan" style="font-family:'SF Mono',monospace; font-size:0.75rem;">// NEW THREAT SURFACE</span>&nbsp;
+    AI infrastructure supply chain attacks emerged as a major new attack vector in 2026 Q1-Q2:
+    <strong class="text-orange">CVE-2026-7482</strong> (Bleeding Llama · Ollama heap OOB, CVSS 9.1, 300K+ exposed servers),
+    <strong class="text-orange">CVE-2026-5641</strong> (LiteLLM SSRF→RCE), and
+    <strong class="text-orange">CVE-2026-8833</strong> (Trivy security scanner weaponized).
+    &nbsp;<a href="../research/llm_security_report/index.html" style="color:var(--cyan); text-decoration:none;">Read full AI security paradigm report →</a>
   </div>
 </section>
 </div>
@@ -726,12 +757,12 @@
 <!-- ── PHASE 2 TARGETS ── -->
 <div class="full-bleed">
 <section id="phase2" style="max-width:1200px; margin:0 auto;">
-  <div class="section-label">// 04 · PHASE 2</div>
-  <h2>Phase 2 Target Coverage</h2>
+  <div class="section-label">// 04 · PHASE 2 &amp; ONGOING</div>
+  <h2>Target Coverage</h2>
   <p class="section-desc">
-    Deep scanning of six high-priority attack surfaces representing real-world
-    threat scenarios: container escape, hypervisor escape, USB driver crash,
-    and supply-chain attacks.
+    Scanning covers high-priority C/C++ libraries and kernel subsystems.
+    Phase 1 completed 10+ libraries. Phase 2 focuses on kernel attack surfaces
+    and newly prioritized image processing targets.
   </p>
 
   <table class="targets-table">
@@ -748,50 +779,58 @@
     <tbody>
       <tr>
         <td class="text-mono text-green">01</td>
-        <td>Linux kernel / eBPF</td>
-        <td class="text-mono">6.12</td>
-        <td>Container escape via eBPF verifier bypass</td>
-        <td class="text-mono">325</td>
+        <td>libtiff <span style="font-size:.75rem; color:var(--orange); margin-left:.3rem">CAND-008 ⟳ CAND-010</span></td>
+        <td class="text-mono">4.x</td>
+        <td>OOB read (disclosing, Day 29) + integer overflow (PoC building)</td>
+        <td class="text-mono">420+</td>
         <td><span class="priority-p0">P0 🔴</span></td>
       </tr>
       <tr>
         <td class="text-mono text-green">02</td>
-        <td>Linux kernel / KVM</td>
-        <td class="text-mono">6.12</td>
-        <td>VM guest-to-host escape via hypercall OOB</td>
-        <td class="text-mono">264</td>
+        <td>libjpeg-turbo <span style="font-size:.75rem; color:var(--yellow); margin-left:.3rem">CAND-LJT-003/004</span></td>
+        <td class="text-mono">3.x</td>
+        <td>PoC segfault confirmed — ASAN analysis ongoing</td>
+        <td class="text-mono">280+</td>
         <td><span class="priority-p0">P0 🔴</span></td>
       </tr>
       <tr>
         <td class="text-mono text-green">03</td>
-        <td>Linux kernel / USB HID</td>
-        <td class="text-mono">6.12</td>
-        <td>Kernel crash on USB device connect (probe RCE)</td>
-        <td class="text-mono">119</td>
+        <td>libwebp <span style="font-size:.75rem; color:var(--cyan); margin-left:.3rem">SCANNING</span></td>
+        <td class="text-mono">1.4.0</td>
+        <td>WebP decoder — launched this week (VP8L / Huffman / lossless)</td>
+        <td class="text-mono">271</td>
         <td><span class="priority-p1">P1 🟠</span></td>
       </tr>
       <tr>
         <td class="text-mono text-green">04</td>
-        <td>ImageMagick</td>
-        <td class="text-mono">7.1.2-19</td>
-        <td>OOB read/write — open file → crash/RCE</td>
-        <td class="text-mono">514</td>
+        <td>Linux kernel / eBPF</td>
+        <td class="text-mono">6.12</td>
+        <td>Container escape via eBPF verifier bypass</td>
+        <td class="text-mono">325</td>
         <td><span class="priority-p1">P1 🟠</span></td>
       </tr>
       <tr>
         <td class="text-mono text-green">05</td>
-        <td>Poppler</td>
-        <td class="text-mono">26.04.0</td>
-        <td>PDF parsing DoS / integer overflow / RCE</td>
-        <td class="text-mono">359</td>
-        <td><span class="priority-p2">P2 🟡</span></td>
+        <td>Linux kernel / KVM</td>
+        <td class="text-mono">6.12</td>
+        <td>VM guest-to-host escape via hypercall OOB</td>
+        <td class="text-mono">264</td>
+        <td><span class="priority-p1">P1 🟠</span></td>
       </tr>
       <tr>
         <td class="text-mono text-green">06</td>
-        <td>libxml2</td>
-        <td class="text-mono">2.13.5</td>
-        <td>Supply chain: embedded in PHP, Python, Ruby, Node.js</td>
-        <td class="text-mono">~200</td>
+        <td>ImageMagick</td>
+        <td class="text-mono">7.1.2</td>
+        <td>OOB read/write — TIFF decoder tile path (CAND-005)</td>
+        <td class="text-mono">514</td>
+        <td><span class="priority-p2">P2 🟡</span></td>
+      </tr>
+      <tr>
+        <td class="text-mono text-green">07</td>
+        <td>Poppler / libxml2</td>
+        <td class="text-mono">latest</td>
+        <td>PDF parsing / supply chain (PHP, Python, Ruby, Node.js)</td>
+        <td class="text-mono">~560</td>
         <td><span class="priority-p2">P2 🟡</span></td>
       </tr>
     </tbody>

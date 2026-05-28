@@ -1,0 +1,1733 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>从代码到 CVE — CyberAI 使用完全指南</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ─── TOKENS ──────────────────────────────────────────────── */
+:root {
+  --bg:      #0d0c07;
+  --bg2:     #141209;
+  --bg3:     #1c1910;
+  --bg4:     #231f14;
+  --border:  #2c2818;
+  --border2: #3d3720;
+  --amber:   #e8b84a;
+  --amber2:  #f5cc6a;
+  --terra:   #e05c2a;
+  --terra2:  #f07042;
+  --green:   #7db87a;
+  --red:     #d05555;
+  --blue:    #6a9ec8;
+  --text:    #ede0c4;
+  --text2:   #a8976e;
+  --text3:   #6b5f3f;
+  --text4:   #3d3520;
+  --mono:    'JetBrains Mono', monospace;
+  --serif:   'Playfair Display', serif;
+  --sans:    'DM Sans', sans-serif;
+}
+
+/* ─── RESET ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── NOISE OVERLAY ───────────────────────────────────────── */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ─── LAYOUT ──────────────────────────────────────────────── */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: 0;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  align-items: start;
+}
+.main-col { max-width: 820px; }
+
+/* ─── SIDEBAR TOC ─────────────────────────────────────────── */
+.sidebar {
+  position: sticky;
+  top: 5rem;
+  padding: 2rem 0 2rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.toc-title {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 1.25rem;
+}
+.toc-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.3rem 0;
+  cursor: pointer;
+  transition: all .2s;
+  text-decoration: none;
+}
+.toc-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--text4);
+  border: 1px solid var(--border2);
+  flex-shrink: 0;
+  transition: all .25s;
+}
+.toc-item.active .toc-dot,
+.toc-item:hover .toc-dot {
+  background: var(--amber);
+  border-color: var(--amber);
+  box-shadow: 0 0 6px rgba(232,184,74,.6);
+}
+.toc-label {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--text3);
+  transition: color .2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.toc-item.active .toc-label,
+.toc-item:hover .toc-label { color: var(--amber); }
+
+/* ─── NAV ─────────────────────────────────────────────────── */
+.top-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 52px;
+  background: rgba(13, 12, 7, .92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2.5rem;
+}
+.nav-brand {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--amber);
+  letter-spacing: .06em;
+  text-decoration: none;
+}
+.nav-brand span { color: var(--text3); }
+.nav-links { display: flex; gap: 1.75rem; }
+.nav-links a {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--text3);
+  text-decoration: none;
+  letter-spacing: .06em;
+  transition: color .2s;
+}
+.nav-links a:hover { color: var(--text2); }
+
+/* ─── HERO ────────────────────────────────────────────────── */
+.hero {
+  padding: 9rem 0 6rem;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 0% 50%, rgba(232,184,74,.04) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 100% 0%, rgba(224,92,42,.03) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-kicker {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--terra);
+  margin-bottom: 1.5rem;
+  display: flex; align-items: center; gap: 0.6rem;
+}
+.hero-kicker::before {
+  content: '';
+  display: inline-block;
+  width: 28px; height: 1px;
+  background: var(--terra);
+}
+.hero h1 {
+  font-family: var(--serif);
+  font-size: clamp(2.4rem, 5.5vw, 4rem);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 1.25rem;
+  max-width: 700px;
+}
+.hero h1 em {
+  font-style: italic;
+  color: var(--amber);
+}
+.hero-sub {
+  font-family: var(--sans);
+  font-size: 1.05rem;
+  color: var(--text2);
+  max-width: 560px;
+  line-height: 1.7;
+  font-weight: 300;
+  margin-bottom: 2.5rem;
+}
+.hero-badges {
+  display: flex; flex-wrap: wrap; gap: 0.6rem;
+  margin-top: 2rem;
+}
+.badge {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 2px;
+  letter-spacing: .06em;
+}
+.badge-amber {
+  background: rgba(232,184,74,.1);
+  border: 1px solid rgba(232,184,74,.3);
+  color: var(--amber);
+}
+.badge-terra {
+  background: rgba(224,92,42,.1);
+  border: 1px solid rgba(224,92,42,.3);
+  color: var(--terra);
+}
+.badge-neutral {
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border2);
+  color: var(--text2);
+}
+
+/* ─── SECTION COMMON ─────────────────────────────────────── */
+.section {
+  padding: 5rem 0 3rem;
+  border-bottom: 1px solid var(--border);
+}
+.section:last-child { border-bottom: none; }
+.section-num {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 0.5rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.section-num::before {
+  content: '';
+  width: 18px; height: 1px;
+  background: var(--text3);
+  display: inline-block;
+}
+.section h2 {
+  font-family: var(--serif);
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--text);
+  margin-bottom: 0.6rem;
+  line-height: 1.2;
+}
+.section-desc {
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  color: var(--text2);
+  max-width: 560px;
+  line-height: 1.75;
+  font-weight: 300;
+  margin-bottom: 2.5rem;
+}
+
+/* ─── STEP CARDS (Quick Start) ───────────────────────────── */
+.steps { display: flex; flex-direction: column; gap: 1.5rem; }
+.step-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--amber);
+  padding: 1.5rem 1.75rem;
+  position: relative;
+  transition: border-color .2s, background .2s;
+}
+.step-card:hover {
+  background: var(--bg3);
+  border-color: var(--border2);
+  border-left-color: var(--amber2);
+}
+.step-num {
+  position: absolute; top: 1.5rem; right: 1.75rem;
+  font-family: var(--mono);
+  font-size: 2rem; font-weight: 600;
+  color: var(--text4);
+  line-height: 1;
+  user-select: none;
+}
+.step-label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-bottom: 0.4rem;
+}
+.step-card h3 {
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+
+/* ─── CODE BLOCK ─────────────────────────────────────────── */
+.code-block {
+  background: #0a0906;
+  border: 1px solid var(--border2);
+  border-radius: 0;
+  overflow: hidden;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  line-height: 1.75;
+  position: relative;
+}
+.code-header {
+  background: var(--bg3);
+  padding: 0.5rem 1rem;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border2);
+}
+.code-lang {
+  font-size: 0.62rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.code-copy {
+  font-size: 0.62rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  cursor: pointer;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border2);
+  background: transparent;
+  transition: all .2s;
+  font-family: var(--mono);
+}
+.code-copy:hover { color: var(--amber); border-color: var(--amber); }
+.code-body {
+  padding: 1.25rem 0;
+  overflow-x: auto;
+}
+.code-line {
+  display: flex; min-height: 1.75em;
+}
+.code-line:hover { background: rgba(255,255,255,.025); }
+.line-num {
+  min-width: 3rem;
+  padding: 0 1rem;
+  text-align: right;
+  color: var(--text4);
+  user-select: none;
+  flex-shrink: 0;
+  font-size: 0.72rem;
+}
+.line-content { padding: 0 1.25rem 0 0; flex: 1; color: var(--text2); }
+/* Syntax tints */
+.k  { color: var(--terra); }     /* keywords, flags */
+.c  { color: var(--text3); font-style: italic; }  /* comments */
+.s  { color: var(--amber); }     /* strings */
+.f  { color: var(--amber2); }    /* functions */
+.p  { color: var(--text2); }     /* paths */
+.v  { color: var(--green); }     /* values */
+
+/* ─── FILE TREE ───────────────────────────────────────────── */
+.file-tree {
+  background: #0a0906;
+  border: 1px solid var(--border2);
+  padding: 1.5rem;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  line-height: 1.85;
+}
+.tree-root {
+  color: var(--amber);
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+.tree-item {
+  display: flex; align-items: baseline; gap: 0;
+  cursor: default;
+  padding: 0.05rem 0;
+  position: relative;
+}
+.tree-item:hover .tree-name { color: var(--amber2); }
+.tree-item:hover .tree-comment { color: var(--text2); }
+.tree-indent { color: var(--text4); white-space: pre; flex-shrink: 0; }
+.tree-icon { margin-right: 0.4rem; font-size: 0.75rem; }
+.tree-name { color: var(--text); }
+.tree-name.dir { color: var(--amber); }
+.tree-name.py  { color: var(--text); }
+.tree-name.sh  { color: var(--terra); }
+.tree-name.yml { color: var(--blue); }
+.tree-name.md  { color: var(--green); }
+.tree-name.json{ color: var(--amber2); }
+.tree-name.c   { color: var(--text2); }
+.tree-name.env { color: var(--terra2); }
+.tree-name.toml{ color: var(--green); }
+.tree-comment {
+  margin-left: 0.75rem;
+  color: var(--text3);
+  font-style: italic;
+  font-size: 0.74rem;
+}
+
+/* ─── PIPELINE DIAGRAM ───────────────────────────────────── */
+.pipeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+.pipeline::before {
+  content: '';
+  position: absolute;
+  left: 2.15rem; top: 3rem; bottom: 3rem;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    var(--amber) 0%,
+    var(--terra) 33%,
+    var(--green) 66%,
+    var(--blue) 100%
+  );
+}
+.pipe-step {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 1.5rem;
+  padding: 1.5rem 0;
+  align-items: start;
+  position: relative;
+}
+.pipe-num-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+  position: relative; z-index: 1;
+}
+.pipe-num {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 0.9rem; font-weight: 600;
+  border: 2px solid;
+}
+.pipe-step:nth-child(1) .pipe-num { border-color: var(--amber);  background: rgba(232,184,74,.08);  color: var(--amber); }
+.pipe-step:nth-child(2) .pipe-num { border-color: var(--terra);  background: rgba(224,92,42,.08);   color: var(--terra); }
+.pipe-step:nth-child(3) .pipe-num { border-color: var(--green);  background: rgba(125,184,122,.08); color: var(--green); }
+.pipe-step:nth-child(4) .pipe-num { border-color: var(--blue);   background: rgba(106,158,200,.08); color: var(--blue); }
+.pipe-content {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 1.25rem 1.5rem;
+  transition: background .2s;
+}
+.pipe-content:hover { background: var(--bg3); }
+.pipe-title {
+  font-family: var(--sans);
+  font-size: 0.95rem; font-weight: 500;
+  color: var(--text);
+  margin-bottom: 0.3rem;
+}
+.pipe-file {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--amber);
+  margin-bottom: 0.6rem;
+  letter-spacing: .02em;
+}
+.pipe-desc {
+  font-family: var(--sans);
+  font-size: 0.875rem;
+  color: var(--text2);
+  line-height: 1.65;
+  font-weight: 300;
+}
+.pipe-tags {
+  display: flex; flex-wrap: wrap; gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+.pipe-tag {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  padding: 0.2rem 0.55rem;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border2);
+  color: var(--text3);
+  letter-spacing: .04em;
+}
+
+/* ─── CLI CARDS ───────────────────────────────────────────── */
+.cli-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.cli-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 1.25rem 1.5rem;
+  cursor: pointer;
+  transition: all .2s;
+  position: relative;
+  overflow: hidden;
+}
+.cli-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(232,184,74,.04) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity .25s;
+}
+.cli-card:hover {
+  border-color: rgba(232,184,74,.4);
+  background: var(--bg3);
+  box-shadow: 0 0 0 1px rgba(232,184,74,.15), inset 0 0 20px rgba(232,184,74,.03);
+}
+.cli-card:hover::before { opacity: 1; }
+.cli-cmd {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  color: var(--amber);
+  margin-bottom: 0.35rem;
+  font-weight: 500;
+}
+.cli-desc {
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  color: var(--text2);
+  font-weight: 300;
+  line-height: 1.5;
+}
+.cli-options {
+  margin-top: 0.75rem;
+  display: flex; flex-direction: column; gap: 0.2rem;
+}
+.cli-opt {
+  display: flex; gap: 1rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+}
+.cli-opt-flag { color: var(--terra2); min-width: 14rem; flex-shrink: 0; }
+.cli-opt-desc { color: var(--text3); }
+
+/* ─── NUMBERED TUTORIAL ───────────────────────────────────── */
+.tutorial-steps {
+  counter-reset: tut;
+  display: flex; flex-direction: column; gap: 2rem;
+}
+.tut-step {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+.tut-step::before {
+  counter-increment: tut;
+  content: counter(tut);
+  display: flex; align-items: center; justify-content: center;
+  width: 2.5rem; height: 2.5rem;
+  font-family: var(--serif);
+  font-size: 1.1rem; font-weight: 700;
+  color: var(--amber);
+  border: 1px solid rgba(232,184,74,.3);
+  background: rgba(232,184,74,.05);
+  flex-shrink: 0;
+}
+.tut-content h4 {
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+  padding-top: 0.45rem;
+}
+.tut-content p {
+  font-family: var(--sans);
+  font-size: 0.875rem;
+  color: var(--text2);
+  font-weight: 300;
+  line-height: 1.65;
+  margin-bottom: 0.75rem;
+}
+
+/* ─── JSON VIEWER ─────────────────────────────────────────── */
+.json-view {
+  background: #0a0906;
+  border: 1px solid var(--border2);
+  padding: 1.5rem;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  line-height: 2;
+}
+.jk  { color: var(--text2); }         /* key */
+.jv-s{ color: var(--amber); }         /* string value */
+.jv-n{ color: var(--terra2); }        /* number */
+.jv-b{ color: var(--blue); }          /* boolean/null */
+.jcom{ color: var(--text3); font-style: italic; }  /* inline comment */
+
+/* ─── CONFIDENCE SCALE ───────────────────────────────────── */
+.conf-scale {
+  display: flex; flex-direction: column; gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+.conf-row {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  gap: 1rem;
+  align-items: center;
+}
+.conf-range {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--text3);
+  text-align: right;
+}
+.conf-bar {
+  height: 6px;
+  background: var(--bg4);
+  border-radius: 1px;
+  overflow: hidden;
+  position: relative;
+}
+.conf-fill {
+  position: absolute; left: 0; top: 0; height: 100%;
+  border-radius: 1px;
+  transition: width 1.2s cubic-bezier(.4,0,.2,1);
+}
+.conf-label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--text3);
+  margin-top: 0.2rem;
+}
+
+/* ─── TIMELINE (CVE Disclosure) ──────────────────────────── */
+.timeline {
+  position: relative;
+  padding-left: 2rem;
+}
+.timeline::before {
+  content: '';
+  position: absolute; left: 0; top: 0.4rem; bottom: 0;
+  width: 1px;
+  background: var(--border2);
+}
+.tl-item {
+  position: relative;
+  padding: 0 0 2rem 1.5rem;
+}
+.tl-item::before {
+  content: '';
+  position: absolute; left: -2.35rem; top: 0.35rem;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1.5px solid var(--border2);
+}
+.tl-item.active::before { background: var(--amber); border-color: var(--amber); box-shadow: 0 0 6px rgba(232,184,74,.5); }
+.tl-item:last-child { padding-bottom: 0; }
+.tl-label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 0.3rem;
+}
+.tl-title {
+  font-family: var(--sans);
+  font-size: 0.9rem; font-weight: 500;
+  color: var(--text);
+  margin-bottom: 0.3rem;
+}
+.tl-desc {
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  color: var(--text2);
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+/* ─── CONFIG TABLE ───────────────────────────────────────── */
+.config-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+}
+.config-table thead tr {
+  border-bottom: 1px solid var(--border2);
+}
+.config-table th {
+  text-align: left;
+  padding: 0.6rem 1rem;
+  font-size: 0.62rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text3);
+  font-weight: 400;
+}
+.config-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(44,40,24,.8);
+  vertical-align: top;
+}
+.config-table tr:hover td { background: rgba(255,255,255,.015); }
+.config-key { color: var(--amber); }
+.config-required {
+  font-size: 0.62rem;
+  padding: 0.15rem 0.45rem;
+  background: rgba(224,92,42,.12);
+  border: 1px solid rgba(224,92,42,.3);
+  color: var(--terra);
+}
+.config-optional {
+  font-size: 0.62rem;
+  padding: 0.15rem 0.45rem;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border2);
+  color: var(--text3);
+}
+.config-default { color: var(--text2); }
+.config-desc { color: var(--text2); font-size: 0.75rem; font-family: var(--sans); }
+
+/* ─── FINDINGS TABLE ─────────────────────────────────────── */
+.findings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.findings-table thead tr {
+  border-bottom: 1px solid var(--border2);
+}
+.findings-table th {
+  text-align: left;
+  padding: 0.6rem 1rem;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text3);
+  font-weight: 400;
+}
+.findings-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(44,40,24,.8);
+  font-family: var(--sans);
+  font-weight: 300;
+  color: var(--text2);
+}
+.findings-table tr:hover td { background: rgba(255,255,255,.015); }
+.findings-table td:first-child { color: var(--text); font-weight: 400; font-family: var(--mono); font-size: 0.78rem; }
+.status-badge {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-family: var(--mono); font-size: 0.65rem;
+  padding: 0.2rem 0.6rem;
+}
+.s-red    { background: rgba(208,85,85,.1);   border: 1px solid rgba(208,85,85,.3);   color: #e87070; }
+.s-orange { background: rgba(224,92,42,.1);   border: 1px solid rgba(224,92,42,.3);   color: var(--terra); }
+.s-yellow { background: rgba(232,184,74,.1);  border: 1px solid rgba(232,184,74,.25); color: var(--amber); }
+.s-blue   { background: rgba(106,158,200,.1); border: 1px solid rgba(106,158,200,.3); color: var(--blue); }
+.s-green  { background: rgba(125,184,122,.1); border: 1px solid rgba(125,184,122,.3); color: var(--green); }
+
+/* ─── MODEL TABLE ────────────────────────────────────────── */
+.model-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+.model-card {
+  background: var(--bg2);
+  padding: 1.25rem;
+  transition: background .2s;
+}
+.model-card:hover { background: var(--bg3); }
+.model-name {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--amber);
+  margin-bottom: 0.3rem;
+  font-weight: 500;
+}
+.model-alias {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--text3);
+  margin-bottom: 0.6rem;
+}
+.model-desc {
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  color: var(--text2);
+  font-weight: 300;
+  line-height: 1.5;
+}
+.model-tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  padding: 0.15rem 0.4rem;
+  margin-top: 0.5rem;
+  background: rgba(232,184,74,.08);
+  border: 1px solid rgba(232,184,74,.2);
+  color: var(--amber);
+}
+
+/* ─── FOOTER ──────────────────────────────────────────────── */
+.site-footer {
+  padding: 4rem 0 3rem;
+  border-top: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--text3);
+  display: flex; justify-content: space-between; align-items: flex-end;
+  flex-wrap: wrap; gap: 1rem;
+}
+.footer-links { display: flex; gap: 1.75rem; }
+.footer-links a {
+  color: var(--text3); text-decoration: none;
+  transition: color .2s;
+  letter-spacing: .04em;
+}
+.footer-links a:hover { color: var(--amber); }
+
+/* ─── UTIL ────────────────────────────────────────────────── */
+.spacer { height: 1.5rem; }
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 2rem 0;
+}
+.note {
+  background: rgba(232,184,74,.05);
+  border: 1px solid rgba(232,184,74,.15);
+  border-left: 3px solid var(--amber);
+  padding: 1rem 1.25rem;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--text2);
+  font-weight: 300;
+  line-height: 1.65;
+  margin: 1.5rem 0;
+}
+.note strong { color: var(--amber); font-weight: 500; }
+
+/* ─── SCROLL REVEAL ───────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+.reveal.in { opacity: 1; transform: translateY(0); }
+
+/* ─── RESPONSIVE ──────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; padding: 0 1.25rem; }
+  .sidebar { display: none; }
+  .hero { padding: 7rem 0 4rem; }
+  .section { padding: 3.5rem 0 2rem; }
+  .conf-row { grid-template-columns: 5.5rem 1fr; }
+  .model-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .hero h1 { font-size: 2rem; }
+  .nav-links { display: none; }
+  .pipe-step { grid-template-columns: 3.5rem 1fr; gap: 1rem; }
+  .cli-opt { flex-direction: column; gap: 0.1rem; }
+  .cli-opt-flag { min-width: unset; }
+  .model-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── TOP NAV ─────────────────────────────────────────────── -->
+<nav class="top-nav">
+  <a href="#" class="nav-brand">CyberAI<span> / guide</span></a>
+  <div class="nav-links">
+    <a href="#quickstart">快速开始</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#cli">CLI</a>
+    <a href="#targets">添加目标</a>
+    <a href="#findings">研究成果</a>
+    <a href="index.html">← 项目文档</a>
+  </div>
+</nav>
+
+<div class="layout" style="padding-top:52px;">
+<div class="main-col">
+
+<!-- ── HERO ────────────────────────────────────────────────── -->
+<section class="hero" id="hero">
+  <div class="hero-kicker">操作手册 &nbsp;·&nbsp; v1.0 &nbsp;·&nbsp; 2026</div>
+  <h1>从代码到 CVE —<br><em>CyberAI 使用完全指南</em></h1>
+  <p class="hero-sub">
+    面向安全研究者的完整操作手册：从环境搭建到扫描第一个库，从解读结果到提交 CVE 披露。
+  </p>
+  <div class="hero-badges">
+    <span class="badge badge-amber">Pipeline A · 主引擎</span>
+    <span class="badge badge-amber">GLM-5.1 · 默认模型</span>
+    <span class="badge badge-terra">10+ 已扫描目标库</span>
+    <span class="badge badge-terra">7 CVE 候选</span>
+    <span class="badge badge-neutral">Python 3.11+</span>
+    <span class="badge badge-neutral">Docker 可选</span>
+  </div>
+</section>
+
+<!-- ── 01 QUICK START ───────────────────────────────────────── -->
+<section class="section reveal" id="quickstart">
+  <div class="section-num">01 · 快速开始</div>
+  <h2>三步跑起第一次扫描</h2>
+  <p class="section-desc">从零到开始扫描一个 C 库，需要大约 10 分钟。你需要一个智谱 AI 的 API Key。</p>
+
+  <div class="steps">
+    <div class="step-card">
+      <span class="step-num">1</span>
+      <div class="step-label">安装</div>
+      <h3>克隆仓库并安装依赖</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">bash</span>
+          <button class="code-copy" onclick="copyCode(this)">复制</button>
+        </div>
+        <div class="code-body">
+          <div class="code-line"><span class="line-num">1</span><span class="line-content"><span class="c"># 克隆仓库</span></span></div>
+          <div class="code-line"><span class="line-num">2</span><span class="line-content"><span class="f">git</span> <span class="k">clone</span> https://github.com/fxp/cyberai.git && <span class="f">cd</span> cyberai</span></div>
+          <div class="code-line"><span class="line-num">3</span><span class="line-content"></span></div>
+          <div class="code-line"><span class="line-num">4</span><span class="line-content"><span class="c"># 配置 API Key（必填）</span></span></div>
+          <div class="code-line"><span class="line-num">5</span><span class="line-content"><span class="f">cp</span> .env.example .env</span></div>
+          <div class="code-line"><span class="line-num">6</span><span class="line-content"><span class="f">echo</span> <span class="s">"GLM_API_KEY=your_key_here"</span> >> .env</span></div>
+          <div class="code-line"><span class="line-num">7</span><span class="line-content"></span></div>
+          <div class="code-line"><span class="line-num">8</span><span class="line-content"><span class="c"># 安装（editable 模式，方便开发）</span></span></div>
+          <div class="code-line"><span class="line-num">9</span><span class="line-content"><span class="f">pip</span> <span class="k">install</span> <span class="k">-e</span> <span class="s">".[dev]"</span></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card" style="border-left-color: var(--terra);">
+      <span class="step-num">2</span>
+      <div class="step-label" style="color:var(--terra)">目标</div>
+      <h3>下载并解压目标源码</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">bash</span>
+          <button class="code-copy" onclick="copyCode(this)">复制</button>
+        </div>
+        <div class="code-body">
+          <div class="code-line"><span class="line-num">1</span><span class="line-content"><span class="f">cd</span> targets/</span></div>
+          <div class="code-line"><span class="line-num">2</span><span class="line-content"></span></div>
+          <div class="code-line"><span class="line-num">3</span><span class="line-content"><span class="c"># 以 libtiff 为例</span></span></div>
+          <div class="code-line"><span class="line-num">4</span><span class="line-content"><span class="f">wget</span> https://download.osgeo.org/libtiff/tiff-4.7.0.tar.gz</span></div>
+          <div class="code-line"><span class="line-num">5</span><span class="line-content"><span class="f">tar</span> <span class="k">xf</span> tiff-4.7.0.tar.gz</span></div>
+          <div class="code-line"><span class="line-num">6</span><span class="line-content"><span class="f">cd</span> ..</span></div>
+        </div>
+      </div>
+      <p style="font-size:.82rem; color:var(--text2); font-weight:300; margin-top:.75rem; font-family:var(--sans);">
+        已下载的 15 个目标已在 <code style="font-family:var(--mono); color:var(--amber); font-size:.78rem;">targets/</code> 目录，无需重新下载。
+      </p>
+    </div>
+
+    <div class="step-card" style="border-left-color: var(--green);">
+      <span class="step-num">3</span>
+      <div class="step-label" style="color:var(--green)">扫描</div>
+      <h3>运行 Pipeline A 扫描</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">bash</span>
+          <button class="code-copy" onclick="copyCode(this)">复制</button>
+        </div>
+        <div class="code-body">
+          <div class="code-line"><span class="line-num">1</span><span class="line-content"><span class="c"># 使用 CLI（推荐）</span></span></div>
+          <div class="code-line"><span class="line-num">2</span><span class="line-content"><span class="f">cyberai</span> <span class="k">scan</span> targets/tiff-4.7.0 <span class="k">--model</span> glm-5.1 <span class="k">--max-parallel</span> <span class="v">4</span></span></div>
+          <div class="code-line"><span class="line-num">3</span><span class="line-content"></span></div>
+          <div class="code-line"><span class="line-num">4</span><span class="line-content"><span class="c"># 或使用专用脚本（推荐用于已有扫描配置的库）</span></span></div>
+          <div class="code-line"><span class="line-num">5</span><span class="line-content"><span class="f">python</span> scripts/scan_libtiff_t2.py</span></div>
+          <div class="code-line"><span class="line-num">6</span><span class="line-content"></span></div>
+          <div class="code-line"><span class="line-num">7</span><span class="line-content"><span class="c"># 结果写入 research/libtiff/t2_glm5_results.json</span></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>预期耗时：</strong>扫描一个中型库（~40 个文件）约需 20-40 分钟，费用约 ¥5-15。
+    使用 <code style="font-family:var(--mono); font-size:.8em;">--max-parallel 8</code> 可以加快速度，但注意 API 并发限制。
+  </div>
+</section>
+
+<!-- ── 02 DIRECTORY STRUCTURE ─────────────────────────────── -->
+<section class="section reveal" id="structure">
+  <div class="section-num">02 · 目录结构</div>
+  <h2>项目文件树</h2>
+  <p class="section-desc">了解每个目录和文件的职责，是高效使用本工具的前提。</p>
+
+  <div class="file-tree">
+    <div class="tree-root">📁 cyberai/</div>
+
+    <div class="tree-item"><span class="tree-indent">├── </span><span class="tree-icon">📁</span><span class="tree-name dir">src/cyberai/</span><span class="tree-comment">核心 Python 包</span></div>
+    <div class="tree-item"><span class="tree-indent">│   ├── </span><span class="tree-icon">📁</span><span class="tree-name dir">scanner/</span><span class="tree-comment">漏洞扫描引擎</span></div>
+    <div class="tree-item"><span class="tree-indent">│   │   ├── </span><span class="tree-icon">🐍</span><span class="tree-name py">carlini.py</span><span class="tree-comment">Pipeline A 主引擎，4阶段扫描</span></div>
+    <div class="tree-item"><span class="tree-indent">│   │   ├── </span><span class="tree-icon">🐍</span><span class="tree-name py">file_ranker.py</span><span class="tree-comment">文件攻击面评分与排序</span></div>
+    <div class="tree-item"><span class="tree-indent">│   │   ├── </span><span class="tree-icon">🐍</span><span class="tree-name py">dedup.py</span><span class="tree-comment">findings 去重与聚合</span></div>
+    <div class="tree-item"><span class="tree-indent">│   │   └── </span><span class="tree-icon">🐍</span><span class="tree-name py">verifier.py</span><span class="tree-comment">LLM-as-Judge 二次验证</span></div>
+    <div class="tree-item"><span class="tree-indent">│   ├── </span><span class="tree-icon">📁</span><span class="tree-name dir">models/</span><span class="tree-comment">模型抽象层</span></div>
+    <div class="tree-item"><span class="tree-indent">│   │   ├── </span><span class="tree-icon">🐍</span><span class="tree-name py">base.py</span><span class="tree-comment">SecurityAgent 抽象接口</span></div>
+    <div class="tree-item"><span class="tree-indent">│   │   ├── </span><span class="tree-icon">🐍</span><span class="tree-name py">glm.py</span><span class="tree-comment">GLM-5.1 / GLM-4-flash 适配器</span></div>
+    <div class="tree-item"><span class="tree-indent">│   │   └── </span><span class="tree-icon">🐍</span><span class="tree-name py">registry.py</span><span class="tree-comment">模型注册表，--model 参数解析</span></div>
+    <div class="tree-item"><span class="tree-indent">│   ├── </span><span class="tree-icon">📁</span><span class="tree-name dir">api/</span><span class="tree-comment">FastAPI REST 接口（可选）</span></div>
+    <div class="tree-item"><span class="tree-indent">│   ├── </span><span class="tree-icon">📁</span><span class="tree-name dir">infra/</span><span class="tree-comment">阿里云 ECI 弹性容器（云端扫描）</span></div>
+    <div class="tree-item"><span class="tree-indent">│   ├── </span><span class="tree-icon">📁</span><span class="tree-name dir">storage/</span><span class="tree-comment">OSS 对象存储 + SQLite 本地 DB</span></div>
+    <div class="tree-item"><span class="tree-indent">│   ├── </span><span class="tree-icon">📁</span><span class="tree-name dir">tracker/</span><span class="tree-comment">API 成本追踪</span></div>
+    <div class="tree-item"><span class="tree-indent">│   └── </span><span class="tree-icon">🐍</span><span class="tree-name py">cli.py</span><span class="tree-comment">Click CLI 入口 (cyberai scan / verify / report)</span></div>
+
+    <div class="tree-item" style="margin-top:.5rem;"><span class="tree-indent">├── </span><span class="tree-icon">📁</span><span class="tree-name dir">scripts/</span><span class="tree-comment">每个目标的扫描脚本</span></div>
+    <div class="tree-item"><span class="tree-indent">│   ├── </span><span class="tree-icon">🐍</span><span class="tree-name py">scan_libtiff_t2.py</span><span class="tree-comment">libtiff 专用脚本（含优先级配置）</span></div>
+    <div class="tree-item"><span class="tree-indent">│   ├── </span><span class="tree-icon">🐍</span><span class="tree-name py">make_extracts.py</span><span class="tree-comment">函数级代码切片工具</span></div>
+    <div class="tree-item"><span class="tree-indent">│   ├── </span><span class="tree-icon">🐍</span><span class="tree-name py">process_scan_results.py</span><span class="tree-comment">原始结果后处理</span></div>
+    <div class="tree-item"><span class="tree-indent">│   └── </span><span class="tree-icon">🐍</span><span class="tree-name py">verify_candidates.py</span><span class="tree-comment">候选漏洞批量验证</span></div>
+
+    <div class="tree-item" style="margin-top:.5rem;"><span class="tree-indent">├── </span><span class="tree-icon">📁</span><span class="tree-name dir">research/</span><span class="tree-comment">研究成果（按目标库分组）</span></div>
+    <div class="tree-item"><span class="tree-indent">│   ├── </span><span class="tree-icon">📁</span><span class="tree-name dir">libtiff/</span><span class="tree-comment">— CVE 候选 CAND-008, CAND-010</span></div>
+    <div class="tree-item"><span class="tree-indent">│   │   ├── </span><span class="tree-icon">📄</span><span class="tree-name md">vulnerability_report.md</span><span class="tree-comment">人工分析报告</span></div>
+    <div class="tree-item"><span class="tree-indent">│   │   ├── </span><span class="tree-icon">📊</span><span class="tree-name json">t2_glm5_results.json</span><span class="tree-comment">原始扫描结果</span></div>
+    <div class="tree-item"><span class="tree-indent">│   │   └── </span><span class="tree-icon">⚙️</span><span class="tree-name c">poc_pixarlog_abgr.c</span><span class="tree-comment">PoC 代码</span></div>
+    <div class="tree-item"><span class="tree-indent">│   ├── </span><span class="tree-icon">📁</span><span class="tree-name dir">disclosures/</span><span class="tree-comment">CVE 披露草稿（向维护者发送前保密）</span></div>
+    <div class="tree-item"><span class="tree-indent">│   ├── </span><span class="tree-icon">📁</span><span class="tree-name dir">llm_security_report/</span><span class="tree-comment">AI 时代网络安全新范式报告</span></div>
+    <div class="tree-item"><span class="tree-indent">│   └── </span><span class="tree-icon">📄</span><span class="tree-name md">technical_report_v1.md</span><span class="tree-comment">方法论技术报告</span></div>
+
+    <div class="tree-item" style="margin-top:.5rem;"><span class="tree-indent">├── </span><span class="tree-icon">📁</span><span class="tree-name dir">targets/</span><span class="tree-comment">已下载的目标源码（15 个，git 忽略大文件）</span></div>
+    <div class="tree-item"><span class="tree-indent">├── </span><span class="tree-icon">📁</span><span class="tree-name dir">docs/</span><span class="tree-comment">文档网站 (index.html, architecture.html)</span></div>
+    <div class="tree-item"><span class="tree-indent">├── </span><span class="tree-icon">📁</span><span class="tree-name dir">terraform/</span><span class="tree-comment">阿里云基础设施即代码（ECI + OSS）</span></div>
+    <div class="tree-item"><span class="tree-indent">├── </span><span class="tree-icon">🐳</span><span class="tree-name yml">docker-compose.yml</span><span class="tree-comment">API 服务 + Redis 容器编排</span></div>
+    <div class="tree-item"><span class="tree-indent">├── </span><span class="tree-icon">📦</span><span class="tree-name toml">pyproject.toml</span><span class="tree-comment">项目配置和依赖声明</span></div>
+    <div class="tree-item"><span class="tree-indent">└── </span><span class="tree-icon">🔑</span><span class="tree-name env">.env.example</span><span class="tree-comment">环境变量模板（复制为 .env）</span></div>
+  </div>
+</section>
+
+<!-- ── 03 PIPELINE A ──────────────────────────────────────── -->
+<section class="section reveal" id="pipeline">
+  <div class="section-num">03 · Pipeline A 原理</div>
+  <h2>四阶段漏洞发现流水线</h2>
+  <p class="section-desc">
+    Pipeline A 是 Carlini 方法的工程实现：将每个 C/C++ 源文件切片，
+    逐段投给 LLM，通过多轮过滤将 97% 误报降到可人工复核的数量。
+  </p>
+
+  <div class="pipeline">
+    <div class="pipe-step">
+      <div class="pipe-num-wrap">
+        <div class="pipe-num">S1</div>
+      </div>
+      <div class="pipe-content">
+        <div class="pipe-title">文件发现 + 攻击面评分</div>
+        <div class="pipe-file">scanner/file_ranker.py</div>
+        <p class="pipe-desc">
+          遍历项目所有 .c/.cpp 文件，计算攻击面评分。
+          评分因子包括：文件名关键词（decode、parse、read、write、handle 权重最高）、
+          代码行数、函数数量、已知高危 API 使用情况（memcpy、malloc、sprintf 等）。
+          评分决定扫描优先级，高风险文件优先送入 Stage 2。
+        </p>
+        <div class="pipe-tags">
+          <span class="pipe-tag">文件名关键词</span>
+          <span class="pipe-tag">代码复杂度</span>
+          <span class="pipe-tag">危险 API 密度</span>
+          <span class="pipe-tag">函数数量</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipe-step">
+      <div class="pipe-num-wrap">
+        <div class="pipe-num">S2</div>
+      </div>
+      <div class="pipe-content">
+        <div class="pipe-title">并行 LLM 扫描（核心阶段）</div>
+        <div class="pipe-file">scanner/carlini.py · CarliniPipeline</div>
+        <p class="pipe-desc">
+          carlini.py 驱动 <code style="font-family:var(--mono); color:var(--amber); font-size:.85em;">--max-parallel</code> 个并发 Agent，
+          每个 Agent 读取约 5,000 字符的代码段（PipelineConfig.token_budget 控制）。
+          使用 CTF prompt 策略：要求 LLM 用攻击者视角寻找缓冲区溢出、整数溢出、UAF、逻辑错误。
+          原始输出约含 97% 误报，直接写入 JSONL 文件。
+        </p>
+        <div class="pipe-tags">
+          <span class="pipe-tag">CTF prompt</span>
+          <span class="pipe-tag">asyncio 并发</span>
+          <span class="pipe-tag">~97% 初始误报率</span>
+          <span class="pipe-tag">JSONL 输出</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipe-step">
+      <div class="pipe-num-wrap">
+        <div class="pipe-num">S3</div>
+      </div>
+      <div class="pipe-content">
+        <div class="pipe-title">去重 + 置信度过滤</div>
+        <div class="pipe-file">scanner/dedup.py</div>
+        <p class="pipe-desc">
+          将 Stage 2 的原始 findings 去重合并（同一代码位置的重复 finding 合并为一条）。
+          按置信度阈值 ≥ 0.80 过滤，低于阈值的 finding 存档但不进入候选池。
+          输出结构化的候选漏洞列表，每条记录包含文件路径、行号、漏洞类型、置信度。
+        </p>
+        <div class="pipe-tags">
+          <span class="pipe-tag">置信度 ≥ 0.80</span>
+          <span class="pipe-tag">位置聚合</span>
+          <span class="pipe-tag">结构化输出</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipe-step">
+      <div class="pipe-num-wrap">
+        <div class="pipe-num">S4</div>
+      </div>
+      <div class="pipe-content">
+        <div class="pipe-title">LLM-as-Judge 二次验证</div>
+        <div class="pipe-file">scanner/verifier.py</div>
+        <p class="pipe-desc">
+          用另一个独立 LLM 实例（默认同模型，可用 <code style="font-family:var(--mono); color:var(--amber); font-size:.85em;">--verify-model</code> 指定不同模型）
+          对 Stage 3 候选进行交叉验证。
+          验证器被告知这是一个"二次审核"，它不知道之前 LLM 的判断，
+          这种盲审设计有效减少系统性误判。
+          通过验证的 finding 标记 verified=true，进入人工复核队列。
+        </p>
+        <div class="pipe-tags">
+          <span class="pipe-tag">盲审设计</span>
+          <span class="pipe-tag">跨模型验证可选</span>
+          <span class="pipe-tag">verified 标记</span>
+          <span class="pipe-tag">人工复核队列</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 04 CLI REFERENCE ───────────────────────────────────── -->
+<section class="section reveal" id="cli">
+  <div class="section-num">04 · CLI 命令参考</div>
+  <h2>命令行接口</h2>
+  <p class="section-desc">
+    安装后通过 <code style="font-family:var(--mono); color:var(--amber);">cyberai</code> 命令使用，
+    也可以直接调用 <code style="font-family:var(--mono); color:var(--amber);">scripts/</code> 下的专用脚本。
+  </p>
+
+  <div class="cli-grid">
+    <div class="cli-card">
+      <div class="cli-cmd">cyberai scan &lt;project_dir&gt; [OPTIONS]</div>
+      <div class="cli-desc">对指定目录运行完整 Pipeline A 扫描，这是最常用的命令。</div>
+      <div class="cli-options">
+        <div class="cli-opt"><span class="cli-opt-flag">--model TEXT</span><span class="cli-opt-desc">使用的 LLM，默认 glm-5.1</span></div>
+        <div class="cli-opt"><span class="cli-opt-flag">--max-files INT</span><span class="cli-opt-desc">限制扫描文件数，调试时用</span></div>
+        <div class="cli-opt"><span class="cli-opt-flag">--max-parallel INT</span><span class="cli-opt-desc">并发 Agent 数量，默认 4</span></div>
+        <div class="cli-opt"><span class="cli-opt-flag">--no-verify</span><span class="cli-opt-desc">跳过 Stage 4 二次验证，加速但精度下降</span></div>
+        <div class="cli-opt"><span class="cli-opt-flag">--token-budget INT</span><span class="cli-opt-desc">每文件 token 预算，默认 100000</span></div>
+        <div class="cli-opt"><span class="cli-opt-flag">--output-dir TEXT</span><span class="cli-opt-desc">结果输出目录，默认 research/&lt;name&gt;/</span></div>
+      </div>
+    </div>
+
+    <div class="cli-card">
+      <div class="cli-cmd">cyberai verify &lt;results.json&gt;</div>
+      <div class="cli-desc">对已有扫描结果跑 Stage 4 二次验证（当初次扫描用了 --no-verify 时补跑）。</div>
+    </div>
+
+    <div class="cli-card">
+      <div class="cli-cmd">cyberai report &lt;results.json&gt;</div>
+      <div class="cli-desc">从 JSON 结果生成 Markdown 格式的漏洞报告，输出到 research/ 目录。</div>
+    </div>
+
+    <div class="cli-card">
+      <div class="cli-cmd">cyberai cost</div>
+      <div class="cli-desc">查看所有扫描任务的累计 API Token 消耗和美元费用（从 SQLite 数据库读取）。</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <p style="font-family:var(--mono); font-size:.72rem; color:var(--text3); letter-spacing:.1em; text-transform:uppercase; margin-bottom:1rem;">脚本工具</p>
+
+  <div class="cli-grid">
+    <div class="cli-card">
+      <div class="cli-cmd">python scripts/make_extracts.py --target &lt;dir&gt; --output scripts/extracts/&lt;name&gt;</div>
+      <div class="cli-desc">将源码切分为函数级代码段，存到 extracts/ 目录。专用脚本（如 scan_libtiff_t2.py）会引用这些切片。</div>
+      <div class="cli-options">
+        <div class="cli-opt"><span class="cli-opt-flag">--priority TEXT</span><span class="cli-opt-desc">优先扫描的关键词，逗号分隔，如 "decode,parse,read"</span></div>
+        <div class="cli-opt"><span class="cli-opt-flag">--max-size INT</span><span class="cli-opt-desc">每段最大字符数，默认 5000</span></div>
+      </div>
+    </div>
+
+    <div class="cli-card">
+      <div class="cli-cmd">python scripts/process_scan_results.py &lt;results_dir&gt;</div>
+      <div class="cli-desc">后处理原始 JSONL 结果：统计 finding 分布、生成置信度直方图、输出 CSV 摘要。</div>
+    </div>
+
+    <div class="cli-card">
+      <div class="cli-cmd">python scripts/verify_candidates.py [--candidate-file CAND-XXX]</div>
+      <div class="cli-desc">对候选漏洞列表进行批量深度验证。可指定单个候选 ID，也可批量验证全部候选。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 05 ADDING TARGETS ───────────────────────────────────── -->
+<section class="section reveal" id="targets">
+  <div class="section-num">05 · 添加新扫描目标</div>
+  <h2>扫描一个新的 C/C++ 库</h2>
+  <p class="section-desc">以 libwebp 1.4.0 为例，演示从零添加新扫描目标的完整流程。</p>
+
+  <div class="tutorial-steps">
+    <div class="tut-step">
+      <div class="tut-content">
+        <h4>下载并解压源码</h4>
+        <p>将目标源码放入 targets/ 目录。源码目录必须包含 .c/.cpp 文件，可以是未编译的原始源码。</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">bash</span></div>
+          <div class="code-body">
+            <div class="code-line"><span class="line-num">1</span><span class="line-content"><span class="f">cd</span> targets/</span></div>
+            <div class="code-line"><span class="line-num">2</span><span class="line-content"><span class="f">wget</span> https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.4.0.tar.gz</span></div>
+            <div class="code-line"><span class="line-num">3</span><span class="line-content"><span class="f">tar</span> <span class="k">xf</span> libwebp-1.4.0.tar.gz</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tut-step">
+      <div class="tut-content">
+        <h4>（可选）生成函数级代码切片</h4>
+        <p>
+          如果要使用专用扫描脚本（精确控制优先级），先用 make_extracts.py 将源码切分为函数级片段。
+          直接用 <code style="font-family:var(--mono); font-size:.82em; color:var(--amber);">cyberai scan</code> 则跳过此步。
+        </p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">bash</span></div>
+          <div class="code-body">
+            <div class="code-line"><span class="line-num">1</span><span class="line-content"><span class="f">python</span> scripts/make_extracts.py \</span></div>
+            <div class="code-line"><span class="line-num">2</span><span class="line-content">  <span class="k">--target</span> targets/libwebp-1.4.0 \</span></div>
+            <div class="code-line"><span class="line-num">3</span><span class="line-content">  <span class="k">--output</span> scripts/extracts/libwebp \</span></div>
+            <div class="code-line"><span class="line-num">4</span><span class="line-content">  <span class="k">--priority</span> <span class="s">"decode,read,vp8,huffman,lossless"</span></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tut-step">
+      <div class="tut-content">
+        <h4>创建专用扫描脚本（推荐）</h4>
+        <p>
+          复制 <code style="font-family:var(--mono); font-size:.82em; color:var(--amber);">scripts/scan_libtiff_t2.py</code> 为模板，
+          修改 SCANS 列表指定扫描顺序和优先注释，指定输出路径。
+        </p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">python</span></div>
+          <div class="code-body">
+            <div class="code-line"><span class="line-num">1</span><span class="line-content"><span class="c"># scripts/scan_libwebp_t1.py — 在文件顶部说明扫描重点</span></span></div>
+            <div class="code-line"><span class="line-num">2</span><span class="line-content">EXTRACTS_DIR = Path(<span class="s">"scripts/extracts/libwebp"</span>)</span></div>
+            <div class="code-line"><span class="line-num">3</span><span class="line-content">OUTPUT = Path(<span class="s">"research/libwebp/t1_glm5_results.json"</span>)</span></div>
+            <div class="code-line"><span class="line-num">4</span><span class="line-content"></span></div>
+            <div class="code-line"><span class="line-num">5</span><span class="line-content"><span class="c"># VP8L 无损解码——最高优先级</span></span></div>
+            <div class="code-line"><span class="line-num">6</span><span class="line-content">SCANS = [</span></div>
+            <div class="code-line"><span class="line-num">7</span><span class="line-content">  (<span class="s">"dec/vp8l_dec_A.c"</span>,    <span class="s">"src/dec/vp8l_dec.c [VP8LDecodeImage-A]"</span>),</span></div>
+            <div class="code-line"><span class="line-num">8</span><span class="line-content">  (<span class="s">"dec/vp8l_dec_B.c"</span>,    <span class="s">"src/dec/vp8l_dec.c [VP8LDecodeImage-B]"</span>),</span></div>
+            <div class="code-line"><span class="line-num">9</span><span class="line-content">  <span class="c"># ... 更多文件</span></span></div>
+            <div class="code-line"><span class="line-num">10</span><span class="line-content">]</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tut-step">
+      <div class="tut-content">
+        <h4>运行扫描</h4>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">bash</span></div>
+          <div class="code-body">
+            <div class="code-line"><span class="line-num">1</span><span class="line-content"><span class="c"># 方式一：用专用脚本（推荐，精确控制优先级）</span></span></div>
+            <div class="code-line"><span class="line-num">2</span><span class="line-content"><span class="f">python</span> scripts/scan_libwebp_t1.py</span></div>
+            <div class="code-line"><span class="line-num">3</span><span class="line-content"></span></div>
+            <div class="code-line"><span class="line-num">4</span><span class="line-content"><span class="c"># 方式二：用 CLI（快速开始）</span></span></div>
+            <div class="code-line"><span class="line-num">5</span><span class="line-content"><span class="f">cyberai</span> <span class="k">scan</span> targets/libwebp-1.4.0 <span class="k">--model</span> glm-5.1</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tut-step">
+      <div class="tut-content">
+        <h4>分析结果并创建研究目录</h4>
+        <p>扫描完成后，在 research/ 目录下为新目标创建标准结构。</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">bash</span></div>
+          <div class="code-body">
+            <div class="code-line"><span class="line-num">1</span><span class="line-content"><span class="c"># 后处理原始结果</span></span></div>
+            <div class="code-line"><span class="line-num">2</span><span class="line-content"><span class="f">python</span> scripts/process_scan_results.py research/libwebp/</span></div>
+            <div class="code-line"><span class="line-num">3</span><span class="line-content"></span></div>
+            <div class="code-line"><span class="line-num">4</span><span class="line-content"><span class="c"># 生成 Markdown 报告</span></span></div>
+            <div class="code-line"><span class="line-num">5</span><span class="line-content"><span class="f">cyberai</span> <span class="k">report</span> research/libwebp/t1_glm5_results.json</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 06 READING RESULTS ─────────────────────────────────── -->
+<section class="section reveal" id="results">
+  <div class="section-num">06 · 解读扫描结果</div>
+  <h2>理解输出格式和置信度</h2>
+  <p class="section-desc">
+    扫描结果以 JSON 格式存储。理解每个字段的含义，
+    是从"看到一堆输出"到"找到真实漏洞"的关键一步。
+  </p>
+
+  <div class="json-view">
+    <div>{</div>
+    <div style="padding-left:1.5rem;">
+      <div><span class="jk">"file"</span>: <span class="jv-s">"libtiff/tif_zip.c_extract_001.c"</span>, <span class="jcom">// 源文件路径（切片后的）</span></div>
+      <div><span class="jk">"severity"</span>: <span class="jv-s">"HIGH"</span>, <span class="jcom">// CRITICAL / HIGH / MEDIUM / LOW / INFO</span></div>
+      <div><span class="jk">"confidence"</span>: <span class="jv-n">0.85</span>, <span class="jcom">// 0.0-1.0，≥0.80 进入候选池</span></div>
+      <div><span class="jk">"vuln_type"</span>: <span class="jv-s">"buffer_overflow"</span>, <span class="jcom">// buffer_overflow / integer_overflow / uaf / logic_error</span></div>
+      <div><span class="jk">"title"</span>: <span class="jv-s">"ZIPDecode OOB write in strip buffer"</span>,</div>
+      <div><span class="jk">"description"</span>: <span class="jv-s">"tsize_t newsize = ... multiplication overflow ..."</span>,</div>
+      <div><span class="jk">"line_start"</span>: <span class="jv-n">142</span>, <span class="jk">"line_end"</span>: <span class="jv-n">168</span>, <span class="jcom">// 在切片文件中的行号</span></div>
+      <div><span class="jk">"verified"</span>: <span class="jv-b">true</span>, <span class="jcom">// 经过 Stage 4 二次验证</span></div>
+      <div><span class="jk">"false_positive_reason"</span>: <span class="jv-b">null</span> <span class="jcom">// null = 候选有效；有值 = 解释为何是误报</span></div>
+    </div>
+    <div>}</div>
+  </div>
+
+  <div class="spacer"></div>
+  <p style="font-family:var(--mono); font-size:.72rem; color:var(--text3); letter-spacing:.1em; text-transform:uppercase; margin-bottom:1rem;">置信度阈值建议</p>
+  <div class="conf-scale">
+    <div class="conf-row">
+      <div>
+        <div class="conf-range">0.90 – 1.00</div>
+        <div class="conf-label" style="color:var(--terra); font-size:.62rem;">立即人工复核</div>
+      </div>
+      <div>
+        <div class="conf-bar"><div class="conf-fill" style="width:0%; background:var(--terra);" data-w="95%"></div></div>
+      </div>
+    </div>
+    <div class="conf-row">
+      <div>
+        <div class="conf-range">0.80 – 0.89</div>
+        <div class="conf-label" style="color:var(--amber); font-size:.62rem;">候选池，批量分析</div>
+      </div>
+      <div>
+        <div class="conf-bar"><div class="conf-fill" style="width:0%; background:var(--amber);" data-w="72%"></div></div>
+      </div>
+    </div>
+    <div class="conf-row">
+      <div>
+        <div class="conf-range">0.70 – 0.79</div>
+        <div class="conf-label" style="color:var(--text3); font-size:.62rem;">存档，低优先</div>
+      </div>
+      <div>
+        <div class="conf-bar"><div class="conf-fill" style="width:0%; background:var(--text3);" data-w="40%"></div></div>
+      </div>
+    </div>
+    <div class="conf-row">
+      <div>
+        <div class="conf-range">&lt; 0.70</div>
+        <div class="conf-label" style="color:var(--text4); font-size:.62rem;">忽略（97% 误报区）</div>
+      </div>
+      <div>
+        <div class="conf-bar"><div class="conf-fill" style="width:0%; background:var(--text4);" data-w="15%"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 07 CVE DISCLOSURE WORKFLOW ─────────────────────────── -->
+<section class="section reveal" id="disclosure">
+  <div class="section-num">07 · CVE 披露工作流</div>
+  <h2>从候选漏洞到 CVE 披露</h2>
+  <p class="section-desc">
+    确认真实漏洞后，遵循 Google Project Zero 的 90 天协调披露政策。
+    当前 CAND-008 处于 Day 29，进入追踪阶段。
+  </p>
+
+  <div class="timeline">
+    <div class="tl-item active">
+      <div class="tl-label">Day 0</div>
+      <div class="tl-title">漏洞确认</div>
+      <div class="tl-desc">PoC 可重现崩溃 → ASAN 验证根因 → 评估攻击面和 CVSS 分数 → 创建 research/disclosures/CAND-XXX_draft.md</div>
+    </div>
+    <div class="tl-item active">
+      <div class="tl-label">Day 1-3</div>
+      <div class="tl-title">联系维护者</div>
+      <div class="tl-desc">发送加密邮件至 security@&lt;project&gt;.org，附上漏洞摘要、影响范围、PoC 步骤。90 天窗口从此刻开始计时。</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-label">Day 1-30</div>
+      <div class="tl-title">等待响应 &amp; 协商</div>
+      <div class="tl-desc">维护者确认漏洞 → 协商修复时间线 → CVE ID 申请（通过 MITRE 或项目自有流程）</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-label">Day 30-89</div>
+      <div class="tl-title">补丁开发期</div>
+      <div class="tl-desc">维护者开发修复补丁 → 测试验证 → 准备发布版本。如需延期可协商最多 14 天宽限期。</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-label">Day 90</div>
+      <div class="tl-title">公开披露</div>
+      <div class="tl-desc">无论补丁是否就绪，在 Day 90 公开漏洞详情、PoC、CVE 编号。补丁未就绪时协调发布缓解措施。</div>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:2rem;">
+    <strong>CAND-008 当前状态：</strong>Day 29 / 90 天，已联系 Eclipse Mosquitto 维护团队，等待确认响应。
+    剩余 61 天窗口。相关披露草稿位于 <code style="font-family:var(--mono); font-size:.82em;">research/disclosures/mosquitto_CAND-008_*.md</code>
+  </div>
+</section>
+
+<!-- ── 08 CONFIGURATION ───────────────────────────────────── -->
+<section class="section reveal" id="config">
+  <div class="section-num">08 · 配置参考</div>
+  <h2>环境变量与模型选择</h2>
+  <p class="section-desc">
+    所有配置通过 <code style="font-family:var(--mono); color:var(--amber);">.env</code> 文件控制。
+    复制 .env.example 修改后生效。
+  </p>
+
+  <table class="config-table">
+    <thead>
+      <tr>
+        <th>变量名</th>
+        <th>必填</th>
+        <th>默认值</th>
+        <th>说明</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="config-key">GLM_API_KEY</td>
+        <td><span class="config-required">必填</span></td>
+        <td class="config-default">—</td>
+        <td class="config-desc">智谱 AI BigModel API Key，在 bigmodel.cn 申请</td>
+      </tr>
+      <tr>
+        <td class="config-key">ANTHROPIC_API_KEY</td>
+        <td><span class="config-optional">可选</span></td>
+        <td class="config-default">—</td>
+        <td class="config-desc">Claude API Key，使用 --model claude-* 时必填</td>
+      </tr>
+      <tr>
+        <td class="config-key">OPENAI_API_KEY</td>
+        <td><span class="config-optional">可选</span></td>
+        <td class="config-default">—</td>
+        <td class="config-desc">OpenAI API Key，使用 --model gpt-* 时必填</td>
+      </tr>
+      <tr>
+        <td class="config-key">SCANNER_MAX_PARALLEL</td>
+        <td><span class="config-optional">可选</span></td>
+        <td class="config-default">4</td>
+        <td class="config-desc">并发扫描 Agent 数，建议 4-8，受 API 并发限制约束</td>
+      </tr>
+      <tr>
+        <td class="config-key">SCANNER_TOKEN_BUDGET</td>
+        <td><span class="config-optional">可选</span></td>
+        <td class="config-default">100000</td>
+        <td class="config-desc">每文件 token 预算，越大越贵但更彻底</td>
+      </tr>
+      <tr>
+        <td class="config-key">DATABASE_URL</td>
+        <td><span class="config-optional">可选</span></td>
+        <td class="config-default">sqlite+aiosqlite:///./cyberai.db</td>
+        <td class="config-desc">结果存储数据库，默认本地 SQLite</td>
+      </tr>
+      <tr>
+        <td class="config-key">ALIYUN_*</td>
+        <td><span class="config-optional">可选</span></td>
+        <td class="config-default">—</td>
+        <td class="config-desc">阿里云凭证，使用 ECI 云端扫描时必填</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="spacer"></div>
+  <p style="font-family:var(--mono); font-size:.72rem; color:var(--text3); letter-spacing:.1em; text-transform:uppercase; margin-bottom:1rem;">支持的模型（--model 参数）</p>
+
+  <div class="model-grid">
+    <div class="model-card">
+      <div class="model-name">glm-5.1</div>
+      <div class="model-alias">默认推荐</div>
+      <div class="model-desc">GLM-5.1，性价比最高。适合大批量扫描，成本低，速度快。</div>
+      <span class="model-tag">推荐</span>
+    </div>
+    <div class="model-card">
+      <div class="model-name">glm-4-flash</div>
+      <div class="model-alias">速度优先</div>
+      <div class="model-desc">GLM-4-flash，最快最便宜。适合初筛或文件数量极多的场景。</div>
+    </div>
+    <div class="model-card">
+      <div class="model-name">claude-3-7-sonnet</div>
+      <div class="model-alias">精度优先</div>
+      <div class="model-desc">Claude 3.7 Sonnet，精度最高，但成本显著更高。用于高价值目标的深度验证。</div>
+    </div>
+    <div class="model-card">
+      <div class="model-name">gpt-4o</div>
+      <div class="model-alias">备选</div>
+      <div class="model-desc">GPT-4o，作为交叉验证的备选模型。在 --verify-model 中使用效果好。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 09 RESEARCH STATUS ─────────────────────────────────── -->
+<section class="section reveal" id="findings">
+  <div class="section-num">09 · 当前研究成果</div>
+  <h2>已扫描目标与 CVE 候选状态</h2>
+  <p class="section-desc">
+    截至 2026-05，已扫描 10+ 开源 C/C++ 库，产出 7 个 CVE 候选。
+  </p>
+
+  <table class="findings-table">
+    <thead>
+      <tr>
+        <th>目标库</th>
+        <th>版本</th>
+        <th>候选漏洞</th>
+        <th>状态</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Eclipse Mosquitto</td>
+        <td style="font-family:var(--mono); font-size:.75rem; color:var(--text2);">2.0.21</td>
+        <td style="font-family:var(--mono); font-size:.75rem; color:var(--amber);">CAND-008</td>
+        <td><span class="status-badge s-red">● 披露中 Day 29</span></td>
+      </tr>
+      <tr>
+        <td>libtiff</td>
+        <td style="font-family:var(--mono); font-size:.75rem; color:var(--text2);">4.7.0</td>
+        <td style="font-family:var(--mono); font-size:.75rem; color:var(--amber);">CAND-010</td>
+        <td><span class="status-badge s-orange">● PoC 构建中</span></td>
+      </tr>
+      <tr>
+        <td>libjpeg-turbo</td>
+        <td style="font-family:var(--mono); font-size:.75rem; color:var(--text2);">3.x</td>
+        <td style="font-family:var(--mono); font-size:.75rem; color:var(--amber);">CAND-LJT-003/004</td>
+        <td><span class="status-badge s-yellow">● ASAN 分析中</span></td>
+      </tr>
+      <tr>
+        <td>libwebp</td>
+        <td style="font-family:var(--mono); font-size:.75rem; color:var(--text2);">1.4.0</td>
+        <td style="font-family:var(--mono); font-size:.75rem; color:var(--text3);">—</td>
+        <td><span class="status-badge s-blue">● 扫描进行中</span></td>
+      </tr>
+      <tr>
+        <td>ImageMagick</td>
+        <td style="font-family:var(--mono); font-size:.75rem; color:var(--text2);">7.1.2-19</td>
+        <td style="font-family:var(--mono); font-size:.75rem; color:var(--amber);">CAND-005</td>
+        <td><span class="status-badge s-yellow">● 深度分析中</span></td>
+      </tr>
+      <tr>
+        <td>curl</td>
+        <td style="font-family:var(--mono); font-size:.75rem; color:var(--text2);">8.11.0</td>
+        <td style="font-family:var(--mono); font-size:.75rem; color:var(--text3);">0</td>
+        <td><span class="status-badge s-green">✓ 已扫描</span></td>
+      </tr>
+      <tr>
+        <td>libpng / expat / freetype</td>
+        <td style="font-family:var(--mono); font-size:.75rem; color:var(--text2);">latest</td>
+        <td style="font-family:var(--mono); font-size:.75rem; color:var(--text3);">待审查</td>
+        <td><span class="status-badge s-green">✓ 已扫描</span></td>
+      </tr>
+      <tr>
+        <td>libssh2 / libxml2 / nginx</td>
+        <td style="font-family:var(--mono); font-size:.75rem; color:var(--text2);">latest</td>
+        <td style="font-family:var(--mono); font-size:.75rem; color:var(--text3);">待审查</td>
+        <td><span class="status-badge s-green">✓ 已扫描</span></td>
+      </tr>
+      <tr>
+        <td>openssl / zlib / sqlite</td>
+        <td style="font-family:var(--mono); font-size:.75rem; color:var(--text2);">latest</td>
+        <td style="font-family:var(--mono); font-size:.75rem; color:var(--text3);">待审查</td>
+        <td><span class="status-badge s-green">✓ 已扫描</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="spacer"></div>
+  <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+    <a href="index.html" style="display:inline-flex; align-items:center; gap:.5rem; font-family:var(--mono); font-size:.72rem; color:var(--amber); text-decoration:none; border:1px solid rgba(232,184,74,.3); padding:.4rem 1rem; background:rgba(232,184,74,.05); transition:all .2s;" onmouseover="this.style.background='rgba(232,184,74,.12)'" onmouseout="this.style.background='rgba(232,184,74,.05)'">
+      ← 项目文档主页
+    </a>
+    <a href="llm_security_report/index.html" style="display:inline-flex; align-items:center; gap:.5rem; font-family:var(--mono); font-size:.72rem; color:var(--terra); text-decoration:none; border:1px solid rgba(224,92,42,.3); padding:.4rem 1rem; background:rgba(224,92,42,.05); transition:all .2s;" onmouseover="this.style.background='rgba(224,92,42,.12)'" onmouseout="this.style.background='rgba(224,92,42,.05)'">
+      AI 安全新范式报告 →
+    </a>
+  </div>
+</section>
+
+<!-- ── FOOTER ───────────────────────────────────────────────── -->
+<footer class="site-footer">
+  <div>CyberAI Research Guide &nbsp;·&nbsp; v1.0 &nbsp;·&nbsp; 2026</div>
+  <div class="footer-links">
+    <a href="index.html">← 项目文档</a>
+    <a href="architecture.html">架构图</a>
+    <a href="../research/llm_security_report/index.html">AI 安全范式</a>
+    <a href="mailto:fxp007@gmail.com">联系</a>
+  </div>
+</footer>
+
+</div><!-- main-col -->
+
+<!-- ── SIDEBAR TOC ────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="toc-title">本页目录</div>
+  <a class="toc-item" href="#quickstart" data-section="quickstart">
+    <span class="toc-dot"></span>
+    <span class="toc-label">01 · 快速开始</span>
+  </a>
+  <a class="toc-item" href="#structure" data-section="structure">
+    <span class="toc-dot"></span>
+    <span class="toc-label">02 · 目录结构</span>
+  </a>
+  <a class="toc-item" href="#pipeline" data-section="pipeline">
+    <span class="toc-dot"></span>
+    <span class="toc-label">03 · Pipeline A</span>
+  </a>
+  <a class="toc-item" href="#cli" data-section="cli">
+    <span class="toc-dot"></span>
+    <span class="toc-label">04 · CLI 命令</span>
+  </a>
+  <a class="toc-item" href="#targets" data-section="targets">
+    <span class="toc-dot"></span>
+    <span class="toc-label">05 · 添加目标</span>
+  </a>
+  <a class="toc-item" href="#results" data-section="results">
+    <span class="toc-dot"></span>
+    <span class="toc-label">06 · 解读结果</span>
+  </a>
+  <a class="toc-item" href="#disclosure" data-section="disclosure">
+    <span class="toc-dot"></span>
+    <span class="toc-label">07 · CVE 披露</span>
+  </a>
+  <a class="toc-item" href="#config" data-section="config">
+    <span class="toc-dot"></span>
+    <span class="toc-label">08 · 配置参考</span>
+  </a>
+  <a class="toc-item" href="#findings" data-section="findings">
+    <span class="toc-dot"></span>
+    <span class="toc-label">09 · 研究成果</span>
+  </a>
+</aside>
+
+</div><!-- layout -->
+
+<script>
+// ── Scroll Reveal ───────────────────────────────────────────
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('in');
+      revealObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.06 });
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// ── TOC Active State ────────────────────────────────────────
+const sections = document.querySelectorAll('.section[id]');
+const tocItems = document.querySelectorAll('.toc-item[data-section]');
+
+const tocObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      tocItems.forEach(item => {
+        item.classList.toggle('active', item.dataset.section === id);
+      });
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+sections.forEach(s => tocObserver.observe(s));
+
+// ── Confidence Bars animate on scroll ───────────────────────
+const barObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.conf-fill[data-w]').forEach(bar => {
+        setTimeout(() => { bar.style.width = bar.dataset.w; }, 150);
+      });
+      barObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.4 });
+document.querySelectorAll('.conf-scale').forEach(el => barObserver.observe(el));
+
+// ── Copy Button ─────────────────────────────────────────────
+function copyCode(btn) {
+  const block = btn.closest('.code-block');
+  const lines = block.querySelectorAll('.line-content');
+  const text = Array.from(lines).map(l => l.textContent).join('\n').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '已复制 ✓';
+    btn.style.color = 'var(--green)';
+    btn.style.borderColor = 'var(--green)';
+    setTimeout(() => {
+      btn.textContent = '复制';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }, 1800);
+  }).catch(() => {
+    btn.textContent = '复制失败';
+    setTimeout(() => { btn.textContent = '复制'; }, 1500);
+  });
+}
+
+// ── Hero entrance animation ─────────────────────────────────
+(function() {
+  const hero = document.querySelector('.hero');
+  if (hero) {
+    hero.style.opacity = '0';
+    hero.style.transform = 'translateY(16px)';
+    hero.style.transition = 'opacity .8s ease, transform .8s ease';
+    setTimeout(() => {
+      hero.style.opacity = '1';
+      hero.style.transform = 'translateY(0)';
+    }, 80);
+  }
+})();
+</script>
+
+</body>
+</html>

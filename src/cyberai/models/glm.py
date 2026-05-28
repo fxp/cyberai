@@ -241,6 +241,7 @@ class GLMAdapter(SecurityAgent):
         *,
         prompt_strategy: str = "ctf",
         token_budget: int = 100_000,
+        timeout: float = 600.0,
     ) -> ScanResult:
         """Scan a single file using CTF prompt strategy (Carlini method)."""
         result = ScanResult(target=file_path, model=self.model_name)
@@ -249,7 +250,7 @@ class GLMAdapter(SecurityAgent):
         messages = [{"role": "user", "content": prompt}]
 
         try:
-            response_text, usage = await self.chat(messages)
+            response_text, usage = await self.chat(messages, timeout=timeout)
             result.usage = usage
 
             # Parse JSON from response

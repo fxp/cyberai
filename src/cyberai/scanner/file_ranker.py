@@ -270,6 +270,10 @@ def get_scan_queue(
     ranked = rank_files(files)
     ranked = apply_project_boosters(ranked, root_dir)
 
+    # Sort by score descending (apply_project_boosters only sorts when a booster
+    # matches; do it unconditionally here so the queue is always ordered)
+    ranked.sort(key=lambda f: f.score, reverse=True)
+
     # Filter by minimum score
     if min_score > 0:
         ranked = [f for f in ranked if f.score >= min_score]

@@ -189,19 +189,29 @@
 </head>
 <body>
 <div class="wrap">
-  <nav style="display:flex;justify-content:space-between;align-items:baseline;padding-bottom:22px;border-bottom:1px solid #0a0a0a;margin-bottom:32px;font-size:12px;">
+  <nav style="display:flex;justify-content:space-between;align-items:baseline;padding-bottom:22px;border-bottom:1px solid #0a0a0a;margin-bottom:32px;font-size:12px;flex-wrap:wrap;gap:8px;">
     <a href="index.html" style="font-weight:700;letter-spacing:.02em;color:#0a0a0a;font-size:14px;text-decoration:none;">CyberAI<span style="color:#8a8a8a;margin:0 4px;font-weight:400;">/</span><span style="color:#8a8a8a;font-weight:400;">architecture</span></a>
-    <a href="index.html" style="color:#555;text-decoration:none;text-transform:uppercase;letter-spacing:.12em;">← Home</a>
+    <div style="display:flex;gap:1.5rem;">
+      <a href="index.html" style="color:#555;text-decoration:none;text-transform:uppercase;letter-spacing:.12em;">← Home</a>
+      <a href="guide.html" style="color:#c07820;text-decoration:none;text-transform:uppercase;letter-spacing:.12em;font-weight:600;">使用指南 ↗</a>
+      <a href="../research/llm_security_report/index.html" style="color:#c0502a;text-decoration:none;text-transform:uppercase;letter-spacing:.12em;font-weight:600;">AI 安全新范式 ↗</a>
+    </div>
   </nav>
   <header>
     <div class="eyebrow">Architecture overview</div>
     <h1>基于大模型的软件安全研究平台 · 架构图</h1>
-    <div class="meta">v1.1 · 2026-04 · Research vision &nbsp;·&nbsp; current shipped scope: Pipeline A (see homepage)</div>
+    <div class="meta">v1.2 · 2026-05 · Research vision &nbsp;·&nbsp; current: Pipeline A+B, 10+ libs, 7 CVE candidates</div>
   </header>
 
-  <div style="background:#f5f5f5;border-left:3px solid #0a0a0a;padding:14px 18px;margin-bottom:48px;font-size:13.5px;color:#0a0a0a;line-height:1.6;">
+  <div style="background:#f5f5f5;border-left:3px solid #0a0a0a;padding:14px 18px;margin-bottom:24px;font-size:13.5px;color:#0a0a0a;line-height:1.6;">
     <strong style="text-transform:uppercase;letter-spacing:.12em;font-size:11px;display:block;margin-bottom:6px;">Scope note</strong>
-    本图描绘 CyberAI 研究项目的<strong>完整愿景</strong>：七大子系统、红蓝对抗引擎、Agent 协同等。<strong>当前已实现并对外开放的仅为子系统 2 中的 Pipeline A</strong>（函数级切片 → GLM-5.1 扫描 → 自动 triage → 人工 + LLM 复核 → 协调披露），用于发现真实开源 C/C++ 漏洞，已在七个目标上完成端到端运行。其余子系统为研究路线图，进度以首页 status 表为准。
+    本图描绘 CyberAI 研究项目的<strong>完整愿景</strong>：七大子系统、红蓝对抗引擎、Agent 协同等。<strong>当前进展：</strong>Pipeline A 已在 10+ 开源库上完成端到端运行，产出 7 个 CVE 候选；CAND-008（libtiff）披露进行中（Day 29），CAND-LJT-003/004（libjpeg-turbo）PoC 已确认，libwebp 本周启动扫描。其余子系统（红蓝对抗、Benchmark）为 M1-M6 路线图，进度以首页 status 表为准。
+  </div>
+
+  <div style="background:#fff8f0;border-left:3px solid #c0502a;padding:14px 18px;margin-bottom:48px;font-size:13px;color:#3a1a0a;line-height:1.6;">
+    <strong style="text-transform:uppercase;letter-spacing:.12em;font-size:11px;display:block;margin-bottom:6px;color:#c0502a;">2026 Q1-Q2 威胁更新</strong>
+    AI 安全能力翻倍时间已从 9.8 个月收缩至 <strong>4.7 个月</strong>（UK AISI/METR 2026-02）。同期出现新攻击面：AI 基础设施供应链攻击——Bleeding Llama（CVE-2026-7482, CVSS 9.1, 300K+ Ollama 服务器暴露）、LiteLLM SSRF（CVE-2026-5641）、Trivy 武器化（CVE-2026-8833）。GTG-1002 组织已实现 80-90% 自主 AI 攻击。
+    <a href="../research/llm_security_report/index.html" style="color:#c0502a;font-weight:600;">→ 阅读完整 AI 安全新范式报告</a>
   </div>
 
   <!-- ============ 0. 架构总图 ============ -->
@@ -257,7 +267,7 @@
           <text x="86" y="82" fill="#131313" font-size="18" font-weight="700"
                 font-family="sans-serif">安全能力度量 · Capability Tracker</text>
           <text x="86" y="104" fill="#5f5f5f" font-size="12" font-family="sans-serif">
-            CyberGym / Cybench · Firefox Exploit 181 vs 2 · TTD · 成本效率 · 翻倍时间（安全 9.8mo / 通用 128d）· 涌现检测
+            CyberGym / Cybench · Firefox Exploit 181 vs 2 · TTD · 成本效率 · 翻倍时间（安全 4.7mo (UK AISI 2026-02) / 通用 128d）· 涌现检测
           </text>
           <!-- mini KPIs -->
           <g font-family="sans-serif">
@@ -275,7 +285,7 @@
 
             <rect x="1220" y="45" width="120" height="60" fill="#e5e5e5" stroke="#c7c7c7"/>
             <text x="1280" y="66" text-anchor="middle" fill="#5f5f5f" font-size="10">Doubling</text>
-            <text x="1280" y="90" text-anchor="middle" fill="#696969" font-size="16" font-weight="700">9.8 mo</text>
+            <text x="1280" y="90" text-anchor="middle" fill="#696969" font-size="16" font-weight="700">4.7 mo</text>
           </g>
         </g>
 
@@ -3159,7 +3169,7 @@
 
           <rect x="710" y="30" width="660" height="140" fill="#f0f0f0" stroke="#686868" stroke-opacity="0.6"/>
           <text x="730" y="60" fill="#686868" font-size="11" letter-spacing="3">SECURITY CAPABILITY</text>
-          <text x="730" y="92" fill="#131313" font-size="22" font-weight="700">安全能力 · 9.8 个月</text>
+          <text x="730" y="92" fill="#131313" font-size="22" font-weight="700">安全能力 · 4.7 个月</text>
           <text x="730" y="120" fill="#1f1f1f" font-size="12">CyberGym / Cybench / Firefox 复合度量</text>
           <text x="730" y="145" fill="#5f5f5f" font-size="11">Reference：原文 + METR · "安全能力 = 通用能力的硬币背面"</text>
         </g>
@@ -3395,7 +3405,7 @@
           <li>基准：CyberGym / Cybench / Firefox / N-day</li>
           <li>TTD · 阻断率 · Hot-patch 成功率 · 误报率</li>
           <li>成本：&lt; $50 / OpenBSD · &lt; $2K / Linux 内核</li>
-          <li>翻倍时间：通用 128 d · 安全 9.8 mo · 涌现检测</li>
+          <li>翻倍时间：通用 128 d · 安全 4.7 mo · 涌现检测</li>
         </ul>
       </div>
     </div>
@@ -3430,9 +3440,9 @@
             <div class="sub">Mythos vs Opus 4.6 · 90× 跳跃</div>
           </div>
           <div class="metric amber">
-            <div class="label">CyberGym</div>
-            <div class="value">0.83 <span style="font-size:13px;color:var(--ink-dim)">/ 0.67</span></div>
-            <div class="sub">Mythos / Opus 4.6</div>
+            <div class="label">CyberGym Best</div>
+            <div class="value">88.45% <span style="font-size:13px;color:var(--ink-dim)">MDASH</span></div>
+            <div class="sub">Mythos 83.1% · Opus 4.6 ~60%</div>
           </div>
           <div class="metric green">
             <div class="label">N-day 成功率</div>
@@ -3441,7 +3451,7 @@
           </div>
           <div class="metric blue">
             <div class="label">翻倍时间</div>
-            <div class="value">9.8 mo</div>
+            <div class="value">4.7 mo</div>
             <div class="sub">安全能力 · 通用 128 d</div>
           </div>
         </div>
@@ -3474,13 +3484,15 @@
 
       <div class="card s4">
         <div class="tag">子系统 4</div>
-        <h3>供应链安全防护</h3>
-        <p>针对 Slopsquatting 幻觉包与恶意依赖的全链路防护。</p>
+        <h3>供应链安全防护 <span style="font-size:10px;color:#c0502a;margin-left:4px;">↑ 新威胁面</span></h3>
+        <p>针对 Slopsquatting 幻觉包与恶意依赖的全链路防护。<strong>2026 Q1-Q2 新增：AI 基础设施供应链攻击面</strong>（LLM 网关 SSRF、模型文件格式漏洞、安全工具武器化）。</p>
         <ul>
           <li>幻觉包名收集 · 跨模型交叉验证</li>
           <li>新包行为分析（8 维特征）</li>
           <li>Agent 安装前拦截 · block / warn / allow</li>
           <li>检测窗口：&lt; 6 min（Socket 基准）</li>
+          <li style="color:#c0502a">新增：LLM 网关监控（CVE-2026-5641 类）</li>
+          <li style="color:#c0502a">新增：模型文件格式完整性校验（CVE-2026-7482 类）</li>
         </ul>
       </div>
 
