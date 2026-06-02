@@ -1,0 +1,919 @@
+# freetype — GLM-5.1 Pipeline A scan (2026-05-04)
+
+- **Model**: glm-5.1
+- **Segments**: 49 (0 hit GLM API timeout)
+- **Total findings**: 120
+  - 🔴 **CRITICAL**: 15
+  - 🟠 **HIGH**: 41
+  - 🟡 **MEDIUM**: 36
+  - 🔵 **LOW**: 20
+  - ⚪ **INFO**: 8
+
+## Per-segment summary
+
+| Segment | Time (s) | Findings | Status |
+|---|---:|---:|---|
+| `freetype/ttgload.c [TT_Load_Simple_Glyph: contour/flags/coords L342-546]` | 360.6 | 0 | ✅ ok |
+| `freetype/ttgload.c [TT_Load_Composite_Glyph A: subglyph parse L549-645]` | 360.5 | 0 | ✅ ok |
+| `freetype/ttgload.c [TT_Load_Composite_Glyph B: offset+scale L646-737]` | 360.4 | 0 | ✅ ok |
+| `freetype/ttgload.c [TT_Process_Composite_Component A: matrix L1033-1110]` | 116.6 | 3 | ✅ ok |
+| `freetype/ttgload.c [TT_Process_Composite_Component B: scale+adjust L1111-1200]` | 112.8 | 3 | ✅ ok |
+| `freetype/ttgload.c [load_truetype_glyph A: setup+metrics L1429-1577]` | 67.7 | 5 | ✅ ok |
+| `freetype/ttgload.c [load_truetype_glyph B: variation setup L1578-1700]` | 65.7 | 3 | ✅ ok |
+| `freetype/ttgload.c [load_truetype_glyph C: composite loop L1701-1837]` | 351.1 | 3 | ✅ ok |
+| `freetype/ttgload.c [load_truetype_glyph D: process+hinting L1838-1966]` | 111.6 | 3 | ✅ ok |
+| `freetype/ttgload.c [TT_Load_Glyph A: bitmap+strike select L2423-2510]` | 108.5 | 3 | ✅ ok |
+| `freetype/ttgload.c [TT_Load_Glyph B: SVG+sbix load L2511-2600]` | 111.9 | 3 | ✅ ok |
+| `freetype/ttgload.c [TT_Load_Glyph C: scalable+outline load L2601-2740]` | 66.4 | 3 | ✅ ok |
+| `freetype/ttload.c [check_table_dir A: tag+checksum L59-170]` | 43.9 | 3 | ✅ ok |
+| `freetype/ttload.c [check_table_dir B: offset+length bounds L171-342]` | 141.7 | 3 | ✅ ok |
+| `freetype/ttload.c [tt_face_load_font_dir A: header+table count L344-470]` | 109.6 | 3 | ✅ ok |
+| `freetype/ttload.c [tt_face_load_font_dir B: required tables+glyf L471-638]` | 132.2 | 4 | ✅ ok |
+| `freetype/ttload.c [tt_face_load_name A: name record parse L840-945]` | 107.1 | 4 | ✅ ok |
+| `freetype/ttload.c [tt_face_load_name B: lang tag+storage bounds L946-1046]` | 73.6 | 4 | ✅ ok |
+| `freetype/ttload.c [tt_face_load_os2 A: sTypo+xAvgCharWidth L1107-1215]` | 192.9 | 2 | ✅ ok |
+| `freetype/ttload.c [tt_face_load_os2 B: panose+coderange+pclt L1216-1373]` | 360.5 | 0 | ✅ ok |
+| `freetype/sfwoff2.c [reconstruct_font A: loca+glyf streams L828-990]` | 360.5 | 0 | ✅ ok |
+| `freetype/sfwoff2.c [reconstruct_font B: composites+fixup L991-1120]` | 280.3 | 4 | ✅ ok |
+| `freetype/sfwoff2.c [reconstruct_font C: hmtx+instructions L1121-1285]` | 360.4 | 0 | ✅ ok |
+| `freetype/sfwoff2.c [woff2_open_font A: header+length sanity L1858-1980]` | 200.1 | 4 | ✅ ok |
+| `freetype/sfwoff2.c [woff2_open_font B: table dirs+offset calc L1981-2090]` | 114.6 | 2 | ✅ ok |
+| `freetype/sfwoff2.c [woff2_open_font C: brotli decompress+streams L2091-2220]` | 95.5 | 4 | ✅ ok |
+| `freetype/sfwoff2.c [woff2_open_font D: build face+finalize L2221-2380]` | 51.5 | 2 | ✅ ok |
+| `freetype/ttcmap.c [cmap4_validate A: segCount+idRangeOffset L902-1040]` | 142.5 | 3 | ✅ ok |
+| `freetype/ttcmap.c [cmap4_validate B: glyphId array bounds L1041-1160]` | 129.4 | 4 | ✅ ok |
+| `freetype/ttcmap.c [tt_cmap4_char_map_binary A: binary search L1236-1381]` | 59.2 | 4 | ✅ ok |
+| `freetype/ttcmap.c [tt_cmap4_char_map_binary B: range index calc L1382-1484]` | 79.0 | 1 | ✅ ok |
+| `freetype/cffload.c [cff_charset_load A: format0+1 SID parse L912-1005]` | 358.0 | 3 | ✅ ok |
+| `freetype/cffload.c [cff_charset_load B: format2 range bounds L1006-1096]` | 239.9 | 1 | ✅ ok |
+| `freetype/cffload.c [cff_blend_doBlend A: delta array alloc L1280-1380]` | 114.4 | 4 | ✅ ok |
+| `freetype/cffload.c [cff_blend_doBlend B: blend computation L1381-1512]` | 63.2 | 4 | ✅ ok |
+| `freetype/cffload.c [cff_encoding_load A: format0+1 parse L1632-1800]` | 360.5 | 0 | ✅ ok |
+| `freetype/cffload.c [cff_encoding_load B: supplement parse L1801-1900]` | 134.8 | 2 | ✅ ok |
+| `freetype/cffload.c [cff_font_load A: header+index parse L2182-2285]` | 360.4 | 0 | ✅ ok |
+| `freetype/cffload.c [cff_font_load B: subfonts+private dict L2286-2390]` | 122.0 | 3 | ✅ ok |
+| `freetype/cffload.c [cff_font_load C: charsets+encoding+SFNT L2391-2524]` | 203.9 | 4 | ✅ ok |
+| `freetype/cffdecode.c [cff_decoder_parse_charstrings A: setup+dispatch L501-660]` | 354.4 | 3 | ✅ ok |
+| `freetype/cffdecode.c [cff_decoder_parse_charstrings B: width+stack bounds L661-840]` | 101.5 | 4 | ✅ ok |
+| `freetype/cffdecode.c [cff_decoder_parse_charstrings C: hstem+vstem+move L841-964]` | 355.6 | 1 | ✅ ok |
+| `freetype/cffdecode.c [cff_decoder_parse_charstrings D: hintmask+rlineto L965-1133]` | 160.5 | 3 | ✅ ok |
+| `freetype/cffdecode.c [cff_decoder_parse_charstrings E: rrcurveto+vhcurveto L1134-1310]` | 360.4 | 0 | ✅ ok |
+| `freetype/cffdecode.c [cff_decoder_parse_charstrings F: rlinecurve+rcurveline L1311-1460]` | 360.5 | 0 | ✅ ok |
+| `freetype/cffdecode.c [cff_decoder_parse_charstrings G: hflex1+flex+flex1 L1461-1619]` | 312.7 | 4 | ✅ ok |
+| `freetype/cffdecode.c [cff_decoder_parse_charstrings H: seac+endchar L1620-1760]` | 261.9 | 4 | ✅ ok |
+| `freetype/cffdecode.c [cff_decoder_parse_charstrings I: abs+div+roll+put L1761-1918]` | 360.4 | 0 | ✅ ok |
+
+## 🔴 CRITICAL (15)
+
+### `freetype/ttcmap.c [tt_cmap4_char_map_binary A: binary search L1236-1381]` — L1244 — conf=0.95
+**Out-of-bounds heap read via unvalidated num_segs in cmap format 4 binary search**
+
+The value `num_segs` is read directly from font-controlled data (`TT_PEEK_USHORT(p) >> 1`) without validating that the cmap table is large enough to contain the implied arrays. This value is then used to compute pointer offsets via `num_segs2 = num_segs << 1` and `p = cmap->data + 14 + mid * 2`, followed by `p += 2 + num_segs2` (to reach start), `p += num_segs2` (to reach delta), and `p += num_segs2` (to reach offset). A malicious font can set `segCountX2` to a large value while providing a small `cmap_size`, causing all subsequent `TT_PEEK_USHORT`/`TT_PEEK_SHORT` reads to access memory beyond…
+
+*PoC sketch:* Craft a TrueType font with a cmap format 4 subtable where segCountX2 is set to a large value (e.g., 0x1000) but the actual cmap table data is truncated to only a few bytes. When FreeType processes this font and calls tt_cmap4_char_map_binary, the binary search will compute pointer offsets far beyond…
+
+### `freetype/ttload.c [tt_face_load_name B: lang tag+storage bounds L946-1046]` — L976 — conf=0.92
+**Integer overflow in string bounds check allows out-of-bounds read**
+
+The bounds check `entry->stringOffset + entry->stringLength > storage_limit` can be bypassed via integer overflow. If `entry->stringOffset` (after the addition on line 975) is near the 32-bit unsigned maximum and `entry->stringLength` is large enough, the addition wraps around to a small value, passing the check. This allows a crafted font to reference memory far beyond the name table storage, leading to an out-of-bounds heap read when the string is later accessed. Both `stringOffset` and `stringLength` are attacker-controlled values read from the font file.
+
+*PoC sketch:* Craft a TrueType font with a name record where stringOffset (after adjustment) = 0xFFFFFFF0 and stringLength = 0x30. The sum wraps to 0x20, which is less than storage_limit, bypassing the check. When the string is later dereferenced, it reads ~0xFFFFFFF0 bytes past the table, causing heap OOB read. …
+
+### `freetype/cffload.c [cff_blend_doBlend A: delta array alloc L1280-1380]` — L1310 — conf=0.92
+**Integer Overflow in numOperands Calculation Bypasses Stack Underflow Check**
+
+The computation `numOperands = (FT_UInt)( numBlends * blend->lenBV )` can overflow when both values are large 32-bit unsigned integers. For example, if numBlends=0x10000 and lenBV=0x10000, the product wraps to 0, causing the stack underflow check `numOperands > count` to pass incorrectly. This leads to out-of-bounds reads on the parser stack in the subsequent blend loop, where `parser->stack[delta++]` accesses memory far beyond the stack bounds. Since this is font parsing code, a malicious font file can trigger this, potentially leading to arbitrary code execution.
+
+*PoC sketch:* Craft a CFF font with a blend operator where numBlends and lenBV are chosen such that numBlends * lenBV overflows to a value <= count. For instance, set numBlends=0x10000, lenBV=0x10001 so numOperands wraps to 0x10000 (on 32-bit). If the parser stack has >= 0x10000 entries, the check passes but delt…
+
+### `freetype/cffload.c [cff_font_load C: charsets+encoding+SFNT L2391-2524]` — L2411 — conf=0.9
+**Integer Overflow in FD Array Offset Calculation**
+
+The calculation `base_offset + dict->cid_fd_array_offset` can overflow when `FT_ULong` is a 32-bit type (e.g., on Windows or 32-bit platforms). By crafting a CFF font with a large `cid_fd_array_offset`, an attacker can cause the sum to wrap around to a smaller value. This forces `FT_STREAM_SEEK` to seek to an unintended offset within the stream. Consequently, `cff_index_init` parses attacker-controlled data as the FD index, which can lead to heap buffer overflows, out-of-bounds reads, and arbitrary code execution.
+
+*PoC sketch:* Create a CFF font where the Top DICT specifies `cid_fd_array_offset` as `0xFFFFFF00` and `base_offset` is `0x200`. The sum `0x200 + 0xFFFFFF00` overflows to `0x100`. Place a maliciously crafted CFF index at offset `0x100` in the font file. FreeType will parse this malicious index, leading to memory …
+
+### `freetype/ttgload.c [TT_Process_Composite_Component A: matrix L1033-1110]` — L1038 — conf=0.85
+**Integer truncation in current.n_points calculation leads to heap buffer overflow**
+
+When calculating `current.n_points`, `num_base_points` (type FT_UInt, 32-bit) is cast to FT_UShort (16-bit) before subtraction. If num_base_points >= 65536, the value is truncated, causing current.n_points to be larger than expected. Meanwhile, `current.points` is set using the untruncated num_base_points as offset. This mismatch means FT_Outline_Transform (line 1049-1050) will iterate over more points than actually exist in the current outline, reading and writing beyond the allocated heap buffer. A crafted TrueType font with a composite glyph containing enough component points to push num_ba…
+
+*PoC sketch:* Craft a TrueType font with a composite glyph where the accumulated base points from subglyph components exceeds 65535. For example, a composite glyph referencing many sub-glyphs each contributing ~1000 points, totaling >65536 base points. When the component with a scale/transform flag is processed, …
+
+### `freetype/ttgload.c [load_truetype_glyph B: variation setup L1578-1700]` — L1636 — conf=0.85
+**Integer underflow in glyph frame size calculation**
+
+The expression `loader->byte_len - 10` at line 1639 uses unsigned arithmetic (FT_ULong). If a malformed font provides a `byte_len` value less than 10, the subtraction wraps around to a very large unsigned value (e.g., near UINT32_MAX or UINT64_MAX). This enormous size is then passed to `access_glyph_frame`, which could cause an out-of-bounds read far beyond the glyph data buffer. The glyph header is 10 bytes, so `byte_len` should always be >= 10, but there is no validation before this subtraction.
+
+*PoC sketch:* Craft a TrueType font with a glyph whose `byte_len` field in the `loca` table entry is set to a value less than 10 (e.g., 5). When FreeType attempts to load this glyph, `loader->byte_len - 10` underflows to 0xFFFFFFFB (for 32-bit) or 0xFFFFFFFFFFFFFFFB (for 64-bit), causing `access_glyph_frame` to a…
+
+### `freetype/cffload.c [cff_blend_doBlend A: delta array alloc L1280-1380]` — L1324 — conf=0.85
+**Integer Overflow in size Calculation Leads to Heap Buffer Overflow**
+
+The computation `size = 5 * numBlends` can overflow when numBlends is large (>= 0x33333334 on 32-bit). When this overflows, a small buffer is allocated via FT_QREALLOC, but the code subsequently writes numBlends entries (5 bytes each) into the blend_stack buffer. Combined with the numOperands overflow (finding 1), an attacker can bypass the stack underflow check and cause a heap buffer overflow when blended values are written to the undersized blend_stack buffer. This is exploitable via a malicious font file.
+
+*PoC sketch:* Craft a CFF font where numBlends=0x33333334 and blend->lenBV is chosen so that numOperands also overflows to bypass the stack check. The size calculation wraps to ~4 bytes, causing a tiny allocation. The blend loop then writes 0x33333334 * 5 bytes into this tiny buffer, causing a massive heap overfl…
+
+### `freetype/cffload.c [cff_font_load B: subfonts+private dict L2286-2390]` — L2378 — conf=0.85
+**Integer overflow in charstrings offset stream seek**
+
+The expression `base_offset + dict->charstrings_offset` can overflow on 32-bit platforms where FT_ULong is 32 bits. The `charstrings_offset` value is read directly from the CFF Top DICT (attacker-controlled font data) without validation. If the sum overflows, FT_STREAM_SEEK will seek to an incorrect position within the stream. Subsequently, cff_index_init will parse attacker-controlled data at the wrong offset as a charstrings index structure, potentially leading to heap buffer overflows, out-of-bounds reads, or other memory corruption. Since FreeType is commonly used to parse untrusted fonts …
+
+*PoC sketch:* Craft a CFF font where the Top DICT CharStrings operator specifies an offset value near 0xFFFFFFFF. When added to base_offset (even a small value like 0x10), the sum wraps around to a small value (e.g., 0x10 + 0xFFFFFFF0 = 0x0). The stream then seeks to position 0 instead of the intended location, a…
+
+### `freetype/cffdecode.c [cff_decoder_parse_charstrings G: hflex1+flex+flex1 L1461-1619]` — L1537 — conf=0.85
+**Out-of-bounds read from operand stack in flex1 operator**
+
+The flex1 operator accesses 11 arguments from the operand stack (args[0] through args[10]) without explicit bounds checking within the handler. The first loop reads 5 pairs (10 values via temp[0]/temp[1]), the second loop reads the same 10 values (via args[0]/args[1]), and finally args[0] is accessed after the second loop for the 11th argument. If a malicious CFF font invokes the flex1 operator with fewer than 11 arguments on the stack, the code reads beyond the valid stack region, causing an out-of-bounds read. This can lead to information disclosure, denial of service, or potentially remote …
+
+*PoC sketch:* Craft a CFF font with a charstring that pushes fewer than 11 values onto the operand stack before invoking the flex1 operator (opcode 0x25). For example, push only 5 values then call flex1. The first loop will read beyond the stack boundary when accessing temp[0] and temp[1] in iterations 3-5, and t…
+
+### `freetype/ttload.c [tt_face_load_font_dir A: header+table count L344-470]` — L388 — conf=0.8
+**Heap Buffer Overflow due to Validation Mismatch Between check_table_dir and Main Loop**
+
+The array `face->dir_tables` is allocated with `valid_entries` elements (determined by `check_table_dir()` at line ~380), but the subsequent loop iterates `sfnt.num_tables` times with different validation criteria. Critically, the loop has a special case for hmtx/vmtx tables (lines ~440-460) that sanitizes overlong entries rather than rejecting them, while `check_table_dir()` may reject those same entries. This means the loop can accept MORE entries than were counted during allocation. When the accepted entries are stored into `face->dir_tables[valid_entries++]` (presumed in the code after the…
+
+*PoC sketch:* Craft a TrueType font file (non-OTTO format_tag) with: (1) num_tables set to N, (2) an hmtx or vmtx table entry where Offset <= file_size but Offset + Length > file_size, (3) other valid table entries. check_table_dir() may count fewer valid entries (rejecting the overlong hmtx/vmtx), but the loop w…
+
+### `freetype/ttgload.c [load_truetype_glyph D: process+hinting L1838-1966]` — L1880 — conf=0.75
+**Heap buffer overflow via missing validation of point count after recursive glyph loading**
+
+After the recursive call to load_truetype_glyph(), the code checks if num_points == num_base_points to skip processing when no new points were added. However, it does NOT validate that num_points >= num_base_points. If a malformed font causes the recursive call to corrupt or reduce the point count (num_points < num_base_points), the code proceeds to call TT_Process_Composite_Component() with inconsistent start_point and num_base_points values. This can cause out-of-bounds reads/writes on the glyph outline points array, leading to heap buffer overflow. This is consistent with the class of FreeT…
+
+*PoC sketch:* Craft a TrueType font with a composite glyph where one subglyph references another composite glyph that, when loaded recursively, causes the outline point count to decrease or become inconsistent. For example: Glyph 0 is a composite with 2 subglyphs. Subglyph 1 references Glyph 1, which is also a co…
+
+### `freetype/sfwoff2.c [reconstruct_font B: composites+fixup L991-1120]` — L995 — conf=0.75
+**Integer Overflow in size_needed Calculation Leading to Heap Buffer Overflow**
+
+The expression `size_needed = 12 + composite_size + instruction_size` can overflow on platforms where FT_ULong is 32 bits. If composite_size and instruction_size are attacker-controlled values read from the WOFF2 font stream, their sum plus 12 can wrap around to a small value. This causes FT_QREALLOC to allocate an undersized buffer, while subsequent FT_STREAM_READ calls write composite_size and instruction_size bytes into it, resulting in a heap buffer overflow. For example, composite_size=0x80000000 and instruction_size=0x80000004 would make size_needed overflow to 16, allocating a 16-byte b…
+
+*PoC sketch:* Craft a WOFF2 font with a composite glyph where composite_size and instruction_size are chosen such that (12 + composite_size + instruction_size) overflows FT_ULong to a small value, but each individual size is large enough that stream reads succeed partially, corrupting heap memory beyond the alloc…
+
+### `freetype/sfwoff2.c [woff2_open_font C: brotli decompress+streams L2091-2220]` — L2163 — conf=0.75
+**Integer overflow in sfnt_size calculation leading to heap buffer overflow**
+
+The calculation `sfnt_size = 12 + woff2.num_tables * 16UL` can overflow if `woff2.num_tables` is sufficiently large. For non-TTC fonts, `woff2.num_tables` is not bounds-checked in this code snippet (unlike TTC fonts where it's limited to 0xFFF). If num_tables is e.g. 0x10000001, then `0x10000001 * 16` overflows a 32-bit unsigned to 0x10, making sfnt_size = 28. The subsequent FT_QALLOC allocates only 28 bytes, but the code writes 12 bytes of header plus num_tables*16 bytes of table directory entries, causing a massive heap buffer overflow. This is exploitable for arbitrary code execution in con…
+
+*PoC sketch:* Craft a non-TTC WOFF2 font with num_tables set to 0x10000001 (or any value where num_tables * 16 overflows 32 bits). The sfnt_size will wrap to a small value, the allocation will be tiny, and subsequent writes of table directory entries will overflow the heap buffer.
+
+### `freetype/cffload.c [cff_blend_doBlend B: blend computation L1381-1512]` — L1381 — conf=0.75
+**Heap buffer overflow via unchecked blend_top pointer in cff_blend_doBlend**
+
+The code writes 5 bytes per blend result by incrementing `subFont->blend_top` without any visible bounds check against the end of the allocated blend stack buffer. A malformed font with a large number of blend operands could cause `blend_top` to advance past the buffer boundary, resulting in a heap-based buffer overflow. This is especially dangerous because font data is attacker-controlled and parsed during font loading/rendering, a common attack surface for sandbox escapes.
+
+*PoC sketch:* Craft a CFF/CFF2 font with a blend operator that specifies a large numBlends value (e.g., via a specially crafted Private DICT or CharString), causing the loop to write 5*numBlends bytes past the blend stack allocation. For example, a CFF2 font with a variation font that has an excessive number of b…
+
+### `freetype/cffdecode.c [cff_decoder_parse_charstrings B: width+stack bounds L661-840]` — L661 — conf=0.75
+**Width extraction and stack bounds interaction can lead to stack underflow**
+
+In CFF charstring processing, when the first operator in a charstring is encountered, if the operand stack contains one more element than the operator expects, the extra element is consumed as the glyph width. If the stack bounds checking does not properly account for this width extraction, an attacker can craft a charstring where: (1) the stack appears to have enough operands for the operator + width, but (2) after width extraction, the stack underflows when the operator tries to pop its required operands. This is the classic 'width+stack bounds' vulnerability in FreeType's CFF interpreter. T…
+
+*PoC sketch:* Craft a CFF font charstring: [value_a] [value_b] rmoveto. Normally rmoveto expects 2 operands (dx, dy). With 2 values on stack, no width is extracted. But craft: [value_a] rmoveto — with 1 value, the interpreter may attempt width extraction leaving 0 operands for rmoveto which needs 2, causing stack…
+
+
+## 🟠 HIGH (41)
+
+### `freetype/ttcmap.c [tt_cmap4_char_map_binary B: range index calc L1382-1484]` — L24 — conf=0.95
+**Heap-based Out-of-Bounds Read in tt_cmap4_char_map_binary**
+
+The bounds check `if ( next && p > limit )` on line 27 only validates the pointer `p` when the `next` flag is set (i.e., when iterating to the next character). When `next` is false (i.e., during a standard character index lookup via `tt_cmap4_char_index`), the bounds check is skipped. A maliciously crafted font file can provide a large `offset` value or manipulate `charcode` and `start` such that `p` points beyond the `limit` of the allocated buffer. This results in an out-of-bounds read when `TT_PEEK_USHORT( p )` is executed on line 30, potentially leading to information disclosure or a denia…
+
+*PoC sketch:* Craft a TTF/OTF font file with a format 4 cmap table. In one of the segments, set the `offset` field to a large value that, when added to the base pointer `p`, exceeds the `limit` of the cmap data. Then, request a character index for a character code that falls within this segment using a function t…
+
+### `freetype/sfwoff2.c [woff2_open_font C: brotli decompress+streams L2091-2220]` — L2145 — conf=0.92
+**Out-of-bounds read via unvalidated table_indices in TTC font processing**
+
+When processing a WOFF2 TrueType Collection (TTC), the loop `temp_indices[nn] = indices[ttc_font->table_indices[nn]]` reads from the `indices` array using indices from `ttc_font->table_indices[]` which come directly from the font file. There is no validation that `ttc_font->table_indices[nn]` is within the bounds of the `indices` array (which has `woff2.num_tables` entries). A malicious font can specify table_indices values >= woff2.num_tables, causing an out-of-bounds heap read. This can leak heap memory contents and potentially lead to further exploitation in font-processing contexts (e.g., …
+
+*PoC sketch:* Craft a WOFF2 TTC font where woff2.num_tables is small (e.g., 2) but ttc_font->table_indices contains values >= 2 (e.g., 0xFFFF). The read at indices[0xFFFF] will access memory far beyond the allocated indices array.
+
+### `freetype/ttcmap.c [cmap4_validate A: segCount+idRangeOffset L902-1040]` — L990 — conf=0.92
+**Out-of-bounds read via crafted idRangeOffset at non-TIGHT validation levels**
+
+When processing cmap format 4 segments, the code computes `p += offset` where `offset` is the idRangeOffset value read directly from the font file. This offset is relative to the position of the idRangeOffset entry itself and is intended to point into the glyph ID array. However, the bounds check that verifies the resulting pointer stays within the glyph IDs table is gated behind `valid->level >= FT_VALIDATE_TIGHT`. At the default validation level, a malicious font can craft an idRangeOffset value that causes `p` to point well beyond the table boundaries, leading to an out-of-bounds heap read …
+
+*PoC sketch:* Craft a TrueType font with a cmap format 4 table where: 1) segCountX2 is set to a small valid value (e.g., 4 for 1 segment plus the 0xFFFF terminator), 2) A segment has start=0, end=0xFF, delta=0, and idRangeOffset set to a large value (e.g., 0xFF00) that when added to the offset entry's position ex…
+
+### `freetype/ttcmap.c [tt_cmap4_char_map_binary A: binary search L1236-1381]` — L1268 — conf=0.92
+**Incomplete offset bounds check allows out-of-bounds read via glyphIdArray**
+
+The bounds check `if ( offset && p + offset + 2 > limit )` only applies when `mid >= num_segs - 1 && start == 0xFFFFU && end == 0xFFFFU` (the special last segment). For all other segments, a non-zero `offset` value is used to index into the glyphIdArray without any validation that `p + offset + (charcode - start) * 2` stays within the cmap table bounds. A malicious font can set offset to any value for non-terminal segments, causing an out-of-bounds read when computing the glyph index.
+
+*PoC sketch:* Craft a font with a cmap format 4 table where a non-last segment has a large offset value (e.g., 0x7FFF) that points beyond the cmap table boundary. When a character code falls within that segment's [start, end] range, the code will read from `p + offset + (charcode - start) * 2`, which is beyond th…
+
+### `freetype/cffload.c [cff_charset_load A: format0+1 SID parse L912-1005]` — L928 — conf=0.92
+**NULL pointer write when num_glyphs is zero**
+
+When num_glyphs is 0, FT_QNEW_ARRAY allocates a zero-size array, which causes FreeType's allocator to set charset->sids to NULL and return FT_Err_Ok. The subsequent unconditional write 'charset->sids[0] = 0' dereferences NULL, causing a crash (denial of service). A malformed CFF font with a CharStrings INDEX count of 0 and a charset offset > 2 triggers this path. Since FreeType is widely used to process untrusted font data (e.g., in web browsers), this is a remotely triggerable DoS vulnerability.
+
+*PoC sketch:* Craft a CFF font with: (1) CharStrings INDEX count = 0 (so num_glyphs = 0), (2) Top DICT Charset offset > 2. When FreeType loads this font and calls cff_charset_load, it will allocate a zero-size sids array (NULL), then write to charset->sids[0], crashing the process.
+
+### `freetype/cffdecode.c [cff_decoder_parse_charstrings D: hintmask+rlineto L965-1133]` — L1035 — conf=0.92
+**Missing argument count validation in moveto operations (rmoveto/vmoveto/hmoveto)**
+
+The rmoveto, vmoveto, and hmoveto cases access stack arguments (args[-1], args[-2]) without first validating that num_args is sufficient. rmoveto accesses args[-2] and args[-1] without checking num_args >= 2; vmoveto and hmoveto access args[-1] without checking num_args >= 1. If a malformed CFF font contains a moveto operator with insufficient preceding operands (e.g., a charstring starting directly with rmoveto and no pushed values), args will point at or near the base of the stack buffer, and negative indexing will read memory before the stack allocation. This can cause crashes (DoS) or leak…
+
+*PoC sketch:* Craft a CFF font with a charstring that begins with a rmoveto operator (opcode 14 or 21) without pushing any operands first. For example, a charstring consisting of the single byte 0x0E (rmoveto in 1-byte operator encoding) with an empty stack will cause args == stack, and args[-1]/args[-2] will rea…
+
+### `freetype/ttload.c [tt_face_load_os2 A: sTypo+xAvgCharWidth L1107-1215]` — L9 — conf=0.9
+**Missing Error Propagation in cmap Table Loading**
+
+The `FT_FRAME_EXTRACT` macro can fail (e.g., due to memory allocation failure or an invalid size), returning a non-zero error. However, the code only sets `face->cmap_size = 0` on failure and does not assign the error to the `error` variable, nor does it return the error. Consequently, the function returns `FT_Err_Ok` (0), leading the caller to believe that the `cmap` table was successfully loaded. Subsequent attempts to access `face->cmap_table` will result in a NULL pointer dereference or use of uninitialized memory, causing a denial of service (crash) or potentially other memory corruption.
+
+*PoC sketch:* Provide a font file with a `cmap` table that has a valid offset/size in the table directory, but causes `FT_FRAME_EXTRACT` to fail. This can be achieved by specifying an extremely large `cmap_size` (e.g., 0xFFFFFFFF) in the table directory to trigger an out-of-memory condition during extraction, or …
+
+### `freetype/ttcmap.c [tt_cmap4_char_map_binary A: binary search L1236-1381]` — L1282 — conf=0.9
+**Out-of-bounds read in overlapping segment backward search loop**
+
+When TT_CMAP_FLAG_OVERLAPPING is set, the backward search loop `for (i = max; i > 0; i--)` reads segment data at `cmap->data + 14 + (i-1) * 2` and then advances `p` by `2 + num_segs2`, `num_segs2`, and `num_segs2` to read start, delta, and offset values. None of these pointer calculations are validated against `limit`. A crafted font with overlapping segments flag set and a large `num_segs` value will cause out-of-bounds reads on every iteration of this loop.
+
+*PoC sketch:* Craft a font with cmap format 4 where the TT_CMAP_FLAG_OVERLAPPING flag is set, num_segs is inflated beyond the actual table size, and the binary search lands on a segment where charcode falls within [start, end]. The backward search loop will then iterate, reading segment data at progressively earl…
+
+### `freetype/ttcmap.c [tt_cmap4_char_map_binary A: binary search L1236-1381]` — L1316 — conf=0.9
+**Out-of-bounds read in overlapping segment forward search loop**
+
+Similar to the backward search, the forward search loop `for (i = max + 1; i < num_segs; i++)` reads segment data at `cmap->data + 14 + i * 2` and advances `p` by `2 + num_segs2`, `num_segs2`, and `num_segs2` without any bounds checking against `limit`. Since `num_segs` is attacker-controlled and unvalidated, this loop can read well beyond the allocated cmap buffer.
+
+*PoC sketch:* Same approach as the backward search vulnerability: craft a font with TT_CMAP_FLAG_OVERLAPPING set, inflated num_segs, and ensure the code reaches the forward search path (where all segments in the backward search had offset == 0xFFFFU, so mid == max + 1). The forward loop will then access memory be…
+
+### `freetype/cffload.c [cff_font_load C: charsets+encoding+SFNT L2391-2524]` — L2459 — conf=0.9
+**Integer Overflow in FD Select Offset Calculation**
+
+Similar to the FD array offset, the calculation `base_offset + dict->cid_fd_select_offset` can overflow a 32-bit `FT_ULong`. A crafted `cid_fd_select_offset` can cause the seek to target an unintended offset, leading to the parsing of arbitrary data as the FD Select table by `CFF_Load_FD_Select`. This can result in memory corruption and potential code execution.
+
+*PoC sketch:* Craft a CFF font with `cid_fd_select_offset` set such that `base_offset + cid_fd_select_offset` overflows to a controlled offset within the file. Place malicious FD Select data at that offset to trigger memory corruption during parsing.
+
+### `freetype/cffdecode.c [cff_decoder_parse_charstrings C: hstem+vstem+move L841-964]` — L946 — conf=0.9
+**Stack Underflow Bypass in CFF Charstring Decoder Leading to Out-of-Bounds Read**
+
+In `cff_decoder_parse_charstrings`, when processing CFF operators that can take a width argument (indicated by `CFF_COUNT_CHECK_WIDTH`), the required arguments count `req_args` is unconditionally set to 0 at line 946. This bypasses the stack underflow check `if ( num_args < req_args )` at line 950. Consequently, if a malformed CFF font provides fewer arguments than required for such an operator (e.g., 1 argument for `rmoveto` which requires 2, or 0 arguments for `hmoveto`), the operator will execute and attempt to read arguments from the stack that were never pushed. Because `args` is not adju…
+
+*PoC sketch:* Craft a CFF font containing a charstring that pushes 1 argument and then executes `rmoveto` (which requires 2). The decoder will not detect the stack underflow because `req_args` is 0, and `rmoveto` will attempt to read the missing second argument from out-of-bounds memory.
+
+### `freetype/ttload.c [tt_face_load_name A: name record parse L840-945]` — L933 — conf=0.88
+**Missing storage_limit validation after format 1 langTag records update**
+
+After reading numLangTagRecords in format 1, the code updates storage_start with `storage_start += 2 + 4 * table->numLangTagRecords` but never checks if the updated storage_start exceeds storage_limit or has overflowed. On 32-bit platforms, this addition can cause storage_start to overflow past storage_limit, wrapping to a small value. The subsequent bounds checks on langTag stringOffset/stringLength then use the corrupted storage_start, allowing out-of-bounds heap reads. Even without overflow, the lack of a `storage_start > storage_limit` check after this update means the bounds validation lo…
+
+*PoC sketch:* Craft a font with format=1, numNameRecords=1, and numLangTagRecords=0xFFFF. storage_start initially = table_pos + 6 + 12 = table_pos + 18. Then storage_start += 2 + 4*0xFFFF = 2 + 262140 = 262142. On 32-bit, if table_pos is near 0xFFF00000, storage_start wraps around. The subsequent loop reads langT…
+
+### `freetype/ttgload.c [TT_Process_Composite_Component B: scale+adjust L1111-1200]` — L1119 — conf=0.85
+**Signed Integer Overflow in m*=2 and n*=2 Scale Doubling**
+
+When the absolute values of TrueType composite glyph transform components (xx, yx, xy, yy) are large (exceeding INT_MAX/2, i.e., > 0x3FFFFFFF in 16.16 fixed-point, representing ~16384.0), the conditional multiplication `m *= 2` or `n *= 2` causes signed integer overflow, which is undefined behavior in C. On two's complement systems this wraps to a negative value. The corrupted `m`/`n` is then passed to `FT_MulFix(x, m)` producing a wrong offset, which propagates through subsequent scaling and is ultimately used in `FT_Outline_Translate(&current, x, y)`, shifting all outline points to incorrect…
+
+*PoC sketch:* Craft a TrueType font with a composite glyph whose subglyph transform matrix has xx and yx values both near 0x40000000 (16384.0 in 16.16 fixed-point) and within 33 of each other, satisfying the `a - b <= 33 && a - b >= -33` condition. This causes m = max(a,b) ≈ 0x40000000, and m *= 2 overflows to 0x…
+
+### `freetype/ttgload.c [load_truetype_glyph A: setup+metrics L1429-1577]` — L1518 — conf=0.85
+**Integer overflow in glyph offset calculation (glyf_offset + offset)**
+
+The expression `face->glyf_offset + offset` can overflow when `offset` (obtained from the font's `loca` table via `tt_face_get_location`) is a large attacker-controlled value. On 32-bit builds where FT_ULong is 32 bits, a crafted font with a malicious `loca` table can cause the addition to wrap around, resulting in `access_glyph_frame` reading glyph data from an incorrect file position. This can lead to out-of-bounds reads, heap buffer over-reads, or parsing of attacker-controlled data as glyph structures, potentially enabling remote code execution when processing untrusted fonts.
+
+*PoC sketch:* Craft a TrueType font with a `loca` table entry where the offset value is set to 0xFFFFFFFF (or near-maximum FT_ULong). When added to `face->glyf_offset` (e.g., 0x100), the result wraps to a small value (0xFF), causing the glyph frame to be opened at an incorrect position in the font file. The subse…
+
+### `freetype/ttgload.c [TT_Load_Glyph A: bitmap+strike select L2423-2510]` — L2507 — conf=0.85
+**Ignored error returns from tt_loader_init and load_truetype_glyph leading to use of uninitialized memory**
+
+The return values of tt_loader_init() and load_truetype_glyph() are explicitly cast to (void) and ignored on lines 2507-2508. The 'loader' variable (TT_LoaderRec) is declared on the stack at line 2428 and is NOT zero-initialized. If tt_loader_init() fails (e.g., due to malformed font data), the loader struct will contain uninitialized stack garbage. load_truetype_glyph() then operates on this garbage state, potentially causing memory corruption. Furthermore, tt_loader_done() on line 2509 will attempt to free/cleanup resources based on the corrupted loader fields, which could lead to freeing ar…
+
+*PoC sketch:* Craft a font with valid embedded bitmaps for some glyphs but with corrupted header data that causes tt_loader_init() to fail. When a glyph with a valid bitmap is loaded from a scalable font, the code enters the 'else' branch (line 2502) and calls tt_loader_init(). If it fails, load_truetype_glyph() …
+
+### `freetype/ttload.c [tt_face_load_font_dir B: required tables+glyf L471-638]` — L96 — conf=0.85
+**Integer overflow in offset calculation within tt_face_load_any**
+
+In tt_face_load_any, the computation `offset += table->Offset` adds a caller-provided FT_Long (signed) offset to an attacker-controlled FT_ULong (unsigned) table->Offset from the font file. This addition can overflow: the signed offset is implicitly converted to unsigned for the addition, and the result is stored back into the signed FT_Long. If table->Offset is crafted to be very large (e.g., near ULONG_MAX), the resulting offset can wrap around to a small or negative-interpreted value, causing FT_STREAM_READ_AT to read from an unexpected position in the font stream. This can lead to out-of-b…
+
+*PoC sketch:* Craft a malicious TrueType font with a table directory entry where Offset = 0xFFFFFFF0. When tt_face_load_any is called with offset=0x20 for that table, the addition overflows: 0x20 + 0xFFFFFFF0 = 0x10 (wraps around). The stream read then occurs at offset 0x10 instead of the intended location, readi…
+
+### `freetype/ttload.c [tt_face_load_name A: name record parse L840-945]` — L915 — conf=0.85
+**Integer overflow in storage_start calculation bypasses bounds checks**
+
+The calculation `storage_start = table_pos + 6 + 12 * table->numNameRecords` can overflow on 32-bit platforms where FT_ULong is 32 bits. If table_pos is large and numNameRecords is crafted, storage_start wraps around to a small value. The subsequent check `storage_start > storage_limit` passes because the wrapped value is smaller than storage_limit. This corrupts the bounds used for all subsequent string offset validation, potentially allowing out-of-bounds reads when parsing name table entries.
+
+*PoC sketch:* Craft a TrueType font with the 'name' table placed at a high file offset (near 2^32 on 32-bit) and set numNameRecords such that table_pos + 6 + 12*numNameRecords overflows FT_ULong. For example, on a 32-bit build: table_pos=0xFFF00000, numNameRecords=0x1000 => 12*0x1000=0xC000, storage_start = 0xFFF…
+
+### `freetype/ttload.c [tt_face_load_name B: lang tag+storage bounds L946-1046]` — L975 — conf=0.85
+**Integer overflow in entry->stringOffset adjustment bypasses bounds validation**
+
+The line `entry->stringOffset += table_pos + table->storageOffset;` modifies the offset by adding two values that could cause a 32-bit unsigned integer wrap. If `table_pos + table->storageOffset` is large (or if `entry->stringOffset` from the font is near UINT32_MAX), the result wraps to a small value. The subsequent bounds check then validates against this wrapped value rather than the true offset, allowing an attacker to craft a font where the adjusted offset appears within bounds but actually points outside the table data.
+
+*PoC sketch:* In a crafted font, set a name record's stringOffset to 0xFFFFF000. If table_pos + storageOffset = 0x1100, the adjusted stringOffset wraps to 0x100. The bounds check sees 0x100 which is within [storage_start, storage_limit], but the actual data reference is at offset 0xFFFFF000 from the stream start,…
+
+### `freetype/sfwoff2.c [woff2_open_font A: header+length sanity L1858-1980]` — L1970 — conf=0.85
+**Out-of-bounds read when num_tables is zero**
+
+When woff2.num_tables is 0, the loop that populates the `indices` array does not execute, but the code unconditionally accesses `indices[woff2.num_tables - 1]` (i.e., `indices[-1]`) to set `last_table`. This results in an out-of-bounds read before the allocated buffer. The subsequent dereference of `last_table->src_offset` and `last_table->src_length` reads from whatever garbage pointer was at that memory location, potentially causing a crash (DoS) or information disclosure. FT_QNEW_ARRAY with count 0 may return a non-NULL pointer on many platforms, so the allocation check does not guard again…
+
+*PoC sketch:* Craft a WOFF2 file with the numTables header field set to 0. If the earlier header validation does not reject numTables=0, the parser will access indices[-1], reading an out-of-bounds pointer and dereferencing it.
+
+### `freetype/sfwoff2.c [woff2_open_font B: table dirs+offset calc L1981-2090]` — L2075 — conf=0.85
+**Integer overflow in file_offset calculation bypasses bounds check**
+
+The computation `file_offset = ROUND4( woff2.compressed_offset + woff2.totalCompressedSize )` can overflow on systems where these values are 32-bit unsigned integers. If an attacker crafts a WOFF2 file with a large `totalCompressedSize` (read from the file header), the addition with `compressed_offset` can wrap around to a small value. The subsequent bounds check `if ( file_offset > woff2.length )` would then pass incorrectly, allowing later code to use a bogus file_offset for table data access. This can lead to out-of-bounds reads or writes when processing table data. Additionally, the ROUND4…
+
+*PoC sketch:* Craft a WOFF2 collection file where totalCompressedSize is set to 0xFFFFFF00 and the stream position (compressed_offset) is e.g. 0x200. The sum overflows to ~0x100, ROUND4 yields a small file_offset that passes the `file_offset > woff2.length` check, causing subsequent table reads to use incorrect o…
+
+### `freetype/sfwoff2.c [woff2_open_font D: build face+finalize L2221-2380]` — L2275 — conf=0.85
+**Buffer Over-Read via Unvalidated actual_sfnt_size in WOFF2 Stream Opening**
+
+The code only handles the case where `woff2.actual_sfnt_size < sfnt_size` (trimming the buffer), but does NOT handle the case where `woff2.actual_sfnt_size > sfnt_size`. When `actual_sfnt_size` (derived from the attacker-controlled WOFF2 header) is larger than `sfnt_size` (the actual size of the reconstructed sfnt data), the subsequent call to `FT_Stream_OpenMemory(sfnt_stream, sfnt, woff2.actual_sfnt_size)` creates a stream that believes it has `actual_sfnt_size` bytes available, while only `sfnt_size` bytes were actually allocated. Any subsequent read operations on this stream beyond `sfnt_s…
+
+*PoC sketch:* Craft a WOFF2 font where the header's `actual_sfnt_size` field is set to a value larger than the actual reconstructed sfnt data size (`sfnt_size`). When the font is opened, the condition `woff2.actual_sfnt_size < sfnt_size` evaluates to false, so no reallocation occurs. Then `FT_Stream_OpenMemory` i…
+
+### `freetype/ttcmap.c [cmap4_validate B: glyphId array bounds L1041-1160]` — L1048 — conf=0.85
+**Skipped bounds validation for last segment enables OOB read**
+
+The bounds check on the glyphId array is explicitly skipped for the last segment when start==0xFFFF and end==0xFFFF. The comment admits validation is 'delayed to the routines that actually access the cmap,' but the access routines (e.g., tt_cmap4_char_map_linear) do not perform adequate bounds checking either. A maliciously crafted font can set the last segment's offset to point outside the table buffer, passing validation while causing an out-of-bounds read when character U+FFFF is looked up.
+
+*PoC sketch:* Craft a cmap4 table with num_segs=N where the last segment has start=0xFFFF, end=0xFFFF, delta=0, and offset pointing beyond the table boundary. The validation skips the bounds check for this segment. When an application attempts to render or look up character code 0xFFFF, the offset-based glyphId a…
+
+### `freetype/cffdecode.c [cff_decoder_parse_charstrings H: seac+endchar L1620-1760]` — L1654 — conf=0.85
+**Negative SEAC character codes via signed right shift**
+
+In the cff_op_endchar seac emulation, character codes are extracted via `(FT_Int)(args[-2] >> 16)` and `(FT_Int)(args[-1] >> 16)`. Since `args` elements are signed `FT_Fixed` (`FT_Long`), arithmetic right shift of a negative value preserves the sign bit, producing a negative result. When cast to `FT_Int`, this yields a negative character code passed to `cff_operator_seac`. If that function uses the character code as an index into the Standard Encoding array (0-255 range) without bounds validation, this causes an out-of-bounds read/write. The same issue exists in the explicit `cff_op_seac` hand…
+
+*PoC sketch:* Craft a CFF font with a charstring that pushes values with the high bit set before endchar: e.g., push 0, 0, 0xFFFF0000, 0xFFFF0000 then endchar. This yields char1 = (FT_Int)(0xFFFF0000 >> 16) = -1 and char2 = -1. These negative character codes are passed to cff_operator_seac, potentially causing OO…
+
+### `freetype/ttgload.c [load_truetype_glyph C: composite loop L1701-1837]` — L1759 — conf=0.82
+**Heap buffer overflow via undersized outline.tags and outline.contours arrays**
+
+When constructing a temporary FT_Outline for variation delta application in composite glyph loading, `outline.points` is allocated with `limit + 4` elements to accommodate 4 phantom points (pp1–pp4), but `outline.tags` and `outline.contours` are only allocated with `limit` elements. The 4 phantom points are written to `outline.points[limit]` through `outline.points[limit+3]`, but no corresponding entries exist in `outline.tags` or `outline.contours`. The `outline.n_points` is set to `limit`, yet `TT_Vary_Apply_Glyph_Deltas` processes `n_points + 4` points (including phantom points). If the fun…
+
+*PoC sketch:* Craft a malicious TrueType font (.ttf) with: (1) a composite glyph referencing at least one subglyph, (2) a valid GX variation ('fvar'/'gvar') table, and (3) the composite glyph configured so that num_subglyphs is small (e.g., 1 or 0). When the font is loaded as a named instance or variation and the…
+
+### `freetype/ttload.c [tt_face_load_name A: name record parse L840-945]` — L943 — conf=0.82
+**Integer overflow in string offset bounds check allows OOB read**
+
+The bounds check `entry->stringOffset + entry->stringLength > storage_limit` can be bypassed via integer overflow. After `entry->stringOffset += table_pos + table->storageOffset`, stringOffset (FT_ULong) can be a large value near ULONG_MAX on 32-bit. Adding stringLength (up to 65535) causes the sum to wrap around to a small value less than storage_limit, passing the check. This allows reading memory beyond the name table boundaries. The unvalidated storageOffset (acknowledged in the comment as potentially invalid) makes this easier to trigger since an attacker controls storageOffset from the f…
+
+*PoC sketch:* Craft a font where storageOffset is set to a large value such that table_pos + storageOffset + entry->stringOffset is near 0xFFFFFFFF on 32-bit. Set stringLength to a small non-zero value (e.g., 10). The check entry->stringOffset + entry->stringLength wraps to a small value < storage_limit, bypassin…
+
+### `freetype/ttgload.c [load_truetype_glyph A: setup+metrics L1429-1577]` — L1503 — conf=0.8
+**Integer truncation when assigning glyph length to byte_len**
+
+The variable `len` is of type `FT_ULong` (64-bit on LP64 platforms), but it is cast to `FT_UInt` (32-bit) when assigned to `loader->byte_len`. A crafted font with a `loca` table that produces a `len` value exceeding 2^32-1 will have the upper 32 bits silently discarded. This truncation creates a mismatch: the actual glyph data region is large, but `byte_len` holds a small wrapped value. Downstream code that relies on `byte_len` for bounds checking or allocation may then read or write beyond intended boundaries, leading to heap buffer overflows or over-reads.
+
+*PoC sketch:* On a 64-bit system, craft a TrueType font where two consecutive `loca` entries produce a `len` value of 0x100000001. After truncation, `loader->byte_len` becomes 1. The `access_glyph_frame` call sets up a 1-byte frame, but subsequent glyph parsing may attempt to read more data based on header fields…
+
+### `freetype/ttgload.c [TT_Load_Glyph B: SVG+sbix load L2511-2600]` — L2563 — conf=0.8
+**Null pointer dereference in SVG glyph loading path when FT_LOAD_NO_SCALE is set**
+
+When FT_LOAD_NO_SCALE is set, the size validity check at line ~2557 (`if ( !( load_flags & FT_LOAD_NO_SCALE ) && !size->ttmetrics.valid )`) is skipped entirely. However, the SVG glyph loading path (entered when FT_LOAD_COLOR is also set and face->svg is true) unconditionally accesses `size->root.metrics.x_scale` and `size->root.metrics.y_scale` after a successful `sfnt->load_svg_doc` call. If no size object is associated with the face (size is NULL), this results in a null pointer dereference and crash. An attacker can trigger this by loading a glyph with FT_LOAD_NO_SCALE | FT_LOAD_COLOR flags…
+
+*PoC sketch:* 1. Load a font face with SVG table support (face->svg != NULL). 2. Do NOT set a char size (so face->size / internal size is NULL). 3. Call FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE | FT_LOAD_COLOR). 4. The size validity check is skipped (FT_LOAD_NO_SCALE is set). 5. SVG path is entered (FT_L…
+
+### `freetype/ttload.c [tt_face_load_font_dir B: required tables+glyf L471-638]` — L107 — conf=0.8
+**Missing bounds check allows reading beyond table boundaries**
+
+In tt_face_load_any, when a non-NULL length parameter is provided with *length != 0, the code unconditionally overrides `size = *length` without validating that *length does not exceed the table's actual Length (table->Length). Additionally, there is no validation that the original `offset` parameter (relative to table start) plus `size` stays within table->Length. This allows reading beyond the declared table boundaries in the font stream. If the caller allocated a buffer based on table->Length but passed a larger *length, this results in a heap buffer overflow. Even if the buffer is correctl…
+
+*PoC sketch:* 1. Craft a font with a table (e.g., 'head') having Length=50. 2. Call tt_face_load_any with tag=MAKE_TT_TAG('h','e','a','d'), offset=0, buffer allocated for 50 bytes, and *length=500. The function sets size=500 and reads 500 bytes starting at table->Offset, overflowing the 50-byte buffer and reading…
+
+### `freetype/cffdecode.c [cff_decoder_parse_charstrings G: hflex1+flex+flex1 L1461-1619]` — L1475 — conf=0.8
+**Out-of-bounds read from operand stack in hflex operator**
+
+The hflex operator accesses args[0] through args[6] (7 arguments) without explicit bounds checking within the handler. A malicious CFF font that invokes hflex with fewer than 7 arguments on the stack will cause out-of-bounds reads from the operand stack buffer, potentially leaking memory contents or causing a crash.
+
+*PoC sketch:* Craft a CFF font charstring that pushes fewer than 7 values onto the operand stack before invoking the hflex operator (opcode 0x22). Accessing args[5] or args[6] will read beyond the valid stack region.
+
+### `freetype/cffdecode.c [cff_decoder_parse_charstrings G: hflex1+flex+flex1 L1461-1619]` — L1597 — conf=0.8
+**Out-of-bounds read from operand stack in flex operator**
+
+The flex operator iterates 6 times reading args[0] and args[1] each iteration (12 arguments total) without explicit bounds checking within the handler. A malicious CFF font that invokes flex with fewer than 12 arguments on the stack will cause out-of-bounds reads. Additionally, the CFF Type 2 specification requires 13 arguments for flex (the 13th being flex depth), but the code only consumes 12, creating a specification mismatch.
+
+*PoC sketch:* Craft a CFF font charstring that pushes fewer than 12 values onto the operand stack before invoking the flex operator (opcode 0x23). The loop will read beyond the valid stack region in later iterations.
+
+### `freetype/cffload.c [cff_blend_doBlend A: delta array alloc L1280-1380]` — L1325 — conf=0.78
+**Integer Overflow in blend_used + size Check Skips Reallocation**
+
+The check `subFont->blend_used + size > subFont->blend_alloc` can be bypassed if `blend_used + size` overflows, wrapping to a small value. Even if `size` itself doesn't overflow, repeated calls to this function can accumulate blend_used until adding size causes an overflow. This skips the reallocation, and subsequent writes to blend_top overflow the existing buffer. The line `subFont->blend_used += size` also overflows, corrupting the internal bookkeeping.
+
+*PoC sketch:* Craft a font that triggers multiple blend operations. After several calls, blend_used approaches UINT_MAX. A final call with a moderate numBlends causes blend_used + size to wrap around, bypassing the reallocation check. The subsequent writes overflow the blend_stack buffer.
+
+### `freetype/ttgload.c [TT_Load_Glyph C: scalable+outline load L2601-2740]` — L2638 — conf=0.75
+**Out-of-bounds read via unvalidated glyph_index into hdmx widthp array**
+
+The code accesses `loader.widthp[glyph_index]` without validating that `glyph_index` is within the bounds of the `widthp` array. The `widthp` pointer is derived from the `hdmx` table, whose size is determined by the `numGlyphs` field in that table. A maliciously crafted font can set the hdmx `numGlyphs` to a value smaller than the actual number of glyphs, causing an out-of-bounds read when a valid (but larger) `glyph_index` is used. This is reachable when `FT_LOAD_ADVANCE_ONLY` is set without `FT_LOAD_VERTICAL_LAYOUT`, and `loader.widthp` is non-NULL. An attacker can exploit this by providing …
+
+*PoC sketch:* Craft a TrueType font where: (1) the maxp table specifies numGlyphs = 256, (2) the hdmx table specifies numGlyphs = 10 (with only 10 entries per size record), (3) request loading glyph_index 200 with FT_LOAD_ADVANCE_ONLY flag. The access to widthp[200] will read beyond the hdmx table buffer.
+
+### `freetype/ttload.c [check_table_dir B: offset+length bounds L171-342]` — L30 — conf=0.75
+**Integer overflow in table directory offset calculation**
+
+The calculation `offset = sfnt->offset + 12` can overflow on 32-bit systems where FT_ULong is 32 bits. If sfnt->offset is attacker-controlled (e.g., from a crafted TTC header) and close to ULONG_MAX, the addition wraps around to a small value. This causes FT_STREAM_SEEK to succeed at an incorrect position, leading the function to parse arbitrary file data as table directory entries. Subsequent seeks using this corrupted offset (e.g., `offset + (nn + 1) * 16` on line 139) further compound the issue, potentially causing out-of-bounds reads and acceptance of maliciously crafted table entries.
+
+*PoC sketch:* Craft a TrueType Collection (TTC) font where the offset table entry for a font is set to 0xFFFFFFF5 (on 32-bit). When added to 12, this wraps to 0x00000001. The seek to offset 1 succeeds, and the code interprets bytes starting at position 1 as table directory entries, allowing an attacker to inject …
+
+### `freetype/ttcmap.c [cmap4_validate B: glyphId array bounds L1041-1160]` — L1115 — conf=0.75
+**Missing bounds check on pointer arithmetic in tt_cmap4_char_map_linear**
+
+In tt_cmap4_char_map_linear, the pointer 'r' is computed as 'q - 2 + num_segs2' and then 'r += num_segs2' to access the delta and offset arrays, but no bounds check is performed against 'limit' (which is computed but never used). If the cmap table is malformed with an inflated num_segs value relative to the actual table size, these pointer computations can reference memory outside the allocated cmap buffer, leading to out-of-bounds reads.
+
+*PoC sketch:* Craft a font with a cmap4 table where num_segs is set to a large value (e.g., 0x7FFF) but the actual table data is much smaller. The validation may pass under certain conditions, and when tt_cmap4_char_map_linear computes 'r = q - 2 + num_segs2', the resulting pointer will be far beyond the allocate…
+
+### `freetype/cffdecode.c [cff_decoder_parse_charstrings A: setup+dispatch L501-660]` — L530 — conf=0.75
+**Integer Overflow in Charstring Limit Pointer Arithmetic**
+
+The calculation `limit = zone->limit = charstring_base + charstring_len` can overflow on 32-bit systems if charstring_len is attacker-controlled (from a malicious font file). If the pointer arithmetic wraps around, `limit` could become smaller than `charstring_base`, causing the `ip < limit` loop condition and all subsequent bounds checks (`ip + 1 >= limit`, `ip + 3 >= limit`) to behave incorrectly. This would allow out-of-bounds reads beyond the allocated charstring buffer, potentially leaking sensitive memory contents or causing a crash. Even without overflow, if charstring_len is not valida…
+
+*PoC sketch:* Craft a CFF font with a charstring whose declared length field (charstring_len) is set to a value near UINT_MAX or SIZE_MAX such that charstring_base + charstring_len wraps around on a 32-bit build. For example, if charstring_base = 0x10000000 and charstring_len = 0xF0000100, the resulting limit = 0…
+
+### `freetype/ttgload.c [TT_Process_Composite_Component A: matrix L1033-1110]` — L1038 — conf=0.7
+**Potential n_points underflow when num_base_points exceeds outline n_points**
+
+If num_base_points is greater than gloader->base.outline.n_points, the subtraction `n_points - (FT_UShort)num_base_points` can produce a negative value (since n_points is FT_Short). When assigned to current.n_points (also FT_Short), this becomes a large positive value after implicit conversion, causing FT_Outline_Transform to process far more points than exist, resulting in heap buffer over-read/over-write. While FreeType may have upstream checks limiting point counts, this function lacks its own validation of the relationship between num_base_points and n_points.
+
+*PoC sketch:* Craft a font where a composite glyph's num_base_points parameter exceeds the actual number of points in the outline. The subtraction underflows, producing a wrapped-around large value for current.n_points, which FT_Outline_Transform uses to iterate beyond buffer bounds.
+
+### `freetype/ttgload.c [load_truetype_glyph D: process+hinting L1838-1966]` — L1872 — conf=0.7
+**Stack exhaustion via deeply recursive composite glyph loading**
+
+The function calls itself recursively with recurse_count + 1 for each subglyph in a composite glyph. While recurse_count is incremented, the depth limit enforcement is not visible in this code section. A malicious font with deeply nested composite glyphs (or cyclic references if the depth check is insufficient) can exhaust the stack, causing a denial of service (crash). In some contexts, stack exhaustion can be leveraged for code execution. The recursive call at line 1873 passes (FT_UInt)subglyph->index which comes directly from untrusted font data without visible bounds validation in this sni…
+
+*PoC sketch:* Create a TrueType font where Glyph 0 is a composite referencing Glyph 1, Glyph 1 is a composite referencing Glyph 2, and so on for hundreds or thousands of levels. Alternatively, create a cycle: Glyph 0 references Glyph 1, Glyph 1 references Glyph 0. If the recurse_count limit is absent or too high,…
+
+### `freetype/ttload.c [check_table_dir A: tag+checksum L59-170]` — L59 — conf=0.7
+**Out-of-bounds read via unvalidated num_tables in table lookup loop**
+
+The loop `for ( ; entry < limit; entry++ )` iterates over `face->dir_tables` using `face->num_tables` to compute the limit (`entry + face->num_tables`). If `num_tables` is derived from untrusted font file data and not properly validated before this function is called, an attacker can supply a large `num_tables` value that exceeds the actual allocated size of the `dir_tables` array. This results in an out-of-bounds read when the loop accesses entries beyond the allocated buffer. While the comments indicate validation should happen in `check_table_dir`, the lookup function itself performs no bou…
+
+*PoC sketch:* Craft a TrueType font file with an inflated `num_tables` field in the offset table (sfnt header) that is larger than the actual number of table directory entries present. If the allocation of `dir_tables` uses a different (smaller) count or if validation is bypassed, the loop in `tt_face_lookup_tabl…
+
+### `freetype/cffload.c [cff_font_load B: subfonts+private dict L2286-2390]` — L2378 — conf=0.7
+**Missing validation of charstrings_offset before use**
+
+The `dict->charstrings_offset` value, parsed from the attacker-controlled CFF Top DICT, is used directly in FT_STREAM_SEEK without any bounds checking. Even without integer overflow, an extremely large offset value could cause the seek to go past the end of the stream. While FT_STREAM_SEEK may return an error for out-of-bounds seeks, the lack of explicit validation means malformed offsets are not caught early, and the error handling path may leave the font object in a partially initialized state that could be exploited in subsequent operations.
+
+*PoC sketch:* Create a CFF font with a Top DICT containing a CharStrings offset of 0xDEADBEEF. On a file smaller than this offset, FT_STREAM_SEEK will fail, but the error path at 'goto Exit' may not properly clean up all partially initialized structures, potentially leading to use of uninitialized data.
+
+### `freetype/cffdecode.c [cff_decoder_parse_charstrings B: width+stack bounds L661-840]` — L661 — conf=0.7
+**Default case in two-byte operator dispatch doesn't explicitly reset `op`, risking operator confusion**
+
+In the `case 12` sub-switch (two-byte CFF operators), the `default` case at the end does not explicitly set `op = cff_op_unknown`. Similarly, the main switch's `default` case also does not set `op`. If the variable `op` is not re-initialized to `cff_op_unknown` at the top of each loop iteration before the switch statement, an unrecognized two-byte or single-byte operator would cause `op` to retain its value from a previous iteration. This could lead to unintended re-execution of a prior operator (e.g., re-executing `cff_op_callgsubr` or `cff_op_seac`), potentially causing stack corruption, out…
+
+*PoC sketch:* Craft a CFF font with a charstring containing: [valid_operator] [12,0xFF] where 0xFF is an unrecognized sub-operator. If op is not reset, the second iteration may re-execute the first operator. For example: push operands for callgsubr, then issue callgsubr (op=cff_op_callgsubr), then issue unknown t…
+
+### `freetype/sfwoff2.c [reconstruct_font B: composites+fixup L991-1120]` — L996 — conf=0.65
+**Heap Buffer Overflow Due to Missing glyph_size in Buffer Size Check**
+
+The buffer reallocation check `if ( glyph_buf_size < size_needed )` only verifies that the buffer can hold `size_needed` bytes total, but data is written starting at offset `glyph_buf + glyph_size`. If glyph_size accumulates across loop iterations (it is incremented via `glyph_size += 2`, `glyph_size += 8`, `glyph_size += composite_size`, etc. with no visible reset), the actual space needed is `glyph_size + size_needed`. The check should be `glyph_buf_size < glyph_size + size_needed`. An attacker can craft a font where early glyphs cause a large glyph_size accumulation, and later glyphs have s…
+
+*PoC sketch:* Craft a WOFF2 font with multiple composite glyphs: first glyph has large composite_size causing glyph_buf to be allocated large and glyph_size to accumulate. Subsequent glyphs have small size_needed that passes the `glyph_buf_size < size_needed` check, but glyph_size + size_needed exceeds glyph_buf_…
+
+
+## 🟡 MEDIUM (36)
+
+### `freetype/cffload.c [cff_charset_load B: format2 range bounds L1006-1096]` — L1014 — conf=0.9
+**Integer Truncation in Charset Offset Switch**
+
+The `offset` variable is of type `FT_ULong` (typically 64-bit), but it is cast to `FT_UInt` (typically 32-bit) in the `switch` statement. This truncation allows an attacker to bypass the `default` case (which rejects custom charsets with `offset > 2`) by providing an offset like `0x100000001`, which truncates to `1`. This forces the parser to use a predefined charset instead of the custom one specified in the font, leading to type confusion and incorrect parsing of the font data.
+
+*PoC sketch:* Craft a CFF font with a charset offset of `0x100000001`. When `cff_charset_load` processes this font, the switch statement will evaluate `(FT_UInt)0x100000001`, which truncates to `1`. The parser will then execute the `case 1:` branch, loading the `cff_expert_charset` instead of rejecting the font o…
+
+### `freetype/ttcmap.c [cmap4_validate A: segCount+idRangeOffset L902-1040]` — L958 — conf=0.85
+**Unsigned integer underflow in last-segment check when num_segs is zero**
+
+In the PARANOID validation path, the code accesses the last segment's end count with `p = ends + ( num_segs - 1 ) * 2`. Since `num_segs` is of type `FT_UInt` (unsigned), if `num_segs` is 0, the expression `num_segs - 1` wraps to a very large value (e.g., 0xFFFFFFFF on 32-bit), and multiplying by 2 produces an enormous offset. This causes `p` to point far outside the table, and the subsequent `TT_PEEK_USHORT(p)` reads from an invalid memory location, resulting in a crash (denial of service). There is no check that `num_segs > 0` before this computation. While this only triggers at PARANOID vali…
+
+*PoC sketch:* Craft a font with a cmap format 4 table where segCountX2 = 0 (making num_segs = 0 after division), and length >= 16 to pass the initial length checks. When validated at FT_VALIDATE_PARANOID level, the expression `(num_segs - 1) * 2` underflows, causing an out-of-bounds memory read and crash.
+
+### `freetype/sfwoff2.c [woff2_open_font C: brotli decompress+streams L2091-2220]` — L2148 — conf=0.8
+**Missing bounds check on ttc_font->num_tables vs woff2.num_tables before array resize**
+
+When processing TTC fonts, `ttc_font->num_tables` is validated to be <= 0xFFF but is NOT validated against `woff2.num_tables`. The code first reads `indices[ttc_font->table_indices[nn]]` from the original indices array of size `woff2.num_tables`, then resizes indices to `ttc_font->num_tables`. If `ttc_font->num_tables > woff2.num_tables`, the FT_QRENEW_ARRAY grows the array, which is fine for the write-back. However, the more fundamental issue is that ttc_font->num_tables could reference more tables than actually exist in the font, and combined with the unvalidated table_indices, this creates …
+
+*PoC sketch:* Craft a WOFF2 TTC where woff2.num_tables = 5 but ttc_font->num_tables = 4095 (within 0xFFF limit). The temp_indices array will be 4095 entries, and the loop will attempt to read 4095 entries from indices[ttc_font->table_indices[nn]], many of which may be out of bounds.
+
+### `freetype/sfwoff2.c [woff2_open_font D: build face+finalize L2221-2380]` — L2287 — conf=0.8
+**Missing Validation of actual_sfnt_size Against Allocated Buffer Before Stream Open**
+
+Even if `actual_sfnt_size == sfnt_size` (the only safe case not explicitly handled), there is no assertion or validation that `woff2.actual_sfnt_size` is consistent with the actual reconstructed data. The `actual_sfnt_size` field from the WOFF2 header is trusted without being validated against the computed `sfnt_size` from `reconstruct_font()`. A malformed font could set `actual_sfnt_size` to any value, and only the trimming case is guarded. The lack of a check like `if (woff2.actual_sfnt_size > sfnt_size) { error; }` means an attacker-controlled size is passed directly to `FT_Stream_OpenMemor…
+
+*PoC sketch:* Same as above - set `actual_sfnt_size` in the WOFF2 header to a value significantly larger than the true reconstructed sfnt size. The missing upper-bound check allows the oversized value to propagate to `FT_Stream_OpenMemory`.
+
+### `freetype/cffload.c [cff_font_load C: charsets+encoding+SFNT L2391-2524]` — L2427 — conf=0.8
+**NULL Pointer Dereference via Zero FD Count**
+
+If `fd_index.count` is 0, `font->num_subfonts` is set to 0, and the `sub` array allocation might result in a NULL pointer (since FreeType allocates 0 bytes). The loops that populate `font->subfonts[idx]` are skipped. Later, when the font is processed (e.g., during rendering), any attempt to access a subfont (like `font->subfonts[0]`) will result in a NULL pointer dereference, causing a crash (Denial of Service).
+
+*PoC sketch:* Craft a CID or CFF2 font where the FD array index has a count of 0. When FreeType attempts to load or render a glyph from this font, it will attempt to dereference a NULL pointer and crash.
+
+### `freetype/ttgload.c [TT_Process_Composite_Component B: scale+adjust L1111-1200]` — L1111 — conf=0.75
+**Undefined Behavior in Absolute Value of INT_MIN Transform Component**
+
+The absolute value computation `subglyph->transform.xx > 0 ? subglyph->transform.xx : -subglyph->transform.xx` invokes undefined behavior when the transform component equals INT_MIN (0x80000000, i.e., -32768.0 in 16.16 fixed-point), because negating INT_MIN is undefined in C. On typical two's complement platforms this wraps back to INT_MIN, leaving `a` (or `b`, `c`, `d`) negative instead of non-negative. This violates the assumption that these variables hold absolute values, potentially causing `m = a > b ? a : b` to select an unexpected value and leading to incorrect scaling calculations. A m…
+
+*PoC sketch:* Craft a TrueType font with a composite glyph subglyph whose transform.xx field is set to 0x80000000 (-32768.0 in 16.16 fixed-point). The negation -0x80000000 is undefined behavior; on most platforms it remains 0x80000000 (negative), so variable `a` becomes negative, breaking the absolute value invar…
+
+### `freetype/ttload.c [tt_face_load_font_dir B: required tables+glyf L471-638]` — L27 — conf=0.75
+**Unvalidated table Offset and Length from font file stored directly**
+
+When loading the font directory, table entries from the font file (including entry.Offset and entry.Length) are stored directly into face->dir_tables without validation. A malicious font can specify Offset values that point outside the file, Length values that extend beyond the file, or Offset+Length combinations that overflow. These unvalidated values are later used in tt_face_load_any and other functions to compute read offsets and sizes, creating a chain of potential vulnerabilities. For example, a table with Offset=0 and Length=0xFFFFFFFF would cause issues when any code tries to allocate …
+
+*PoC sketch:* Create a font with num_tables=1 and a single table entry: Tag='head', CheckSum=0, Offset=0, Length=0xFFFFFFFF. When FreeType processes this font and attempts to load the 'head' table, the enormous Length value can cause integer overflows in size calculations, excessive memory allocation attempts, or…
+
+### `freetype/ttload.c [tt_face_load_name A: name record parse L840-945]` — L904 — conf=0.75
+**Unvalidated storageOffset enables controllable out-of-bounds access**
+
+The code explicitly acknowledges that storageOffset is invalid in some fonts but chooses not to validate it ('We thus can't check storageOffset right now'). This unvalidated field is later added to string offsets: `entry->stringOffset += table_pos + table->storageOffset`. A malicious font can set storageOffset to any 16-bit value, shifting all computed string offsets by an attacker-controlled amount. While the subsequent bounds check should catch this, combined with the integer overflow vulnerabilities above, an invalid storageOffset makes exploitation significantly easier by providing control…
+
+*PoC sketch:* Set storageOffset to 0xFFFF in a crafted font. All stringOffset calculations become table_pos + 0xFFFF + entry->stringOffset, which on 32-bit systems pushes the arithmetic toward overflow boundaries, making it trivial to trigger the integer overflow in the bounds check.
+
+### `freetype/sfwoff2.c [woff2_open_font A: header+length sanity L1858-1980]` — L1945 — conf=0.75
+**Missing validation of accumulated src_offset against total compressed size**
+
+The variable `src_offset` accumulates each table's `TransformLength` across the loop, with an overflow check for individual additions. However, the final accumulated `src_offset` (representing the total expected compressed data size) is never validated against the actual compressed data size from the WOFF2 header (`totalCompressedSize`). A malicious font can specify table TransformLength values whose sum exceeds the actual compressed data available in the file. This mismatch can lead to out-of-bounds reads when the decompression routine attempts to access compressed table data beyond the file …
+
+*PoC sketch:* Craft a WOFF2 file where the sum of all table TransformLength values in the directory exceeds the actual totalCompressedSize field in the header, or exceeds the remaining file data. The per-addition overflow check passes, but the total is unvalidated against file bounds.
+
+### `freetype/sfwoff2.c [woff2_open_font B: table dirs+offset calc L1981-2090]` — L2050 — conf=0.75
+**glyf/loca consecutive-index validation bypass via index 0 sentinel confusion**
+
+The variables `glyf_index` and `loca_index` are initialized to 0 and used as both valid table indices and sentinel values meaning 'not found'. The guard condition `if ( glyf_index > 0 || loca_index > 0 )` fails when either table is located at index 0, since 0 is indistinguishable from 'not found'. This means: (1) a font with glyf at index 0 but no loca passes validation, (2) a font with loca at index 0 but no glyf passes validation, and (3) a font with glyf at index 0 and loca at a non-consecutive index passes validation. Downstream code that assumes glyf and loca are always properly paired ma…
+
+*PoC sketch:* Craft a WOFF2 TTC font where the glyf table has table_index=0 and there is no loca table. The check `glyf_index > 0 || loca_index > 0` evaluates to `0 > 0 || 0 > 0` = false, so the consecutive-index validation is skipped entirely. Downstream processing may then dereference loca-related data that doe…
+
+### `freetype/ttgload.c [load_truetype_glyph A: setup+metrics L1429-1577]` — L1488 — conf=0.7
+**Integer truncation of incremental glyph_data.length**
+
+When using the incremental font loading interface (`FT_CONFIG_OPTION_INCREMENTAL`), `glyph_data.length` is assigned directly to `loader->byte_len` (FT_UInt). If the incremental interface returns a length exceeding FT_UInt's range (on 64-bit platforms), the value is silently truncated. This is the same class of truncation bug as the `loca`-based path but requires the incremental interface to be active, which reduces the attack surface.
+
+*PoC sketch:* Implement an incremental interface that returns glyph_data with length = 0x100000005. After assignment, loader->byte_len = 5, but the memory stream is opened with the full length. Subsequent parsing may read beyond the 5-byte boundary that byte_len implies.
+
+### `freetype/ttgload.c [TT_Load_Glyph A: bitmap+strike select L2423-2510]` — L2468 — conf=0.7
+**Inconsistent metrics validation - missing vertical metrics size check before TT_Get_VMetrics**
+
+On line 2468, the code checks `if ( !face->horz_metrics_size )` to validate that horizontal metrics exist before proceeding. However, there is no corresponding check for vertical metrics before calling TT_Get_VMetrics() on line 2473. A malicious font could have a non-zero horz_metrics_size but missing or zero vert_metrics_size, causing TT_Get_VMetrics to potentially read from invalid memory or return garbage values for top_bearing and advance_height. These garbage values are then used in FT_MulFix computations on lines 2482-2483 and stored in glyph->metrics, potentially leading to incorrect me…
+
+*PoC sketch:* Craft a bitmap-only font with: (1) valid hmtx table (horz_metrics_size > 0), (2) missing or empty vmtx table (vert_metrics_size == 0), (3) bitmap strikes that are incomplete (missing certain glyphs). When a missing glyph is requested, the code passes the horz_metrics_size check but calls TT_Get_VMet…
+
+### `freetype/ttgload.c [TT_Load_Glyph B: SVG+sbix load L2511-2600]` — L2537 — conf=0.7
+**Signed integer overflow in sbix bitmap offset calculation**
+
+The expressions `glyph->bitmap_left += FT_MulFix( bitmap_left, x_scale ) >> 6` and `glyph->bitmap_top += FT_MulFix( bitmap_top, y_scale ) >> 6` can result in signed integer overflow. A maliciously crafted font can set extreme values for `loader.left_bearing`, `loader.top_bearing`, `loader.bbox.xMin`, or `loader.bbox.yMin`, which when multiplied by large scale factors via FT_MulFix and added to the existing bitmap_left/bitmap_top values, can overflow the signed FT_Int type. Signed integer overflow is undefined behavior in C and can lead to incorrect bitmap positioning values. Downstream renderi…
+
+*PoC sketch:* Craft a font with an sbix table and glyph contours where: - loader.left_bearing is set to a very large value (e.g., 0x7FFFFFF0) - x_scale is set to a large fixed-point value (e.g., 0x7FFF0000) - The FT_MulFix result shifted by 6, when added to glyph->bitmap_left, overflows FT_Int. This causes glyph-…
+
+### `freetype/sfwoff2.c [reconstruct_font B: composites+fixup L991-1120]` — L1015 — conf=0.7
+**Missing Validation of composite_size and instruction_size Against Substream Sizes**
+
+Before calling FT_STREAM_READ with composite_size and instruction_size bytes, there is no validation that these sizes do not exceed their respective substream remaining sizes (substreams[COMPOSITE_STREAM].size and substreams[INSTRUCTION_STREAM].size). If composite_size or instruction_size exceeds the available data in the substream, FT_STREAM_READ may read beyond the substream boundaries. While FreeType's stream layer may catch some cases, the lack of explicit validation is a defense-in-depth gap that could lead to information disclosure or memory corruption depending on the stream implementat…
+
+*PoC sketch:* Craft a WOFF2 font where composite_size or instruction_size for a glyph exceeds the actual size of the corresponding substream data, causing out-of-bounds reads from the stream buffer.
+
+### `freetype/sfwoff2.c [woff2_open_font C: brotli decompress+streams L2091-2220]` — L2180 — conf=0.7
+**Undefined behavior with bit shift when num_tables is 0 or very large**
+
+The calculation `FT_Int entrySelector = FT_MSB(woff2.num_tables)` followed by `(1 << entrySelector) * 16` has undefined behavior risks. If woff2.num_tables is 0 (possible for non-TTC fonts without validation), FT_MSB(0) may return -1, causing `1 << -1` which is undefined behavior in C. If num_tables is very large (>= 2^31), FT_MSB could return 31, and `1 << 31` overflows a signed int (undefined behavior). The resulting searchRange and rangeShift values would be incorrect, potentially causing issues in downstream binary search over table directory entries.
+
+*PoC sketch:* Craft a WOFF2 font with num_tables = 0 (non-TTC path). FT_MSB(0) returns -1 on many implementations, causing 1 << -1 (UB). Alternatively, set num_tables to a value >= 0x80000000 if the type allows, causing 1 << 31 signed overflow.
+
+### `freetype/cffload.c [cff_encoding_load B: supplement parse L1801-1900]` — L1837 — conf=0.7
+**Integer Truncation in GID Assignment to Encoding Codes Array**
+
+The assignment `encoding->codes[j] = (FT_UShort)gid;` truncates the GID value returned by `cff_charset_cid_to_gindex()` (which returns FT_UInt, typically 32-bit) to FT_UShort (16-bit). If a malicious CFF font has a charset that maps a SID to a GID exceeding 65535, the upper bits are silently discarded. This can result in an incorrect glyph index being stored, potentially leading to out-of-bounds array access when the truncated GID is later used to index into glyph-related data structures. In font parsing contexts, this class of bug can be exploited for information disclosure or denial of servi…
+
+*PoC sketch:* Craft a CFF font where the charset maps a standard encoding SID (e.g., SID 36 from cff_standard_encoding) to a GID value greater than 65535 (e.g., GID 0x10001). When the predefined encoding (offset=0) is processed, the loop at line 1834 will call cff_charset_cid_to_gindex() which returns 0x10001. Th…
+
+### `freetype/cffdecode.c [cff_decoder_parse_charstrings D: hintmask+rlineto L965-1133]` — L983 — conf=0.7
+**Integer overflow in num_hints accumulation affecting hintmask/cntrmask bounds check**
+
+decoder->num_hints is accumulated via 'decoder->num_hints += num_args / 2' across multiple stem operations (hstem, vstem, hstemhm, vstemhm, and the implicit stem processing in hintmask/cntrmask). Since num_hints is typically a signed 32-bit integer (FT_Int), a malicious font with an extremely large number of stem operations could cause num_hints to overflow. When num_hints overflows to a negative value, the bounds check '(ip + ((decoder->num_hints + 7) >> 3)) >= limit' in the hintmask/cntrmask case can be bypassed because arithmetic right shift of a negative value produces a negative offset, m…
+
+*PoC sketch:* Craft a CFF font with a charstring containing millions of hstem/vstem operations (each adding up to 24 hints with max stack size 48), accumulating num_hints past INT_MAX (2^31 - 1). After overflow, include a hintmask or cntrmask operator. The overflowed num_hints will produce an incorrect mask size …
+
+### `freetype/ttgload.c [load_truetype_glyph A: setup+metrics L1429-1577]` — L1456 — conf=0.65
+**Missing glyph index bounds check with incremental interface**
+
+When `FT_CONFIG_OPTION_INCREMENTAL` is defined, the glyph index bounds check (`glyph_index >= face->root.num_glyphs`) is completely skipped. The code jumps directly to calling the incremental interface's `get_glyph_data`. While the incremental interface is expected to validate the index, there is no enforcement. A compromised or buggy incremental interface implementation could allow an out-of-range glyph_index to propagate through the loader, potentially causing out-of-bounds access in downstream code that assumes the index was validated.
+
+*PoC sketch:* With FT_CONFIG_OPTION_INCREMENTAL enabled, call load_truetype_glyph with glyph_index = 0xFFFFFFFF (well beyond num_glyphs). The bounds check is skipped, and the glyph_index is stored in loader->glyph_index. If the incremental interface doesn't properly reject it, the invalid index propagates to subs…
+
+### `freetype/ttload.c [tt_face_load_name B: lang tag+storage bounds L946-1046]` — L960 — conf=0.65
+**Integer overflow in FT_FRAME_ENTER size calculation**
+
+The expression `table->numNameRecords * 12` passed to `FT_FRAME_ENTER` can overflow if `numNameRecords` is sufficiently large. If `numNameRecords` is read as a wider type than 16-bit (e.g., FT_UInt which is 32-bit), values >= 0x15555556 would cause the multiplication to wrap, resulting in a frame much smaller than expected. The subsequent loop reads 12 bytes per iteration for `numNameRecords` iterations, causing a heap buffer over-read. In practice, the OpenType spec limits this to 16-bit, but if the code path allows larger values (e.g., through format 1 or a malformed header), this becomes ex…
+
+*PoC sketch:* If numNameRecords is parsed as a 32-bit value and set to 0x20000001 in a crafted font, then numNameRecords * 12 = 0x18000000C which wraps to 0x8000000C in 32-bit. FT_FRAME_ENTER allocates a frame of ~2GB, but the loop attempts to read 0x20000001 * 12 bytes, eventually reading past the frame boundary…
+
+### `freetype/sfwoff2.c [woff2_open_font A: header+length sanity L1858-1980]` — L1970 — conf=0.65
+**Incorrect uncompressed_size calculation uses compressed lengths**
+
+The `woff2.uncompressed_size` is calculated as `last_table->src_offset + last_table->src_length`, where `src_length = TransformLength`. For transformed (compressed) tables, `TransformLength` is the compressed size, not the original uncompressed size (`dst_length`). This means `uncompressed_size` is computed from a mix of compressed and uncompressed lengths depending on which tables have transforms. If this value is later used to allocate a buffer for decompressed output, the buffer may be too small, leading to a heap buffer overflow when decompressed data is written. The correct calculation sh…
+
+*PoC sketch:* Craft a WOFF2 file with tables that have transforms (e.g., glyf/loca with xform_version=0) where the compressed TransformLength is significantly smaller than dst_length. The calculated uncompressed_size will be smaller than the actual uncompressed data, potentially causing a heap overflow during dec…
+
+### `freetype/cffload.c [cff_charset_load A: format0+1 SID parse L912-1005]` — L937 — conf=0.65
+**Integer overflow in format 0 FT_FRAME_ENTER size calculation**
+
+The expression '(num_glyphs - 1) * 2' passed to FT_FRAME_ENTER can theoretically overflow on 32-bit systems if num_glyphs exceeds ~2^31. If the multiplication wraps to a small value, FT_FRAME_ENTER succeeds with an undersized frame, while the subsequent loop iterates num_glyphs-1 times reading FT_GET_USHORT() from the too-small frame buffer, causing a heap buffer over-read. While CFF limits num_glyphs to 65535 (making this unreachable via standard CFF), the function does not validate num_glyphs itself, and other callers (e.g., CFF2) could pass larger values.
+
+*PoC sketch:* On a 32-bit build, if num_glyphs = 0x80000001, then (0x80000001 - 1) * 2 = 0x100000000 which wraps to 0. FT_FRAME_ENTER(0) succeeds, but the loop reads 0x80000000 unsigned shorts from a zero-byte frame, causing massive heap over-read.
+
+### `freetype/cffload.c [cff_blend_doBlend A: delta array alloc L1280-1380]` — L1312 — conf=0.65
+**Unsigned Underflow in count Calculation with Empty Parser Stack**
+
+The computation `count = (FT_UInt)( parser->top - 1 - parser->stack )` can underflow if the parser stack is empty (parser->top == parser->stack). The expression `parser->top - 1 - parser->stack` evaluates to -1, which when cast to FT_UInt becomes UINT_MAX. This causes the stack underflow check `numOperands > count` to always pass (since numOperands <= UINT_MAX), allowing the blend operation to proceed with an empty stack, leading to out-of-bounds reads on parser->stack[].
+
+*PoC sketch:* Craft a CFF font that invokes the blend operator when the parser stack is empty or has only the operator itself. The count variable wraps to UINT_MAX, bypassing the underflow check, and subsequent accesses to parser->stack[i + base] read out of bounds.
+
+### `freetype/cffload.c [cff_font_load B: subfonts+private dict L2286-2390]` — L2304 — conf=0.65
+**Weak name_index data_size validation allows malformed index**
+
+The check `font->name_index.data_size < font->name_index.count` only verifies that the total data size is at least equal to the count (i.e., each name has at least 1 byte on average). This is insufficient because: (1) it doesn't validate that individual offset entries in the index are within bounds, (2) a count of 1 with data_size of 0 passes the check, and (3) the check is only performed when count > 1. A carefully crafted CFF file with a name_index that has valid total data_size but corrupted internal offsets could bypass this check and lead to out-of-bounds reads when individual names are a…
+
+*PoC sketch:* Create a CFF font with name_index.count = 2 and name_index.data_size = 2 (passes the check), but with offset values that point beyond the data region (e.g., offset[0] = 1, offset[1] = 0xFFFF). When individual names are accessed, the computed lengths could be negative or extremely large, leading to h…
+
+### `freetype/cffdecode.c [cff_decoder_parse_charstrings A: setup+dispatch L501-660]` — L555 — conf=0.65
+**Missing Type 2 Charstring Byte 29 Operand Handling Causes Parsing Desynchronization**
+
+The operand detection condition `v >= 32 || v == 28` does not account for byte 29, which in some CFF/Type2 contexts is defined as a 5-byte integer operand (similar to byte 255). When charstring_type == 2 and byte 29 is encountered, it falls through to the operator handling branch where no case exists for it, resulting in `op = cff_op_unknown`. The 4 subsequent bytes that should have been consumed as the operand's data are instead parsed as independent operators or operands in subsequent loop iterations. This parsing desynchronization can corrupt the decoder stack state, cause incorrect argumen…
+
+*PoC sketch:* Create a Type 2 charstring containing byte 0x1D (29) followed by 4 bytes of data (e.g., 0x00 0x01 0x00 0x00). The parser will treat 0x1D as an unknown operator rather than consuming it and the next 4 bytes as a single operand. The bytes 0x00, 0x01, 0x00, 0x00 will then be interpreted as operators/op…
+
+### `freetype/ttgload.c [TT_Process_Composite_Component A: matrix L1033-1110]` — L1068 — conf=0.6
+**Inconsistent bounds check for point index k after start_point adjustment**
+
+The bounds check `k >= num_base_points` uses num_base_points as the upper limit, but k has been adjusted by start_point (`k += start_point`). If start_point is non-zero, the valid range for k should arguably be [start_point, start_point + num_base_points - 1] or [0, start_point + num_base_points - 1], not [0, num_base_points - 1]. This could allow k to index into the newly loaded component's points (which should only be indexed by l) or reject valid indices. While the immediate security impact is limited (out-of-range k values would be caught or merely cause incorrect point matching), it repre…
+
+*PoC sketch:* Provide a composite glyph where start_point > 0 and arg1 is a value such that arg1 + start_point < num_base_points but arg1 + start_point points to a point in the newly loaded component rather than a previously loaded one, causing incorrect point alignment and potential memory access to unintended d…
+
+### `freetype/ttgload.c [load_truetype_glyph B: variation setup L1578-1700]` — L1636 — conf=0.6
+**Potential integer overflow in glyph offset calculation**
+
+The expression `face->glyf_offset + offset + 10` computes the absolute position of glyph data after the header. If `offset` is a large value derived from a malformed `loca` table, the addition could overflow (especially on 32-bit builds where FT_ULong is 32 bits). An overflow would cause `access_glyph_frame` to read from an unintended location in the font file, potentially leaking sensitive data or causing crashes.
+
+*PoC sketch:* Craft a TrueType font with a `loca` table entry pointing to an offset near UINT32_MAX (e.g., 0xFFFFFFF0). When combined with `glyf_offset` and the +10 adjustment, the sum wraps around, causing the frame access to read from an incorrect position in the file stream.
+
+### `freetype/ttload.c [check_table_dir A: tag+checksum L59-170]` — L120 — conf=0.6
+**Unvalidated table offset allows arbitrary stream seek**
+
+In `tt_face_goto_table`, when a table is found, the function seeks the stream to `table->Offset` without validating that the offset is within the bounds of the underlying file/stream. A malicious font can specify an arbitrary offset value in a table directory entry, causing the stream position to be set to an attacker-controlled location. Subsequent reads from this position could read unintended data, potentially leading to information disclosure or incorrect parsing that triggers further vulnerabilities downstream.
+
+*PoC sketch:* Create a font file with a table directory entry whose Offset field points beyond the end of the file or to an arbitrary position. When `tt_face_goto_table` is called for that table tag, `FT_STREAM_SEEK(table->Offset)` will seek to the attacker-controlled offset. If the stream implementation doesn't …
+
+### `freetype/ttload.c [tt_face_load_font_dir B: required tables+glyf L471-638]` — L96 — conf=0.6
+**Signed offset parameter enables negative offset reads**
+
+The `offset` parameter in tt_face_load_any is declared as FT_Long (signed). When tag != 0, the code computes `offset += table->Offset`. If a negative offset is passed, the resulting file offset could be less than table->Offset, causing a read from before the table's declared start position. When this signed value is passed to FT_STREAM_READ_AT (which likely expects an unsigned offset), the negative value would be implicitly converted to a very large unsigned value, potentially causing an out-of-bounds read or an error. While the offset parameter comes from internal callers, a malicious font co…
+
+*PoC sketch:* If internal FreeType code calls tt_face_load_any with a negative offset (e.g., due to an underflow in a prior computation influenced by malicious font data), the addition offset += table->Offset could produce a value less than table->Offset, reading data from before the table in the font file.
+
+### `freetype/sfwoff2.c [reconstruct_font B: composites+fixup L991-1120]` — L1080 — conf=0.6
+**Unchecked Direct Pointer Arithmetic on stream->base for flags_buf and triplet_buf**
+
+The code computes `flags_buf = stream->base + substreams[FLAG_STREAM].offset` and `triplet_buf = stream->base + substreams[GLYPH_STREAM].offset` without validating that these offsets plus the expected read sizes (flag_size = total_n_points, triplet_size) fall within the stream buffer bounds. While flag_size is checked against substreams[FLAG_STREAM].size, the offset into stream->base is not validated against the actual stream buffer size. A malformed WOFF2 font with manipulated substream offsets could cause out-of-bounds reads from stream->base.
+
+*PoC sketch:* Craft a WOFF2 font where substreams[FLAG_STREAM].offset or substreams[GLYPH_STREAM].offset points near the end of the stream buffer, such that accessing stream->base + offset + total_n_points reads beyond the allocated stream buffer.
+
+### `freetype/ttcmap.c [cmap4_validate B: glyphId array bounds L1041-1160]` — L1042 — conf=0.6
+**Integer underflow in glyphId array bounds check when start > end**
+
+The bounds check computes '(end - start + 1) * 2' where end and start are FT_UInt (unsigned). If a malformed font has start > end for a segment and this is not caught by prior validation (not shown in this snippet), the subtraction 'end - start' underflows to a very large unsigned value. Adding 1 and multiplying by 2 can then wrap around to a small value, causing the bounds check 'p + result > valid->limit' to pass trivially. This bypasses the buffer boundary validation and can lead to out-of-bounds memory access.
+
+*PoC sketch:* Craft a cmap4 segment with start=0x0002, end=0x0001. Then end - start = 0xFFFFFFFF (32-bit underflow), +1 = 0x00000000, *2 = 0x00000000. The check becomes 'p + 0 > valid->limit' which is 'p > valid->limit', likely false, so validation passes. Subsequent access to glyphIds for this segment reads out …
+
+### `freetype/cffdecode.c [cff_decoder_parse_charstrings B: width+stack bounds L661-840]` — L695 — conf=0.6
+**Type 1 operators (seac, sbw, hsbw) accessible in CFF charstring context without adequate validation**
+
+The two-byte operator dispatch (case 12) maps sub-operators 6, 7, and 13 to `cff_op_seac`, `cff_op_sbw`, and the main switch maps 13 to `cff_op_hsbw`. These are Type 1 charstring operators that have different operand expectations and side effects compared to CFF operators. `cff_op_seac` in particular references Standard Encoding indices and can cause out-of-bounds reads if invoked in a CFF context where the encoding table is not set up. The `in_dict` check at line ~840 may prohibit some operators, but if seac/sbw/hsbw are allowed through in a non-dictionary CFF charstring context, they could a…
+
+*PoC sketch:* Create a CFF font where a charstring contains the two-byte operator (12, 6) which maps to cff_op_seac. Provide operands that reference out-of-range Standard Encoding indices. If the CFF decoder processes this as a Type 1 seac operation, it may read from an invalid encoding table or access glyph data…
+
+### `freetype/ttgload.c [load_truetype_glyph C: composite loop L1701-1837]` — L1756 — conf=0.55
+**Integer truncation in limit assignment from num_subglyphs**
+
+The variable `limit` is declared as `FT_UShort` (16-bit unsigned, max 65535) and is assigned via an explicit cast: `limit = (FT_UShort)gloader->current.num_subglyphs`. If `num_subglyphs` (typically `FT_UInt`, 32-bit) exceeds 65535 due to a malformed or malicious font, the cast truncates the value. This would cause `limit` to be much smaller than the actual number of subglyphs, leading to undersized allocations for `outline.points`, `outline.tags`, `outline.contours`, and `unrounded`. Subsequent loops iterating over `gloader->current.subglyphs` using the untruncated count could then access the …
+
+*PoC sketch:* Create a malicious TrueType font where the composite glyph structure encodes a num_subglyphs value greater than 65535 (e.g., 0x10001). If the parser stores this as a 32-bit value without clamping, the cast to FT_UShort truncates it to 1. The arrays are allocated for 1+4=5 points, but the actual subg…
+
+### `freetype/cffdecode.c [cff_decoder_parse_charstrings A: setup+dispatch L501-660]` — L590 — conf=0.55
+**Potential Stack Underflow via Unchecked Argument Consumption by Operators**
+
+The code computes `num_args = (FT_Int)(args - decoder->stack)` to determine available arguments for operators, but this value represents the total stack depth rather than being validated per-operator before argument consumption. If an operator consumes more arguments than are available on the stack (e.g., due to the parsing desynchronization from finding #2 or a maliciously crafted charstring), `decoder->top` could be decremented below `decoder->stack`, causing a stack underflow. Subsequent operand pushes via `*decoder->top++ = val` would then write before the stack buffer, corrupting adjacent…
+
+*PoC sketch:* Craft a charstring that pushes fewer operands than an operator requires, then invoke that operator. For example, emit a `rrcurveto` (opcode 8, requires 6 arguments) immediately after pushing only 2 operands. If the operator handling code does not validate num_args >= req_args before popping, decoder…
+
+### `freetype/cffdecode.c [cff_decoder_parse_charstrings H: seac+endchar L1620-1760]` — L1649 — conf=0.5
+**Potential stack underflow in endchar seac emulation via args negative indexing**
+
+The endchar seac emulation accesses `args[-4]` through `args[-1]` when `num_args >= 4`. While the num_args check should prevent underflow, the correctness depends entirely on num_args accurately reflecting the number of values on the evaluation stack. If a malformed CFF charstring can manipulate the stack state such that num_args is inflated beyond the actual number of stack elements (e.g., through operator sequences that corrupt the stack pointer), the negative indexing could read before the stack buffer. This is particularly concerning because CFF charstring interpreters have historically ha…
+
+*PoC sketch:* Craft a CFF font with a charstring that uses a sequence of operators designed to desynchronize the stack pointer from num_args, then reach endchar with num_args >= 4 but fewer actual stack elements. This would cause args[-4] through args[-1] to read before the stack buffer.
+
+### `freetype/ttgload.c [load_truetype_glyph D: process+hinting L1838-1966]` — L1908 — conf=0.45
+**Potential use of stale subglyph pointer after gloader reallocation in WE_HAVE_INSTR check**
+
+After the subglyph processing loop, the code checks subglyph->flags & WE_HAVE_INSTR to decide whether to call TT_Process_Composite_Glyph(). The subglyph pointer was last recomputed inside the loop after the final recursive call. However, TT_Process_Composite_Glyph() itself may trigger reallocations of gloader->base.subglyphs. While the pointer is used before that call (only for the flag check), if any intervening operation between the loop exit and the flag check causes reallocation, subglyph would point to freed memory. The comment in the loop explicitly warns about this reallocation risk, bu…
+
+*PoC sketch:* This would require a font that triggers a specific reallocation path between the end of the subglyph loop and the WE_HAVE_INSTR check. A composite glyph with many subglyphs where the last subglyph has WE_HAVE_INSTR set, combined with a gloader buffer that is at its allocation boundary, could potenti…
+
+### `freetype/ttgload.c [TT_Load_Glyph C: scalable+outline load L2601-2740]` — L2653 — conf=0.45
+**Dangling pointer risk with composite glyph subglyphs assignment**
+
+When a composite glyph is loaded, the code directly assigns `glyph->subglyphs = loader.gloader->base.subglyphs` and `glyph->num_subglyphs = loader.gloader->base.num_subglyphs`. This gives the glyph object a pointer into the loader's internal buffer. If the glyph object outlives the loader (or if the loader's buffer is reallocated on a subsequent load), the `subglyphs` pointer becomes dangling. While `tt_loader_done` at the `Done` label cleans up the loader, the glyph's subglyphs pointer may still be accessed by the caller. This is a lifetime management issue that depends on the broader FreeTyp…
+
+*PoC sketch:* 1. Load a composite glyph (glyph_index pointing to a composite glyph definition). 2. The glyph->subglyphs now points into loader.gloader's buffer. 3. If the caller retains the glyph and later the gloader buffer is freed/reused, accessing glyph->subglyphs is a use-after-free.
+
+
+## 🔵 LOW (20)
+
+### `freetype/cffload.c [cff_font_load C: charsets+encoding+SFNT L2391-2524]` — L2420 — conf=1.0
+**Denial of Service via CFF2 FD Array Limit**
+
+The code explicitly limits `fd_index.count` to `CFF_MAX_CID_FONTS` (typically 256) for both CFF and CFF2 fonts. However, the CFF2 specification does not limit the number of Font Dicts to 256. The comment `/* TODO: support this for CFF2 */` acknowledges this. As a result, valid CFF2 fonts with more than 256 FDs will be rejected, causing a Denial of Service for legitimate fonts.
+
+*PoC sketch:* Create a valid CFF2 font containing 257 Font Dicts. FreeType will refuse to load it, printing 'FD array too large in CID font' and failing to render the font.
+
+### `freetype/ttgload.c [load_truetype_glyph C: composite loop L1701-1837]` — L1787 — conf=0.9
+**Phantom point variation deltas silently discarded after TT_Vary_Apply_Glyph_Deltas**
+
+After calling `TT_Vary_Apply_Glyph_Deltas`, which modifies `outline.points[limit]` through `outline.points[limit+3]` (the phantom points pp1–pp4), the code only reads back the first `limit` points into `subglyph->arg1`/`arg2`. The modified phantom point values are never written back to `loader->pp1` through `loader->pp4`. This means variation deltas for phantom points are computed but silently discarded, leading to incorrect glyph metrics and rendering for variable fonts. While primarily a correctness bug, incorrect metrics could cause downstream calculations to produce out-of-range values.
+
+*PoC sketch:* Load a variable TrueType font with a composite glyph where the variation deltas significantly shift phantom points. Render the glyph at a non-default variation instance. Observe that the glyph metrics (advance width, vertical origin) do not reflect the variation deltas, as the phantom point updates …
+
+### `freetype/cffdecode.c [cff_decoder_parse_charstrings H: seac+endchar L1620-1760]` — L1748 — conf=0.9
+**Ineffective upper bound check in cff_op_sqrt**
+
+The sqrt handler checks `if (args[0] > 0x7FFFFFFFL)` to guard against overflow in the sqrt computation. However, since `args[0]` is of type `FT_Fixed` (which is `FT_Long`, a signed 32-bit integer), its maximum positive value is exactly `0x7FFFFFFF`. Therefore, `args[0] > 0x7FFFFFFFL` is always false on platforms where FT_Long is 32 bits, making the protective check dead code. Very large positive fixed-point values that could overflow FT_SqrtFixed are not properly clamped, potentially leading to incorrect sqrt results or undefined behavior in the sqrt computation.
+
+*PoC sketch:* Push the maximum positive FT_Fixed value (0x7FFFFFFF) onto the stack and invoke sqrt. The guard condition is false, so the value passes directly to FT_SqrtFixed without clamping, potentially causing overflow in the integer square root computation.
+
+### `freetype/ttload.c [tt_face_load_os2 A: sTypo+xAvgCharWidth L1107-1215]` — L47 — conf=0.8
+**Type Confusion in fsType Field Parsing**
+
+The `fsType` field in the OS/2 table is defined as `USHORT` in the OpenType specification, but it is read using `FT_FRAME_SHORT` (signed short). This causes values with the most significant bit set (>= 32768) to be interpreted as negative numbers. While FreeType does not enforce font embedding permissions itself, applications relying on FreeType to correctly parse this field might make incorrect authorization decisions regarding font embedding.
+
+*PoC sketch:* Provide a font file with the `fsType` field in the OS/2 table set to a value >= 32768 (e.g., 0x8000). When parsed, the field will be read as a negative number, potentially bypassing embedding restrictions in downstream software that incorrectly interprets the signed value.
+
+### `freetype/ttcmap.c [cmap4_validate A: segCount+idRangeOffset L902-1040]` — L912 — conf=0.7
+**Silent length correction masks malformed font data at default validation level**
+
+The code silently corrects the `length` field when it doesn't match the actual available data: if `length` exceeds the table bounds, it's clamped to `valid->limit - table` (at non-TIGHT levels); if `length` is too small, it's extended to `valid->limit - table` (at non-PARANOID levels). This means at default validation level, a font with an intentionally wrong length field will have its length silently adjusted, and subsequent validation checks use the corrected length rather than the declared one. This can mask inconsistencies in the font data and allow malformed fonts to pass validation that …
+
+*PoC sketch:* Create a font with a cmap format 4 table where the length field is set to a very small value (e.g., 16) but the actual table data extends much further with crafted idRangeOffset values. At default validation, length will be silently extended, and the extra data (which wasn't accounted for in the dec…
+
+### `freetype/cffdecode.c [cff_decoder_parse_charstrings G: hflex1+flex+flex1 L1461-1619]` — L1503 — conf=0.7
+**Incorrect comment vs code in hflex ending point addition**
+
+The hflex operator contains a comment stating 'we don't add this point, though' for the ending point, but the code immediately calls cff_builder_add_point(builder, x, y, 1) to add it. This comment-code mismatch suggests a prior version did NOT add the ending point, and the change may have been made without updating the comment. If downstream code assumes hflex does not add the ending point (as the comment states), this could lead to incorrect point count calculations and potential buffer issues in outline processing.
+
+*PoC sketch:* N/A - this is a logic discrepancy that may cause secondary issues in code that relies on the documented (but not implemented) behavior.
+
+### `freetype/ttgload.c [TT_Load_Glyph B: SVG+sbix load L2511-2600]` — L2537 — conf=0.6
+**Implementation-defined behavior on right shift of signed negative values in sbix offset calculation**
+
+The `>> 6` operation on the result of `FT_MulFix` is performed on a signed FT_Long value. If the FT_MulFix result is negative, right-shifting a negative signed integer is implementation-defined behavior in C (prior to C23). While virtually all modern compilers perform arithmetic right shift (sign-extending), this is not guaranteed by the standard. On a hypothetical platform using logical right shift for signed integers, negative bitmap offsets would become large positive values, causing incorrect glyph positioning and potentially leading to out-of-bounds rendering access.
+
+*PoC sketch:* Craft a font where bitmap_left or bitmap_top values result in a negative FT_MulFix result. On a platform with logical right shift for signed integers, the >> 6 operation would produce a large positive value instead of the expected small negative offset, corrupting the bitmap position.
+
+### `freetype/cffdecode.c [cff_decoder_parse_charstrings D: hintmask+rlineto L965-1133]` — L1062 — conf=0.6
+**rlineto performs operations before validating argument count**
+
+In the rlineto case, cff_builder_start_point() and cff_check_points() are called BEFORE the 'num_args < 2' validation check. While cff_check_points with num_args/2=0 is likely harmless and cff_builder_start_point may handle edge cases, calling these functions with invalid state (insufficient arguments) could have unintended side effects such as adding invalid points to the builder or triggering assertions. The validation check should be moved before the builder function calls for defensive correctness.
+
+*PoC sketch:* Craft a CFF font with a charstring containing rlineto (opcode 5) with 0 or 1 arguments. The builder functions will be called before the Stack_Underflow check catches the insufficient arguments.
+
+### `freetype/ttload.c [tt_face_load_name B: lang tag+storage bounds L946-1046]` — L997 — conf=0.55
+**Truncation of numNameRecords to FT_UShort on assignment to face->num_names**
+
+The assignment `face->num_names = (FT_UShort)table->numNameRecords` truncates the count to 16 bits. If `table->numNameRecords` (which is `valid`, an FT_UInt) exceeds 65535, the upper bits are lost. This creates an inconsistency between the actual number of name records stored in `table->names` and the count reported in `face->num_names`. Downstream code using `face->num_names` to iterate over the names array could miss entries or, if the truncated value is used for deallocation sizing, lead to memory leaks or other inconsistencies.
+
+*PoC sketch:* Craft a font with >65535 valid name records. After processing, table->numNameRecords = valid (e.g., 65540), but face->num_names = (FT_UShort)65540 = 4. Code iterating based on face->num_names would only process 4 of 65540 entries.
+
+### `freetype/ttgload.c [TT_Process_Composite_Component B: scale+adjust L1111-1200]` — L1119 — conf=0.5
+**Integer Underflow in a-b and c-d Difference Check**
+
+The condition `a - b <= 33 && a - b >= -33` computes the difference of two non-negative integers. While normally safe, if the absolute value computation for `a` or `b` has already produced a negative result (due to the INT_MIN negation UB above), the subtraction `a - b` could produce unexpected results. Even without that, if a crafted font causes `a` to be near INT_MAX and `b` near 0, `a - b` is large and the condition correctly fails, but the interaction with the corrupted absolute values creates unpredictable control flow.
+
+*PoC sketch:* Combine with the INT_MIN absolute value bug: set transform.xx = INT_MIN so a = INT_MIN (negative), and transform.yx = 1 so b = 1. Then a - b = INT_MIN - 1, which wraps to INT_MAX, potentially satisfying the <= 33 check incorrectly on some compiler optimizations that exploit UB.
+
+### `freetype/ttgload.c [load_truetype_glyph A: setup+metrics L1429-1577]` — L1449 — conf=0.5
+**Unbounded maxComponentDepth update from recurse_count**
+
+The `recurse_count` is cast to `FT_UShort` when updating `face->max_profile.maxComponentDepth`. If `recurse_count` exceeds 65535, the cast truncates the value. While this doesn't directly cause a memory safety issue, it could lead to incorrect depth tracking. More importantly, modifying a shared face structure field based on recursion depth without synchronization could cause issues in multi-threaded scenarios where the face is shared.
+
+*PoC sketch:* Craft a deeply nested composite glyph (using component references) with nesting depth > 65535. The maxComponentDepth will wrap around, potentially confusing depth-limit checks elsewhere.
+
+### `freetype/ttgload.c [TT_Load_Glyph A: bitmap+strike select L2423-2510]` — L2440 — conf=0.5
+**Stale x_scale/y_scale used after load_sbit_image may produce incorrect glyph metrics**
+
+x_scale and y_scale are captured from size->root.metrics on lines 2440-2441 BEFORE the call to load_sbit_image() on line 2443. If load_sbit_image() internally modifies the size metrics (e.g., due to bitmap strike scaling adjustments), the captured scale values become stale. These stale values are then used in FT_MulFix computations on lines 2477-2483 to compute glyph metrics. While this is primarily a logic/correctness bug, incorrect metrics could lead to miscalculated buffer sizes in downstream glyph rendering code, potentially contributing to buffer overflows in certain rendering paths.
+
+*PoC sketch:* Use a font with embedded bitmap strikes that have a different design size than the outline, causing load_sbit_image to adjust size metrics. Request a glyph that is missing from the bitmap strike (triggering Missing_Bitmap path). The metrics will be computed using the pre-load_sbit_image scale values…
+
+### `freetype/ttgload.c [TT_Load_Glyph C: scalable+outline load L2601-2740]` — L2638 — conf=0.5
+**Potential integer overflow in hdmx advance width calculation**
+
+The expression `loader.widthp[glyph_index] * 64` multiplies a byte value (0-255) by 64. While the maximum result (255 * 64 = 16320) fits within a standard integer type, if `widthp` is not properly typed as `FT_Byte*` or if the compiler performs unexpected promotions, this could lead to unexpected behavior. More importantly, the result is assigned to `glyph->metrics.horiAdvance` which is of type `FT_Pos` (typically `long`). In isolation this is low risk, but combined with the OOB read above, a corrupted widthp value could produce a large advance metric leading to downstream issues in layout eng…
+
+*PoC sketch:* If the OOB read from finding #1 returns a large byte value (e.g., 0xFF from adjacent memory), the advance width becomes 16320, which could cause excessive memory allocation or layout issues in consuming applications.
+
+### `freetype/ttload.c [check_table_dir A: tag+checksum L59-170]` — L72 — conf=0.5
+**Zero-length table bypass may skip security-critical tables**
+
+The function explicitly skips tables with zero length (for Windows compatibility), returning NULL as if the table doesn't exist. An attacker could set the Length field of a security-critical table (e.g., 'cmap', 'head', 'OS/2') to zero, causing the table to be treated as missing. Depending on how callers handle the missing table case, this could cause fallback to less secure code paths or skip important security checks that the table's data would normally enable.
+
+*PoC sketch:* Craft a font where a security-relevant table (e.g., 'cmap') has Tag and CheckSum set correctly but Length set to 0. The `tt_face_lookup_table` function will skip this table, returning NULL. If the caller falls back to a default or less restrictive parsing path, this could weaken security guarantees.
+
+### `freetype/ttload.c [tt_face_load_font_dir A: header+table count L344-470]` — L393 — conf=0.5
+**Integer Overflow in FT_FRAME_ENTER Size Calculation**
+
+The expression `sfnt.num_tables * 16L` is used as the frame size in FT_FRAME_ENTER. While sfnt.num_tables is FT_UShort (max 65535), making the maximum product 1,048,560 which fits in 32 bits, on platforms where FT_Long is 16 bits or where the multiplication is performed in a narrower type, this could overflow. Additionally, if the macro expands to a signed comparison, a large frame size could be misinterpreted. The practical risk is low on modern platforms but represents a defensive coding concern.
+
+*PoC sketch:* On a hypothetical 16-bit platform, set num_tables=4096. Then 4096*16=65536 which overflows a 16-bit unsigned integer to 0, potentially causing FT_FRAME_ENTER to allocate a zero-size frame while the loop reads 4096*16 bytes.
+
+### `freetype/sfwoff2.c [woff2_open_font A: header+length sanity L1858-1980]` — L1935 — conf=0.5
+**No validation that TransformLength does not exceed dst_length for non-transform tables**
+
+When the WOFF2_FLAGS_TRANSFORM flag is set, TransformLength is read separately from dst_length, but there is no validation that TransformLength is reasonable relative to dst_length. While for compressed data TransformLength < dst_length is expected, a malicious font could set TransformLength > dst_length, which may confuse downstream decompression logic or cause inconsistencies in size calculations.
+
+*PoC sketch:* Craft a WOFF2 table entry with the transform flag set where TransformLength > dst_length. This violates the implicit assumption that compressed data is smaller than uncompressed data.
+
+### `freetype/ttcmap.c [cmap4_validate B: glyphId array bounds L1041-1160]` — L1068 — conf=0.5
+**offset==0xFFFF accepted for non-last segments at non-PARANOID validation levels**
+
+When offset==0xFFFF (a sentinel value meaning 'missing glyph'), the code only rejects it at FT_VALIDATE_PARANOID level or if it's not the last segment with start=end=0xFFFF. At default validation levels, a non-last segment with offset==0xFFFF is accepted. While this is treated as 'missing glyph' by some code paths, other code paths may interpret 0xFFFF as a legitimate offset and compute a pointer that reads far beyond the table boundary, since 0xFFFF*2 + base could exceed the buffer.
+
+*PoC sketch:* Create a cmap4 table where a non-last segment has offset=0xFFFF. At FT_VALIDATE_DEFAULT level, this passes validation. If the access routine treats 0xFFFF as a real offset rather than a sentinel, it computes a glyphId pointer 0x1FFFE bytes past the offset array base, likely outside the allocated buf…
+
+### `freetype/cffload.c [cff_encoding_load B: supplement parse L1801-1900]` — L1832 — conf=0.5
+**Missing Validation of GID Range Before Encoding Population**
+
+After calling cff_charset_cid_to_gindex(), the returned GID is used without verifying it falls within the valid range [0, num_glyphs). While the truncation to FT_UShort limits the stored value to 16 bits, there is no explicit check that the GID (even after truncation) is a valid glyph index. If cff_charset_cid_to_gindex() returns an out-of-range value due to a malformed charset, and that value happens to be non-zero and within FT_UShort range after truncation, the stored GID could be invalid. Downstream code using encoding->codes[] as an index into glyph arrays may then perform out-of-bounds a…
+
+*PoC sketch:* Provide a CFF font with a malformed charset where CID-to-GID mapping returns a GID equal to num_glyphs (off-by-one) or a GID that is non-zero but exceeds the actual glyph array size. The encoding population loop will store this invalid GID without validation, potentially causing out-of-bounds reads …
+
+### `freetype/cffdecode.c [cff_decoder_parse_charstrings B: width+stack bounds L661-840]` — L670 — conf=0.5
+**Missing sub-operator values in case 12 dispatch silently ignored, enabling obfuscated malicious charstrings**
+
+The case 12 sub-switch is missing explicit handling for sub-operator values 19, 25, 31, and 32. These fall through to the default case which only logs a trace message. While currently treated as unknown (and skipped if op is properly initialized), this silent ignoring of bytes means a malicious font can embed arbitrary bytes after a (12, ...) prefix without causing a parse error. This makes it harder for downstream security tools to detect malformed or intentionally obfuscated charstrings, and if the handling of `op` changes in future code revisions, these unhandled sub-operators could become …
+
+*PoC sketch:* Include bytes [12, 19] or [12, 25] in a CFF charstring. These are silently consumed without error, allowing an attacker to pad charstrings with arbitrary data that bypasses validation while consuming instruction pointer bytes.
+
+### `freetype/ttload.c [tt_face_load_font_dir A: header+table count L344-470]` — L393 — conf=0.4
+**Unchecked Stream Seek Arithmetic Overflow**
+
+The expression `sfnt.offset + 12` in FT_STREAM_SEEK could theoretically overflow if sfnt.offset (obtained from FT_STREAM_POS()) is near the maximum value of its type. While unlikely in practice (file offsets are typically well within range), there is no explicit overflow check before the addition. If overflow occurs, the stream would seek to an unexpected position, potentially reading incorrect data.
+
+*PoC sketch:* Provide a font file embedded at an offset near ULONG_MAX within a container format, causing sfnt.offset + 12 to wrap around to a small value.
+
+
+## ⚪ INFO (8)
+
+### `freetype/ttload.c [check_table_dir B: offset+length bounds L171-342]` — L87 — conf=0.9
+**hmtx/vmtx bounds check bypass enables out-of-bounds read**
+
+When a table's Tag is TTAG_hmtx or TTAG_vmtx and its Length exceeds the file boundary (table.Length > stream->size - table.Offset), the code increments valid_entries and treats the table as valid instead of rejecting it. This deliberately bypasses the bounds check, meaning a malformed font with an hmtx/vmtx table whose Length field extends far beyond the actual file data will be accepted. Subsequent code that processes these tables using the unchecked Offset/Length values can perform heap buffer over-reads, potentially leaking sensitive memory contents or causing crashes.
+
+*PoC sketch:* Craft a font file with an hmtx table entry where Offset=100 and Length=0xFFFFFFFF. The check `table.Offset > stream->size` passes (100 < file_size). The check `table.Length > stream->size - table.Offset` triggers (0xFFFFFFFF > file_size - 100), but since table.Tag == TTAG_hmtx, valid_entries is incr…
+
+### `freetype/cffload.c [cff_blend_doBlend B: blend computation L1381-1512]` — L1490 — conf=0.85
+**Out-of-bounds read on varRegion->axisList in cff_blend_build_vector**
+
+The inner loop iterates `j` from 0 to `lenNDV - 1`, accessing `varRegion->axisList[j]`. While `lenNDV` is validated against `vs->axisCount`, there is no validation that each individual `varRegion->axisList` actually contains `axisCount` elements. A malformed font could declare a large `axisCount` in the variation store but provide a `varRegion` with fewer axes in its `axisList`, causing an out-of-bounds heap read. This can leak heap memory contents.
+
+*PoC sketch:* Craft a CFF2 font where `vs->axisCount` is set to a value (e.g., 4) but a `CFF_VarRegion` entry in `varRegionList` has an `axisList` with fewer elements (e.g., 1). When `cff_blend_build_vector` is called with `lenNDV == axisCount == 4`, the inner loop will read past the end of the undersized `axisLi…
+
+### `freetype/cffdecode.c [cff_decoder_parse_charstrings H: seac+endchar L1620-1760]` — L1707 — conf=0.75
+**Integer overflow in FT_DivFix via cff_op_div with FT_LONG_MIN numerator**
+
+The cff_op_div handler calls `FT_DivFix(args[0], args[1])` without validating that args[0] is not FT_LONG_MIN. Inside FT_DivFix, when the numerator `a` is negative, it computes `a = -a` to get the absolute value. If `a == FT_LONG_MIN` (0x80000000), negating it causes signed integer overflow (undefined behavior in C), since the positive equivalent exceeds FT_LONG_MAX. This can produce incorrect computation results or, depending on compiler optimization, unexpected control flow. An attacker can push FT_LONG_MIN onto the CFF charstring stack and invoke the div operator to trigger this.
+
+*PoC sketch:* Craft a CFF font charstring: push FT_LONG_MIN (0x80000000 as a fixed-point value), push any non-zero value, then invoke div. FT_DivFix will attempt to negate FT_LONG_MIN, causing integer overflow/undefined behavior.
+
+### `freetype/ttgload.c [load_truetype_glyph B: variation setup L1578-1700]` — L1582 — conf=0.7
+**Stack buffer overflow via TT_Vary_Apply_Glyph_Deltas with undersized outline**
+
+The `points[4]` and `unrounded[4]` arrays are stack-allocated with exactly 4 elements (for phantom points pp1-pp4). The outline structure is initialized with `n_points = 0` but `points` points to the 4-element array. If `TT_Vary_Apply_Glyph_Deltas` internally determines the point count from the glyph variation data rather than respecting `outline.n_points`, a malformed font with variation data specifying more than 4 delta points could cause writes beyond the stack buffers. This is especially dangerous because `outline.tags = NULL` and `outline.contours = NULL` — if the function tries to write …
+
+*PoC sketch:* Craft a TrueType font with GX/AAT variation data (`gvar` table) where the number of delta values for a glyph exceeds 4 points. When `TT_Vary_Apply_Glyph_Deltas` processes this glyph, it may write beyond the `points[4]` and `unrounded[4]` stack buffers, corrupting the stack and potentially enabling c…
+
+### `freetype/cffload.c [cff_blend_doBlend B: blend computation L1381-1512]` — L1475 — conf=0.7
+**Missing bounds check on regionIndices array access**
+
+The code accesses `varData->regionIndices[master - 1]` where `master` ranges from 1 to `varData->regionIdxCount`. While this appears correct if `regionIndices` has exactly `regionIdxCount` elements, there is no explicit validation that the `regionIndices` array was actually allocated with that many entries. A malformed font could set `regionIdxCount` to a value larger than the actual number of entries in `regionIndices`, causing an out-of-bounds read. The subsequent `idx >= vs->regionCount` check validates the *value* read but not the *access* itself.
+
+*PoC sketch:* Craft a CFF2 font where `varData->regionIdxCount` is set to 100 but `regionIndices` only has 2 entries allocated. When the loop iterates with `master >= 3`, the access `regionIndices[master - 1]` reads beyond the allocated array.
+
+### `freetype/cffload.c [cff_blend_doBlend B: blend computation L1381-1512]` — L1455 — conf=0.6
+**Integer overflow in regionIdxCount + 1 leading to undersized allocation**
+
+The computation `len = varData->regionIdxCount + 1` can overflow if `regionIdxCount` is `0xFFFFFFFF` (the maximum value for FT_UInt). This would cause `len` to wrap to 0, resulting in `FT_QRENEW_ARRAY` allocating a zero-sized buffer (or a very small buffer). While the immediate loop would not execute (since `len == 0`), `blend->lenBV` would be set to 0, and subsequent code that trusts `blend->lenBV` or `blend->BV` could access out-of-bounds memory. More practically, a large but non-overflowing `regionIdxCount` could cause excessive memory allocation.
+
+*PoC sketch:* Craft a CFF2 font where `varData->regionIdxCount` is set to 0xFFFFFFFF. The resulting `len` will be 0 due to integer overflow, causing a zero-sized allocation for `blend->BV`. Subsequent accesses to `blend->BV` based on other fields could then read/write out of bounds.
+
+### `freetype/cffload.c [cff_charset_load A: format0+1 SID parse L912-1005]` — L968 — conf=0.55
+**Incomplete SID initialization in format 1/2 with rescued nleft**
+
+When the SID range rescue logic trims nleft (because glyph_sid + nleft would exceed 0xFFFF), the inner loop fills fewer SIDs than the range originally specified. The while loop then reads the next range entry from the stream, but the stream position has already advanced past the original range's nleft field. This causes the parser to become desynchronized with the binary data, interpreting subsequent bytes as new range entries. The result is that charset->sids entries may contain uninitialized or garbage SID values derived from misinterpreted data. Downstream code using these SIDs for string l…
+
+*PoC sketch:* Craft a CFF font with format 1 charset where a range has glyph_sid=0xFFFE and nleft=5. The rescue trims nleft to 1, filling only 2 SIDs instead of 6. The parser then reads the next 3 bytes from the stream as a new range entry, but those bytes are actually part of the original range's intended SID da…
+
+### `freetype/ttload.c [check_table_dir B: offset+length bounds L171-342]` — L126 — conf=0.5
+**Missing validation of table.Offset + 12 seek for head/bhed tables**
+
+When processing head/bhed tables, the code seeks to `table.Offset + 12` and reads a 4-byte magic number. While the existing checks ensure table.Length >= 0x36 and table.Offset <= stream->size, the combination relies on the implicit guarantee that table.Offset + table.Length <= stream->size (from the else branch). However, for the hmtx/vmtx exception path, this invariant is broken. If a font has both a head table processed via the normal path and the offset arithmetic is influenced by prior corrupted state, the seek to table.Offset + 12 could read beyond the stream. More critically, on platform…
+
+*PoC sketch:* On a 32-bit system with a file >= 4GB (rare but possible with memory-mapped streams), set a head table's Offset to 0xFFFFFFF4. The check `0xFFFFFFF4 > stream->size` fails (assuming stream->size >= 0xFFFFFFF4). Then `table.Offset + 12 = 0x00000000`, causing a seek to position 0 and reading the file h…
+

@@ -1,0 +1,355 @@
+{
+  "model": "glm-5.1",
+  "timestamp": "2026-05-05T01:13:39",
+  "results": [
+    {
+      "file": "pngrutil.c [png_handle_IHDR]",
+      "chars": 2932,
+      "elapsed_s": 207.2,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Integer overflow in pixel_depth calculation before validation",
+          "line_start": 940,
+          "confidence": 0.82,
+          "description": "The expression `(png_byte)(png_ptr->bit_depth * png_ptr->channels)` can silently overflow/truncate when `bit_depth` (read directly from untrusted file input as `buf[8]`, range 0-255) is multiplied by `channels` (up to 4). For example, `bit_depth=128, color_type=RGB_ALPHA (channels=4)` yields `128*4=512`, which truncates to `0` when cast to `png_byte`. This causes `pixel_depth=0` and subsequently `rowbytes=0` via `PNG_ROWBYTES(0, width)`. These corrupted values are stored in `png_ptr` BEFORE `png_set_IHDR` performs validation. While `png_set_IHDR` will reject invalid combinations via `png_error` (longjmp), the `png_ptr` structure already contains the corrupted `pixel_depth=0` and `rowbytes=0`. Applications using custom error handlers that continue processing or access `png_ptr` fields during cleanup may allocate zero-size buffers and subsequently suffer heap buffer overflows when row data is written. The `default` case in the color_type switch exacerbates this by setting `channels=1` for any invalid color_type, allowing the multiplication to proceed with arbitrary bit_depth values.",
+          "poc": "Craft a PNG file with IHDR chunk where bit_depth=128 and color_type=6 (RGB_ALPHA). The multiplication 128*4=512 overflows png_byte to 0. pixel_depth=0, rowbytes=0. png_set_IHDR rejects this, but png_ptr->rowbytes is already 0. If the application's longjmp error handler accesses png_ptr->rowbytes (e.g., for cleanup allocation), a zero-size buffer may be allocated. A more subtle variant: bit_depth=64, color_type=6 gives 64*4=256 which wraps to 0 as well."
+        },
+        {
+          "severity": "medium",
+          "title": "Integer overflow in rowbytes calculation for large width values",
+          "line_start": 941,
+          "confidence": 0.7,
+          "description": "The `PNG_ROWBYTES(pixel_depth, width)` macro computes `(pixel_bits) * ((width) + 7) >> 3`. For valid PNG inputs where pixel_depth=64 (16-bit RGBA) and width is large (up to PNG_UINT_31_MAX = 2^31-1), the intermediate multiplication `64 * (2^31-1 + 7)` ≈ 2^37 overflows a 32-bit `png_uint_32`, producing a small wrapped value for `rowbytes`. While the default `PNG_USER_WIDTH_MAX` (1,000,000) prevents this, applications that call `png_set_user_limits()` with large values (or builds with increased defaults) can trigger this overflow with a valid PNG that passes all checks in `png_check_IHDR`. The resulting undersized `rowbytes` leads to heap buffer overflows when subsequent row data is processed.",
+          "poc": "1. Build libpng with PNG_USER_WIDTH_MAX set to 0x7FFFFFFF (or call png_set_user_limits with large values). 2. Craft a PNG with IHDR: width=134217728 (0x08000000), height=1, bit_depth=16, color_type=6 (RGBA). pixel_depth=64. PNG_ROWBYTES(64, 134217728) = 64 * (134217728+7) >> 3 = 64*134217735>>3 = 8589935040>>3 which overflows 32-bit to a small value. The image data will then be written to an undersized buffer."
+        },
+        {
+          "severity": "low",
+          "title": "Premature PNG_HAVE_IHDR mode flag set before validation",
+          "line_start": 866,
+          "confidence": 0.65,
+          "description": "The line `png_ptr->mode |= PNG_HAVE_IHDR` is executed immediately after the length check but BEFORE the IHDR field values are validated by `png_set_IHDR`. If `png_set_IHDR` rejects the IHDR (e.g., invalid bit_depth/color_type combination) and calls `png_error`, the longjmp to the application's error handler leaves `PNG_HAVE_IHDR` set in `png_ptr->mode` even though the IHDR was invalid. Applications that catch errors via setjmp/longjmp and attempt to continue processing will see the flag as set, potentially allowing processing of subsequent chunks (PLTE, IDAT, etc.) against an inconsistent/corrupted png_ptr state. This could lead to type confusion or buffer overflows in downstream chunk handlers that rely on PNG_HAVE_IHDR to indicate valid IHDR state.",
+          "poc": "Craft a PNG with an invalid IHDR (e.g., bit_depth=3, color_type=2). The PNG_HAVE_IHDR flag is set at line 866. png_set_IHDR calls png_error which longjmps. If the application error handler does not destroy the png_struct and instead attempts to re-use it, subsequent chunk processing will see PNG_HAVE_IHDR set and may process PLTE/IDAT chunks using the corrupted width/height/bit_depth values already stored in png_ptr."
+        }
+      ]
+    },
+    {
+      "file": "pngrutil.c [png_handle_PLTE]",
+      "chars": 2934,
+      "elapsed_s": 340.1,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "medium",
+          "title": "Inconsistent error handling order in png_handle_sBIT allows stream corruption",
+          "line_start": 1199,
+          "confidence": 0.85,
+          "description": "In png_handle_sBIT, when the length validation check fails (`length != truelen || length > 4`), `png_chunk_benign_error()` is called BEFORE `png_crc_finish()`. This is inconsistent with all other error paths in the same function (lines 1175-1179 for 'out of place' and lines 1184-1188 for 'duplicate') and with other chunk handlers like png_handle_gAMA (lines 1129-1133), which correctly call `png_crc_finish()` first. If the application configures libpng to treat benign errors as fatal (via `png_set_benign_errors()`), `png_chunk_benign_error()` will invoke `png_error()` which performs a longjmp, causing `png_crc_finish()` to never execute. This leaves the PNG stream in an inconsistent state — the current chunk's data has not been consumed — and subsequent chunk parsing will misinterpret stream data, potentially leading to further memory corruption or denial of service.",
+          "poc": "Craft a PNG file with an sBIT chunk whose declared length does not match the expected truelen for the image's color type (e.g., color_type=2/RGB expects truelen=3, but set sBIT chunk length=5). In an application that calls png_set_benign_errors(png_ptr, PNG_HANDLE_ERROR_ALWAYS) and uses setjmp/longjmp to continue processing after errors, the stream will be misaligned after the longjmp, causing subsequent chunk handlers to read corrupted data."
+        },
+        {
+          "severity": "low",
+          "title": "Potential stack buffer overflow if png_ptr->channels exceeds 4 in sBIT handler",
+          "line_start": 1191,
+          "confidence": 0.6,
+          "description": "In png_handle_sBIT, `truelen` is set to `png_ptr->channels` for non-palette color types, and data is read into `png_byte buf[4]` via `png_crc_read(png_ptr, buf, truelen)`. While the check `length != truelen || length > 4` indirectly prevents overflow (since length must equal truelen AND be <=4), the code does not explicitly validate that `truelen <= sizeof(buf)`. If `png_ptr->channels` were ever corrupted or set to a value >4 through a prior bug or memory corruption, the indirect length check would still catch it — but the defense is fragile and relies on the attacker-controlled `length` field matching `truelen`. A defense-in-depth explicit check on `truelen` itself would be safer. For standard valid PNG color types, channels is always <=4, so this is not directly exploitable with well-formed IHDR processing.",
+          "poc": "Not directly exploitable with valid PNG color types. Would require prior memory corruption of png_ptr->channels to a value >4, combined with a crafted sBIT chunk length matching that value — at which point the length>4 check would still block the overflow. Demonstrates fragile defense-in-depth rather than directly exploitable condition."
+        }
+      ]
+    },
+    {
+      "file": "pngrutil.c [png_inflate]",
+      "chars": 2928,
+      "elapsed_s": 272.5,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "medium",
+          "title": "Missing avail_out bounds check causes integer underflow in output size tracking",
+          "line_start": 545,
+          "confidence": 0.82,
+          "description": "When `output == NULL`, the code caps `avail` to `sizeof local_buffer` but does NOT cap it to `avail_out` (remaining output space). The input side correctly has `if (avail_in < avail) avail = (uInt)avail_in;` (line ~530), but the output side lacks the equivalent `if (avail_out < avail) avail = (uInt)avail_out;`. This causes `avail_out -= avail` to underflow when `avail_out < sizeof local_buffer`, wrapping `avail_out` (an unsigned `png_alloc_size_t`) to a near-maximum value. The code comment even says 'up to remaining_space' but the implementation never checks `avail_out`. The corrupted `avail_out` propagates to `*output_size_ptr`, causing the caller to receive a wildly incorrect decompressed size, which can lead to undersized buffer allocation on a subsequent call and ultimately a heap buffer overflow, or denial of service via memory exhaustion.",
+          "poc": "Craft a PNG with an IDAT chunk where png_inflate is called with output=NULL and *output_size_ptr set to a small value (e.g., 1). On the first loop iteration, avail=sizeof(local_buffer) (e.g., 8192) exceeds avail_out=1, so avail_out -= 8192 underflows to ~2^64-8192. The returned *output_size_ptr is corrupted. A subsequent call with a non-NULL output buffer allocated based on this size can trigger a heap overflow, or the massive allocation request causes DoS."
+        },
+        {
+          "severity": "critical",
+          "title": "Potential heap buffer overflow via missing avail_out cap when output is non-NULL",
+          "line_start": 557,
+          "confidence": 0.55,
+          "description": "The visible code shows the `output == NULL` branch capping `avail` to `sizeof local_buffer`, but the `output != NULL` branch is truncated. By structural analogy, if the non-NULL branch also fails to cap `avail` to `avail_out` before assigning `png_ptr->zstream.avail_out = avail`, then zlib is told it has ZLIB_IO_MAX (65535) bytes of output space when only `avail_out` bytes remain in the caller's buffer. zlib will then write up to 65535 bytes past the end of the heap-allocated output buffer. The inconsistency with the input-side bounds check (`if (avail_in < avail) avail = (uInt)avail_in;`) and the missing output-side equivalent strongly suggests this cap may be absent or incorrect in the truncated section.",
+          "poc": "Provide a crafted PNG where png_inflate is called with a small output buffer (e.g., 100 bytes) but the decompressed data exceeds the buffer. If avail is set to ZLIB_IO_MAX without capping to avail_out, zlib writes past the 100-byte buffer boundary, corrupting heap metadata and enabling arbitrary code execution."
+        },
+        {
+          "severity": "low",
+          "title": "Inconsistent bounds checking between input and output chunking",
+          "line_start": 527,
+          "confidence": 0.9,
+          "description": "The input chunking code at lines ~527-535 correctly prevents underflow with `if (avail_in < avail) avail = (uInt)avail_in;` before `avail_in -= avail;`. The output chunking code lacks this symmetric guard. This asymmetry indicates a defensive programming lapse: the input path was hardened but the output path was not. While the direct impact requires specific caller conditions (small *output_size_ptr), the pattern violation suggests other output-path bounds checks may also be missing throughout the function.",
+          "poc": "Static analysis: compare lines 529-534 (input: check then subtract) with lines 545-556 (output: no check before subtract). The structural mismatch is the root cause of finding #1."
+        }
+      ]
+    },
+    {
+      "file": "pngrutil.c [png_decompress_chunk]",
+      "chars": 2937,
+      "elapsed_s": 269.6,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Integer Overflow in Limit Check Bypass via prefix_size + terminate",
+          "line_start": 645,
+          "confidence": 0.85,
+          "description": "The expression `prefix_size + (terminate != 0)` is computed in `png_uint_32` (32-bit unsigned) arithmetic before being compared against the `png_alloc_size_t limit`. When `prefix_size = 0xFFFFFFFF` and `terminate != 0`, this addition overflows to 0 in 32-bit, causing the check `limit >= 0` to always pass. This bypasses the intended limit enforcement. Subsequently, `buffer_size = prefix_size + new_size + (terminate != 0)` also overflows on 32-bit systems (where `png_alloc_size_t` is 32-bit), wrapping to a small value. This results in an undersized heap allocation via `png_malloc_base`, while the code attempts to write `prefix_size` (0xFFFFFFFF) bytes of prefix data plus decompressed data into the tiny buffer — a critical heap buffer overflow. On 64-bit systems, the overflow in the check still occurs but `buffer_size` computes to an extremely large value causing allocation failure (DoS only).",
+          "poc": "Craft a PNG file with a compressed text chunk (e.g., zTXt or iTXt) where the prefix (keyword + separators) spans 0xFFFFFFFF bytes. This requires a chunk with chunklength >= 0xFFFFFFFF. The chunk length field in PNG is 32-bit, so this is format-legal. When processed on a 32-bit system: (1) prefix_size = 0xFFFFFFFF, terminate = 1; (2) prefix_size + 1 overflows to 0 in png_uint_32; (3) limit check passes; (4) buffer_size = 0xFFFFFFFF + decompressed_size + 1 wraps to decompressed_size; (5) small allocation succeeds; (6) memcpy of prefix_size bytes overflows heap buffer. A minimal PoC would set the chunk length to 0xFFFFFFFF with no null byte in the first 0xFFFFFFFF-2 bytes for a zTXt chunk."
+        },
+        {
+          "severity": "high",
+          "title": "Integer Overflow in buffer_size Calculation on 32-bit Systems",
+          "line_start": 695,
+          "confidence": 0.8,
+          "description": "The calculation `buffer_size = prefix_size + new_size + (terminate != 0)` can overflow `png_alloc_size_t` on 32-bit systems when `prefix_size` is large. Even without the limit check bypass (finding 1), if `prefix_size` is sufficiently large (e.g., 0x80000001) and `new_size` is within the (incorrectly computed) limit, the sum can wrap around to a small value. For example, prefix_size=0xFFFFFF00, new_size=0xFF, terminate=1 yields buffer_size=0xFFFFFF00+0xFF+1=0x100000000 which truncates to 0 on 32-bit, causing a zero-size or small allocation followed by massive heap overflow when data is written. The prior limit check uses 32-bit arithmetic for `prefix_size + (terminate != 0)` which fails to properly constrain the values feeding into this 32-bit buffer_size computation.",
+          "poc": "On a 32-bit system, provide a chunk with prefix_size close to 0xFFFFFF00 and compressed data that decompresses to ~0xFF bytes. The limit check computes prefix_size+1 in 32-bit (no overflow at 0xFFFFFF01), limit reduces to ~0xFE, new_size capped to ~0xFE. Then buffer_size = 0xFFFFFF00 + 0xFE + 1 = 0xFFFFFFFF (no wrap, but huge — malloc fails). For the wrap case, prefix_size=0xFFFFFFFF with terminate=1 triggers finding 1's overflow, making buffer_size = 0xFFFFFFFF + new_size + 1 = new_size (wrap), enabling the heap overflow."
+        },
+        {
+          "severity": "medium",
+          "title": "Missing Validation of prefix_size Against chunklength",
+          "line_start": 660,
+          "confidence": 0.7,
+          "description": "The function computes `lzsize = chunklength - prefix_size` without validating that `prefix_size <= chunklength`. If a caller passes `prefix_size > chunklength`, this unsigned subtraction underflows, producing an extremely large `lzsize`. This value is then passed to `png_inflate` as the input buffer size, along with the pointer `png_ptr->read_buffer + prefix_size` which already points beyond the allocated read buffer. This results in an out-of-bounds read during decompression. While current callers in libpng validate this relationship, the function itself lacks the defensive check, making it vulnerable to future caller regressions or custom chunk handlers.",
+          "poc": "Call png_decompress_chunk with chunklength=10 and prefix_size=20. Then lzsize = 10 - 20 = 0xFFFFFFFA (32-bit underflow). png_inflate attempts to read 0xFFFFFFFA bytes from read_buffer+20, causing a massive out-of-bounds read and likely a crash."
+        }
+      ]
+    },
+    {
+      "file": "pngrutil.c [png_handle_iCCP]",
+      "chars": 2934,
+      "elapsed_s": 360.5,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "pngrutil.c [png_handle_tRNS]",
+      "chars": 2934,
+      "elapsed_s": 113.6,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "medium",
+          "title": "Uninitialized stack buffer passed to png_set_tRNS in GRAY/RGB paths",
+          "line_start": 1829,
+          "confidence": 0.92,
+          "description": "The local variable `readbuf` (png_byte[PNG_MAX_PALETTE_LENGTH]) is declared at the top of the function but is only populated via png_crc_read() in the PALETTE color type branch. In the GRAY and RGB branches, `readbuf` remains uninitialized, yet `png_ptr->num_trans` is set to 1. After the branch, the common code path calls `png_set_tRNS(png_ptr, info_ptr, readbuf, png_ptr->num_trans, &(png_ptr->trans_color))`, passing the uninitialized `readbuf` with `num_trans=1`. The `png_set_tRNS` function will see `num_trans > 0` and `trans != NULL` (stack address), so it allocates a 1-byte buffer and memcpy's 1 byte of uninitialized stack data into `info_ptr->trans_alpha`. This results in an information disclosure: 1 byte of stack content is leaked into the PNG info structure, which can later be read by the application via png_get_tRNS(). This could leak stack pointers useful for ASLR bypass in a multi-stage attack.",
+          "poc": "Craft a PNG file with color_type=0 (GRAY) or color_type=2 (RGB) containing a valid tRNS chunk (2 bytes for GRAY, 6 bytes for RGB). When libpng processes this file, png_handle_tRNS will set num_trans=1 without writing to readbuf, then pass the uninitialized readbuf to png_set_tRNS. The application can then retrieve the leaked byte via png_get_tRNS(). Minimal PoC PNG: IHDR with color_type=0, bit_depth=8, followed by a 2-byte tRNS chunk, then IDAT and IEND."
+        },
+        {
+          "severity": "info",
+          "title": "Potential use-after-free via shared tRNS buffer pointer between png_struct and png_info",
+          "line_start": 1949,
+          "confidence": 0.65,
+          "description": "The TODO comment in the source explicitly acknowledges this design flaw: 'the png_struct ends up with a pointer to the tRNS buffer owned by the png_info.' After png_set_tRNS allocates and stores the transparency buffer in info_ptr->trans_alpha, png_ptr may also hold a reference to the same buffer. If info_ptr is freed (e.g., via png_destroy_info) while png_ptr continues processing, png_ptr's dangling pointer to the freed trans_alpha buffer becomes a use-after-free. Subsequent reads or writes through png_ptr's reference could corrupt heap metadata or leak freed heap data.",
+          "poc": "1. Parse a PNG with a PALETTE color type and a tRNS chunk. 2. Call png_destroy_info() to free info_ptr and its trans_alpha buffer. 3. Continue using png_ptr (e.g., reading more chunks or rows), which may dereference the dangling pointer to the freed trans_alpha buffer. The exact exploitability depends on the application's lifecycle management of png_ptr vs info_ptr."
+        }
+      ]
+    },
+    {
+      "file": "pngrutil.c [png_handle_tEXt]",
+      "chars": 2820,
+      "elapsed_s": 97.8,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Integer Overflow in length+1 Leading to Heap Buffer Overflow",
+          "line_start": 2614,
+          "confidence": 0.85,
+          "description": "When length is 0xFFFFFFFF (maximum png_uint_32), the expression `length+1` overflows to 0 in 32-bit unsigned arithmetic. This 0 is then passed to png_read_buffer() as the allocation size. If png_read_buffer returns a non-NULL pointer for a zero-size allocation (which is permitted by the C standard for malloc(0)), the subsequent png_crc_read(png_ptr, buffer, length) will attempt to write 0xFFFFFFFF bytes into the undersized buffer, causing a massive heap buffer overflow. The only existing guard (PNG_MAX_MALLOC_64K) is conditionally compiled and not enabled on most modern systems.",
+          "poc": "Craft a PNG file with a tEXt chunk whose length field in the chunk header is set to 0xFFFFFFFF. The chunk data can be minimal (a few bytes followed by end-of-file). When libpng processes this chunk: 1) length = 0xFFFFFFFF, 2) length+1 = 0 (overflow), 3) png_read_buffer allocates 0 bytes (may return non-NULL), 4) png_crc_read writes up to 4GB into the tiny buffer. Even if the stream ends early, any bytes written beyond the allocation constitute a heap overflow."
+        },
+        {
+          "severity": "info",
+          "title": "Missing Key Length Validation",
+          "line_start": 2626,
+          "confidence": 0.7,
+          "description": "The PNG specification requires tEXt chunk keywords to be 1-79 bytes long and must contain at least one non-null byte before the null separator. The code does not validate: (a) that the key is non-empty (first byte could be null), (b) that the key length is <= 79 bytes. An empty key (buffer starting with 0x00) causes text to be set to key+1, and the empty key string is passed to png_set_text_2, which may cause undefined behavior or crashes in downstream consumers that assume a valid non-empty key. A key longer than 79 bytes violates the spec and may overflow fixed-size buffers in applications processing the metadata.",
+          "poc": "Craft a PNG with a tEXt chunk where: (a) the first byte is 0x00 (empty key), causing key='' and text to point to key+1; or (b) the key is 200+ bytes with no null separator until the end, creating an oversized key that violates the PNG spec 79-byte limit."
+        },
+        {
+          "severity": "info",
+          "title": "CRC Check Occurs After Buffer Overflow Window",
+          "line_start": 2622,
+          "confidence": 0.75,
+          "description": "The CRC validation via png_crc_finish() is performed AFTER png_crc_read() has already written data into the buffer. If the integer overflow in finding #1 is triggered, the heap corruption occurs during png_crc_read() before the CRC is ever validated. This means the CRC integrity check cannot prevent the buffer overflow — the damage is already done. This is a defense-in-depth failure where the integrity check ordering is incorrect for security purposes.",
+          "poc": "Same as finding #1 — the overflow in png_crc_read happens before png_crc_finish can reject the malformed chunk."
+        }
+      ]
+    },
+    {
+      "file": "pngrutil.c [png_handle_zTXt]",
+      "chars": 2934,
+      "elapsed_s": 245.7,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Heap Buffer Overflow (Off-by-One) in Null Termination Write",
+          "line_start": 2737,
+          "confidence": 0.72,
+          "description": "After decompression, the code writes a null terminator at `buffer[uncompressed_length+(keyword_length+2)] = 0` without independently verifying that this index falls within the allocated bounds of `png_ptr->read_buffer`. The safety of this write depends entirely on `png_decompress_chunk` correctly allocating an extra byte when the `terminate` parameter is 1. If `png_decompress_chunk` allocates only `keyword_length + 2 + uncompressed_length` bytes (failing to account for the null terminator), this write constitutes a 1-byte heap buffer overflow. A 1-byte heap overflow can corrupt adjacent heap metadata or data, potentially leading to arbitrary code execution or information disclosure depending on heap layout.",
+          "poc": "Craft a PNG file with a zTXt chunk where: (1) keyword is 1-79 valid chars, (2) compression type is 0 (PNG_COMPRESSION_TYPE_BASE), (3) the zlib-compressed text data decompresses to fill the output buffer exactly to its allocated boundary. The null terminator write at `buffer[uncompressed_length + keyword_length + 2]` will then write one byte past the heap allocation. For example, a zTXt chunk with keyword 'A' (1 byte + null = 2 bytes prefix + 1 byte compression type = 3 byte prefix) and compressed payload that decompresses to N bytes, where the output buffer is allocated as exactly N+3 bytes instead of N+4, causing the null byte write at offset N+3 to overflow."
+        },
+        {
+          "severity": "medium",
+          "title": "Denial of Service via Unbounded Decompression (Zip Bomb)",
+          "line_start": 2723,
+          "confidence": 0.92,
+          "description": "`uncompressed_length` is initialized to `PNG_SIZE_MAX` before being passed to `png_decompress_chunk`. This effectively provides no application-level limit on the size of decompressed zTXt data. A malicious PNG can contain a tiny compressed zTXt payload (e.g., a few hundred bytes of zlib data) that decompresses to an enormous size (gigabytes), causing memory exhaustion and process termination. The TODO comment in the code acknowledges that memory limits for text chunks need improvement.",
+          "poc": "Create a PNG file with a zTXt chunk containing a zip bomb payload: a small zlib-compressed stream that expands to multiple gigabytes. For example, a 500-byte compressed payload that decompresses to 4GB+ of repetitive data. When libpng processes this chunk, it will attempt to allocate a buffer of the full decompressed size, causing OOM and crash. Python PoC: import zlib; data = b'\\x00' * (2**30); compressed = zlib.compress(data); # embed in zTXt chunk"
+        },
+        {
+          "severity": "low",
+          "title": "Missing Keyword Content Validation Enables Injection",
+          "line_start": 2703,
+          "confidence": 0.95,
+          "description": "The keyword in the zTXt chunk is only validated for length (1-79 characters) but not for character content. The PNG specification requires keywords to contain only printable Latin-1 characters (32-126, 161-255) and spaces, with no leading/trailing/consecutive spaces. The code's own TODO comment acknowledges this gap: 'TODO: also check that the keyword contents match the spec!'. Malicious keywords containing control characters, null bytes (beyond the terminator), or other invalid characters could cause unexpected behavior in downstream applications that trust libpng's validation — including log injection, metadata manipulation, or string handling vulnerabilities in consumers.",
+          "poc": "Create a PNG with a zTXt chunk where the keyword contains control characters or non-Latin-1 bytes. For example, keyword bytes: 0x01 0x02 0x03 (control chars) followed by 0x00 (null terminator). This passes the length check (keyword_length=3, within 1-79) but violates the PNG spec. Downstream applications rendering or logging this keyword may exhibit undefined behavior."
+        },
+        {
+          "severity": "low",
+          "title": "Potential Integer Overflow in Buffer Index Calculation",
+          "line_start": 2737,
+          "confidence": 0.35,
+          "description": "The expression `uncompressed_length + (keyword_length + 2)` used as a buffer index could theoretically overflow if `uncompressed_length` (type `png_alloc_size_t`, typically `size_t`) is close to `SIZE_MAX`. While practically difficult to achieve due to memory constraints, if `png_decompress_chunk` returns a very large `uncompressed_length` without proper validation, the wrapped-around index would cause the null terminator to be written to an unintended memory location. This is a defense-in-depth concern — the code should validate that `uncompressed_length + keyword_length + 2` does not overflow before using it as an index.",
+          "poc": "Theoretical: On a 32-bit system where SIZE_MAX = 0xFFFFFFFF, if png_decompress_chunk were to set uncompressed_length = 0xFFFFFF7D (4294967165) and keyword_length = 79, then uncompressed_length + keyword_length + 2 = 0xFFFFFF7D + 81 = 0xFFFFFFCE (no overflow in this case, but values closer to SIZE_MAX would wrap). A crafted PNG that triggers decompression to a size near SIZE_MAX on a 32-bit platform could potentially trigger this."
+        }
+      ]
+    },
+    {
+      "file": "pngrutil.c [png_handle_iTXt]",
+      "chars": 2934,
+      "elapsed_s": 360.5,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "pngrutil.c [png_handle_pCAL]",
+      "chars": 2934,
+      "elapsed_s": 164.7,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Missing return after benign error for unrecognized equation type leads to heap buffer over-read",
+          "line_start": 2370,
+          "confidence": 0.95,
+          "description": "When `type >= PNG_EQUATION_LAST`, the code calls `png_chunk_benign_error()` but does NOT return, unlike the invalid parameter count case above it which does return. This allows execution to fall through to the parameter processing loop with an unvalidated `nparams` value (0-255). The subsequent loop iterates `nparams` times scanning for null-terminated parameter strings in the buffer. If `nparams` exceeds the actual number of parameter strings present, the scanner walks past the null terminator placed at `buffer[length]` and reads heap memory beyond the allocated buffer. Each iteration does `buf++` past the last null, then reads `*buf` — a classic heap buffer over-read. With `nparams=255` and a minimal buffer, this can leak significant heap data or cause a crash.",
+          "poc": "Craft a PNG file with a pCAL chunk where: (1) the purpose string is minimal (1 char + null), (2) X0, X1 are any values, (3) type = 4 (>= PNG_EQUATION_LAST, which is typically 4), (4) nparams = 255, (5) units is a minimal string, (6) only 0-2 parameter strings follow. The parser will not return after the benign error, will allocate a 255-element params array, and will scan past buffer[length] trying to find 255 null-terminated strings, reading heap data beyond the allocation."
+        },
+        {
+          "severity": "medium",
+          "title": "No bounds validation on parameter string count vs. remaining buffer size",
+          "line_start": 2385,
+          "confidence": 0.85,
+          "description": "Even for valid equation types (where nparams is constrained to 2-4), the code never verifies that the buffer actually contains enough null-terminated parameter strings after the units string. The check `endptr - buf <= 12` only ensures room for the fixed fields (X0, X1, type, nparams, units), not for the parameter strings. If a pCAL chunk declares nparams=2 (LINEAR) but the buffer only contains 0 or 1 parameter strings after units, the scanning loop will advance `buf` past `buffer[length]` (the safety null terminator) and read out-of-bounds heap memory. This is a more limited over-read than the unrecognized-type variant but is still exploitable.",
+          "poc": "Craft a PNG with a pCAL chunk: type=0 (LINEAR), nparams=2, units='U\\0', and only 0 or 1 parameter strings after units. The buffer has room for the fixed fields but insufficient parameter strings. The loop scans past buffer[length] looking for the second null-terminated string, reading 1-few bytes of adjacent heap data."
+        },
+        {
+          "severity": "low",
+          "title": "Integer overflow in length+1 buffer allocation size computation",
+          "line_start": 2328,
+          "confidence": 0.5,
+          "description": "The expression `length+1` is computed in `png_uint_32` (32-bit unsigned) arithmetic. If `length` is 0xFFFFFFFF, `length+1` wraps to 0. This zero is then passed to `png_read_buffer()` as the allocation size. If `png_read_buffer` returns a non-NULL pointer for a zero-size allocation (implementation-defined behavior of malloc(0)), the subsequent `png_crc_read(png_ptr, buffer, length)` would attempt to write 0xFFFFFFFF bytes into the undersized buffer — a catastrophic heap buffer overflow. In practice, libpng's `png_read_buffer` includes internal size validation that likely returns NULL for size 0, and PNG chunk size limits may prevent reaching this code path, but the arithmetic overflow is still a code defect.",
+          "poc": "Craft a PNG with a pCAL chunk whose length field is 0xFFFFFFFF. If the PNG reader does not reject this chunk size before calling png_handle_pCAL, the length+1 computation overflows to 0, potentially leading to a zero-size allocation followed by a massive overwrite."
+        }
+      ]
+    },
+    {
+      "file": "pngrutil.c [png_handle_sCAL]",
+      "chars": 2724,
+      "elapsed_s": 223.5,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "critical",
+          "title": "Integer overflow in length+1 allocation size computation",
+          "line_start": 2468,
+          "confidence": 0.75,
+          "description": "The expression `length+1` is computed in `png_uint_32` (uint32_t) arithmetic before being implicitly widened to `size_t` for the `png_read_buffer` call. When `length` is 0xFFFFFFFF, the addition overflows to 0 in uint32_t arithmetic. This zero-sized allocation request may cause `png_read_buffer` to return a previously allocated (and potentially much smaller) buffer, or a zero-size allocation. Subsequently, `png_crc_read(png_ptr, buffer, length)` attempts to read 0xFFFFFFFF bytes into this undersized buffer, causing a massive heap buffer overflow. Additionally, `buffer[length] = 0` writes to buffer[0xFFFFFFFF], which is an out-of-bounds write. The overflow occurs regardless of platform pointer width because the arithmetic is performed in uint32_t before widening to size_t.",
+          "poc": "Craft a PNG file with an sCAL chunk whose declared length field is 0xFFFFFFFF. The chunk header in the PNG file would encode this as the 4-byte big-endian value FF FF FF FF. When libpng processes this chunk on a system where png_read_buffer returns a non-NULL pointer for a zero-size request (or returns a previously allocated smaller buffer), the subsequent png_crc_read will write far beyond the allocated buffer, leading to heap corruption and potential code execution."
+        },
+        {
+          "severity": "critical",
+          "title": "Out-of-bounds write via buffer[length] null termination after integer overflow",
+          "line_start": 2475,
+          "confidence": 0.7,
+          "description": "The statement `buffer[length] = 0` writes a null byte at offset `length` from the buffer start. Under normal conditions, this is safe because the buffer was allocated with `length+1` bytes. However, if the integer overflow in `length+1` causes the buffer to be allocated with fewer than `length+1` bytes (e.g., 0 bytes due to overflow), this write is an out-of-bounds access. Even if `png_crc_read` is somehow bounded, this single byte out-of-bounds write could corrupt heap metadata or adjacent data, enabling further exploitation.",
+          "poc": "Same as the integer overflow PoC: a PNG with sCAL chunk length 0xFFFFFFFF. After the overflow in allocation, buffer[length] writes to buffer[0xFFFFFFFF], a massive out-of-bounds offset that will segfault or corrupt memory."
+        }
+      ]
+    },
+    {
+      "file": "pngrutil.c [png_combine_row]",
+      "chars": 2934,
+      "elapsed_s": 284.4,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Integer Overflow in end_mask Calculation Due to Unchecked pixel_depth * row_width Multiplication",
+          "line_start": 3280,
+          "confidence": 0.75,
+          "description": "The multiplication `pixel_depth * row_width` at the `end_mask` calculation can overflow on platforms where `unsigned int` and `png_alloc_size_t` are both 32-bit. The code comment explicitly acknowledges this ('the multiply below may overflow, we don't care because ANSI-C guarantees we get the low bits') but incorrectly dismisses the consequences. When the multiplication overflows: (1) `end_mask` can be incorrectly 0, causing the partial-byte preservation logic to be skipped entirely — leading to data corruption in the destination buffer's last byte; (2) `end_mask` can be incorrectly non-zero, causing wrong bits to be preserved. Critically, `PNG_ROWBYTES(pixel_depth, row_width)` used to compute `end_ptr` may also overflow on 32-bit systems. The `info_rowbytes` consistency check (`png_ptr->info_rowbytes != PNG_ROWBYTES(...)`) can be bypassed when `info_rowbytes` is 0 (check is skipped) or when both sides overflow to the same incorrect value. If `PNG_ROWBYTES` overflows to a small value while `end_mask` is non-zero, `end_ptr = dp + PNG_ROWBYTES(...) - 1` could point near the start of an undersized buffer, and subsequent writes by the interlacing code (using actual pixel coordinates) would overflow the heap buffer. A crafted PNG with e.g. pixel_depth=3 and row_width=0x55555556 causes the multiplication to overflow to 2, yielding end_mask=2 (non-zero) and PNG_ROWBYTES=1, while the true row requires ~0x20000000 bytes.",
+          "poc": "Craft a PNG file targeting 32-bit libpng builds: set color type to palette (pixel_depth=1-8) or small bit depth, and set width to a value such that pixel_depth * width overflows a 32-bit integer to a small non-zero value. For pixel_depth=3, width=0x55555556: 3*0x55555556 = 0x100000002, overflows to 0x2 on 32-bit. end_mask = 2 & 7 = 2 (non-zero, enters preservation block). PNG_ROWBYTES = (2+7)>>3 = 1. end_ptr = dp + 1 - 1 = dp. The buffer allocated based on overflowed rowbytes is far too small for the actual row data, causing heap buffer overflow when the interlacing expansion code writes pixel data at the true offsets."
+        },
+        {
+          "severity": "medium",
+          "title": "Incomplete info_rowbytes Validation Allows Overflow to Propagate",
+          "line_start": 3270,
+          "confidence": 0.65,
+          "description": "The consistency check `if (png_ptr->info_rowbytes != 0 && png_ptr->info_rowbytes != PNG_ROWBYTES(pixel_depth, row_width))` is skipped entirely when `info_rowbytes` is 0. This means that if `info_rowbytes` has not been properly initialized (e.g., `png_read_update_info()` was not called, or a code path fails to set it), no validation of the row size calculation occurs. On 32-bit systems where `PNG_ROWBYTES` overflows, this missing check allows the overflowed value to be used unchecked for buffer pointer arithmetic (`end_ptr = dp + PNG_ROWBYTES(pixel_depth, row_width) - 1`), potentially leading to out-of-bounds memory access.",
+          "poc": "In an application that does not call png_read_update_info() before reading rows, info_rowbytes remains 0. Combined with a crafted PNG that triggers integer overflow in PNG_ROWBYTES on a 32-bit build, the consistency check is bypassed and the overflowed row size is used for pointer arithmetic."
+        }
+      ]
+    },
+    {
+      "file": "pngrtran.c [png_do_compose]",
+      "chars": 2933,
+      "elapsed_s": 360.5,
+      "status": "ok",
+      "findings": []
+    },
+    {
+      "file": "pngpread.c [png_push_read_chunk]",
+      "chars": 2936,
+      "elapsed_s": 334.9,
+      "status": "ok",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Missing Duplicate IHDR Validation",
+          "line_start": 247,
+          "confidence": 0.65,
+          "description": "The IHDR chunk handling does not verify whether IHDR has already been processed (i.e., whether PNG_HAVE_IHDR is already set) before invoking png_handle_IHDR. This contrasts with the IDAT handling, which explicitly checks for PNG_HAVE_IHDR. A crafted PNG with two IHDR chunks could cause png_handle_IHDR to be called twice, re-initializing image dimensions, color type, and bit depth after memory has already been allocated based on the first IHDR's parameters. This mismatch between allocated buffer sizes and re-initialized dimensions can lead to heap buffer overflows when subsequent image data is decompressed and written.",
+          "poc": "Craft a PNG file with chunk sequence: IHDR(13 bytes: 64x64, 8-bit RGB) → IDAT(valid compressed data for 64x64) → IHDR(13 bytes: 4096x4096, 8-bit RGB) → IDAT(data sized for 4096x4096). If the second IHDR re-initializes the state, buffers allocated for 64x64 pixels will be overwritten with data intended for 4096x4096, causing a heap buffer overflow."
+        },
+        {
+          "severity": "medium",
+          "title": "Zero-Length IDAT Early Return Skips CRC Consumption",
+          "line_start": 237,
+          "confidence": 0.45,
+          "description": "When a zero-length IDAT chunk appears after a previous IDAT with no intervening non-IDAT chunks, the function returns early (line 240) without consuming the 4-byte CRC. At this point, PNG_HAVE_CHUNK_HEADER remains set and PNG_HAVE_IDAT has NOT been set. The process_mode is changed to PNG_READ_IDAT_MODE, delegating CRC handling to the IDAT mode handler. If that handler does not correctly process the CRC for zero-length IDATs (e.g., skips CRC read when push_length==0), the unconsumed CRC bytes will be misinterpreted as the next chunk's length+tag, causing parser desynchronization and potential buffer over-reads or chunk confusion.",
+          "poc": "Craft PNG: IHDR → IDAT(valid data + CRC) → IDAT(length=0, valid CRC) → IEND. The zero-length second IDAT triggers the early return. If the IDAT mode handler fails to consume the CRC for zero-length chunks, the 4 CRC bytes are parsed as the next chunk header (e.g., a bogus length + tag), desynchronizing the parser and potentially reading out of bounds."
+        },
+        {
+          "severity": "medium",
+          "title": "Missing IEND Chunk Length Validation",
+          "line_start": 256,
+          "confidence": 0.4,
+          "description": "Unlike IHDR which explicitly validates push_length == 13, the IEND handling performs no validation that push_length == 0 as required by the PNG specification. A malformed IEND chunk with a non-zero length passes through to png_handle_IEND with an unexpected length. While png_check_chunk_length (called earlier at line 210) may provide some validation, the absence of an explicit zero-length check in the dispatch code means a non-zero-length IEND could reach the handler. If the handler trusts the length or uses it in calculations, this could cause out-of-bounds reads or unexpected memory operations.",
+          "poc": "Craft PNG: IHDR → IDAT(valid) → IEND(length=0x7FFFFFF0 instead of 0). The oversized length causes PNG_PUSH_SAVE_BUFFER_IF_FULL to attempt buffering an enormous amount of data. If the length+4 calculation overflows in signed arithmetic within the macro (0x7FFFFFF0+4 = 0x7FFFFFF4 unsigned, but negative as signed int32), the buffer sufficiency check may pass incorrectly, leading to a buffer over-read in png_handle_IEND."
+        }
+      ]
+    }
+  ]
+}

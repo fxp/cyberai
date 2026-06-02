@@ -1,0 +1,53 @@
+{
+  "saved_at": "2026-05-03",
+  "note": "Recreated ECS for use case (b): long-running tasks beyond GHA 6h limit. Reuses cyberai-vpc + cyberai-vsw-a + cyberai-sg from the destroyed 4/24 instance.",
+  "instance": {
+    "InstanceId": "i-rj9iivpdwq8g59aa161m",
+    "InstanceName": "cyberai-main",
+    "Region": "us-west-1",
+    "Zone": "us-west-1a",
+    "Status": "Running",
+    "Type": "ecs.t6-c1m4.large",
+    "CPU": 2,
+    "MemoryMB": 8192,
+    "OS": "Ubuntu 22.04 64bit",
+    "ImageId": "ubuntu_22_04_x64_20G_alibase_20260413.vhd",
+    "CreationTime": "2026-05-03T06:22Z",
+    "ExpiredTime": "2026-06-03T16:00Z",
+    "ChargeType": "PrePaid",
+    "Period": "1 Month",
+    "AutoRenew": false,
+    "HostName": "cyberai",
+    "OrderId": 286471718890629,
+    "TradePrice_CNY": 420.08
+  },
+  "network": {
+    "PublicIp": "47.251.245.235",
+    "PrivateIp": "172.16.2.231",
+    "PublicIpType": "Fixed (NOT EIP — cannot detach)",
+    "InternetMaxBandwidthOut_Mbps": 5,
+    "InternetChargeType": "PayByBandwidth",
+    "VpcId": "vpc-rj9aoq74m81fp6oclz1gi",
+    "VSwitchId": "vsw-rj9x86il8m97guvo38jk9",
+    "SecurityGroupId": "sg-rj99e1ymp8yqq6wj8ii1"
+  },
+  "ssh": {
+    "KeyPairName": "cyberai-key",
+    "KeyFingerprint": "f9046668653f85b848dff597db2577",
+    "User": "root",
+    "Command": "ssh -i ~/.ssh/<your-private-key> root@47.251.245.235"
+  },
+  "cost_breakdown_estimated_monthly": {
+    "instance_2c8g_t6": "~210 CNY",
+    "system_disk_40GB_essd": "~60 CNY",
+    "public_bandwidth_5Mbps": "~150 CNY (this surprised us — was estimated at 25)",
+    "total_per_month": "~420 CNY"
+  },
+  "teardown_order_when_done": [
+    "1. aliyun ecs StopInstance --InstanceId i-rj9iivpdwq8g59aa161m",
+    "2. aliyun ecs DeleteInstance --InstanceId i-rj9iivpdwq8g59aa161m --Force true",
+    "3. (system disk auto-deleted with instance)",
+    "4. Public IP released automatically (it's a fixed IP, not EIP)",
+    "5. Network skeleton (VPC/vSwitch/SG/KeyPair) kept for next rebuild"
+  ]
+}

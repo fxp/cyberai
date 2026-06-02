@@ -1,0 +1,147 @@
+{
+  "scan_date": "2026-05-04",
+  "model": "glm-5.1",
+  "wall_time": "20h 2min",
+  "started": "2026-05-03T14:19Z",
+  "completed": "2026-05-04T10:16Z",
+  "targets": [
+    {
+      "target": "libpng",
+      "oss_key": "scans/2026-05-04/libpng.json",
+      "size_bytes": 43285,
+      "segments": 14,
+      "findings": 30,
+      "severity": {
+        "HIGH": 7,
+        "MEDIUM": 10,
+        "LOW": 6,
+        "CRITICAL": 4,
+        "INFO": 3
+      }
+    },
+    {
+      "target": "expat",
+      "oss_key": "scans/2026-05-04/expat.json",
+      "size_bytes": 65046,
+      "segments": 30,
+      "findings": 49,
+      "severity": {
+        "HIGH": 17,
+        "LOW": 7,
+        "CRITICAL": 6,
+        "MEDIUM": 18,
+        "INFO": 1
+      }
+    },
+    {
+      "target": "curl",
+      "oss_key": "scans/2026-05-04/curl.json",
+      "size_bytes": 49472,
+      "segments": 14,
+      "findings": 40,
+      "severity": {
+        "MEDIUM": 19,
+        "LOW": 14,
+        "HIGH": 4,
+        "INFO": 3
+      }
+    },
+    {
+      "target": "nginx",
+      "oss_key": "scans/2026-05-04/nginx.json",
+      "size_bytes": 53178,
+      "segments": 33,
+      "findings": 41,
+      "severity": {
+        "HIGH": 10,
+        "LOW": 10,
+        "MEDIUM": 16,
+        "CRITICAL": 2,
+        "INFO": 3
+      }
+    },
+    {
+      "target": "sqlite",
+      "oss_key": "scans/2026-05-04/sqlite.json",
+      "size_bytes": 88251,
+      "segments": 29,
+      "findings": 66,
+      "severity": {
+        "MEDIUM": 27,
+        "LOW": 21,
+        "HIGH": 14,
+        "CRITICAL": 4
+      }
+    },
+    {
+      "target": "openssl",
+      "oss_key": "scans/2026-05-04/openssl.json",
+      "size_bytes": 82021,
+      "segments": 32,
+      "findings": 57,
+      "severity": {
+        "MEDIUM": 21,
+        "LOW": 19,
+        "HIGH": 11,
+        "INFO": 5,
+        "CRITICAL": 1
+      }
+    },
+    {
+      "target": "zlib",
+      "oss_key": "scans/2026-05-04/zlib.json",
+      "size_bytes": 50960,
+      "segments": 25,
+      "findings": 39,
+      "severity": {
+        "HIGH": 11,
+        "MEDIUM": 12,
+        "INFO": 3,
+        "LOW": 12,
+        "CRITICAL": 1
+      }
+    },
+    {
+      "target": "libxml2",
+      "oss_key": "scans/2026-05-04/libxml2.json",
+      "size_bytes": 111515,
+      "segments": 32,
+      "findings": 92,
+      "severity": {
+        "HIGH": 23,
+        "MEDIUM": 36,
+        "LOW": 18,
+        "CRITICAL": 10,
+        "INFO": 5
+      }
+    },
+    {
+      "target": "libssh2",
+      "oss_key": "scans/2026-05-04/libssh2.json",
+      "size_bytes": 125999,
+      "segments": 40,
+      "findings": 96,
+      "severity": {
+        "MEDIUM": 36,
+        "HIGH": 32,
+        "LOW": 11,
+        "CRITICAL": 14,
+        "INFO": 3
+      }
+    },
+    {
+      "target": "freetype",
+      "oss_key": "scans/2026-05-04/freetype.json",
+      "size_bytes": 153188,
+      "segments": 49,
+      "findings": 120,
+      "severity": {
+        "CRITICAL": 15,
+        "HIGH": 41,
+        "MEDIUM": 36,
+        "LOW": 20,
+        "INFO": 8
+      }
+    }
+  ]
+}

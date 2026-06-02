@@ -56,7 +56,7 @@ log "Tasks: libpng=$RUN_LIBPNG expat=$RUN_EXPAT curl=$RUN_CURL nginx=$RUN_NGINX 
 # ── 1. libpng ──
 if [[ $RUN_LIBPNG -eq 1 ]]; then
   log "--- [1/10] libpng 1.6.45 GLM scan (v3, 14 segments, 90s timeout) ---"
-  python scripts/scan_libpng_v3.py --timeout 90 --delay 20 2>&1 | tee -a "$LOG" || \
+  python scripts/scan_libpng_v3.py --timeout 360 --delay 20 2>&1 | tee -a "$LOG" || \
     log "WARNING: libpng scan exited non-zero"
   log "--- libpng scan done ---"
   sleep 60  # brief cooldown before next target
@@ -65,7 +65,7 @@ fi
 # ── 2. expat ──
 if [[ $RUN_EXPAT -eq 1 ]]; then
   log "--- [2/10] expat 2.6.4 GLM scan (30 segments, 150s timeout) ---"
-  python scripts/scan_expat_t1.py --timeout 150 --delay 30 2>&1 | tee -a "$LOG" || \
+  python scripts/scan_expat_t1.py --timeout 360 --delay 30 2>&1 | tee -a "$LOG" || \
     log "WARNING: expat scan exited non-zero"
   log "--- expat scan done ---"
   sleep 60
@@ -75,7 +75,7 @@ fi
 if [[ $RUN_CURL -eq 1 ]]; then
   log "--- [3/10] curl T1 retry (segments 0,1,8,9,13, 240s timeout) ---"
   python scripts/scan_curl_t1_retry.py \
-    --segments 0,1,8,9,13 --timeout 240 --delay 60 2>&1 | tee -a "$LOG" || \
+    --segments 0,1,8,9,13 --timeout 360 --delay 60 2>&1 | tee -a "$LOG" || \
     log "WARNING: curl retry exited non-zero"
   log "--- curl retry done ---"
   sleep 60
@@ -84,7 +84,7 @@ fi
 # ── 4. nginx ──
 if [[ $RUN_NGINX -eq 1 ]]; then
   log "--- [4/10] nginx 1.27.4 GLM scan (t1, 33 segments, 150s timeout) ---"
-  python scripts/scan_nginx_t1.py --timeout 150 --delay 30 2>&1 | tee -a "$LOG" || \
+  python scripts/scan_nginx_t1.py --timeout 360 --delay 30 2>&1 | tee -a "$LOG" || \
     log "WARNING: nginx scan exited non-zero"
   log "--- nginx scan done ---"
   sleep 60
@@ -93,7 +93,7 @@ fi
 # ── 5. sqlite ──
 if [[ $RUN_SQLITE -eq 1 ]]; then
   log "--- [5/10] sqlite 3.49.1 GLM scan (t1, 29 segments, 150s timeout) ---"
-  python scripts/scan_sqlite_t1.py --timeout 150 --delay 30 2>&1 | tee -a "$LOG" || \
+  python scripts/scan_sqlite_t1.py --timeout 360 --delay 30 2>&1 | tee -a "$LOG" || \
     log "WARNING: sqlite scan exited non-zero"
   log "--- sqlite scan done ---"
   sleep 60
@@ -102,7 +102,7 @@ fi
 # ── 6. openssl ──
 if [[ $RUN_OPENSSL -eq 1 ]]; then
   log "--- [6/10] openssl 3.4.1 GLM scan (t1, 32 segments, 150s timeout) ---"
-  python scripts/scan_openssl_t1.py --timeout 150 --delay 30 2>&1 | tee -a "$LOG" || \
+  python scripts/scan_openssl_t1.py --timeout 360 --delay 30 2>&1 | tee -a "$LOG" || \
     log "WARNING: openssl scan exited non-zero"
   log "--- openssl scan done ---"
   sleep 60
@@ -111,7 +111,7 @@ fi
 # ── 7. zlib ──
 if [[ $RUN_ZLIB -eq 1 ]]; then
   log "--- [7/10] zlib 1.3.1 GLM scan (t1, 25 segments, 120s timeout) ---"
-  python scripts/scan_zlib_t1.py --timeout 120 --delay 25 2>&1 | tee -a "$LOG" || \
+  python scripts/scan_zlib_t1.py --timeout 360 --delay 25 2>&1 | tee -a "$LOG" || \
     log "WARNING: zlib scan exited non-zero"
   log "--- zlib scan done ---"
   sleep 60
@@ -120,7 +120,7 @@ fi
 # ── 8. libxml2 ──
 if [[ $RUN_LIBXML2 -eq 1 ]]; then
   log "--- [8/10] libxml2 2.13.5 GLM scan (t1, 32 segments, 150s timeout) ---"
-  python scripts/scan_libxml2_t1.py --timeout 150 --delay 30 2>&1 | tee -a "$LOG" || \
+  python scripts/scan_libxml2_t1.py --timeout 360 --delay 30 2>&1 | tee -a "$LOG" || \
     log "WARNING: libxml2 scan exited non-zero"
   log "--- libxml2 scan done ---"
   sleep 60
@@ -129,7 +129,7 @@ fi
 # ── 9. libssh2 ──
 if [[ $RUN_LIBSSH2 -eq 1 ]]; then
   log "--- [9/10] libssh2 1.11.1 GLM scan (t1, 40 segments, 150s timeout) ---"
-  python scripts/scan_libssh2_t1.py --timeout 150 --delay 30 2>&1 | tee -a "$LOG" || \
+  python scripts/scan_libssh2_t1.py --timeout 360 --delay 30 2>&1 | tee -a "$LOG" || \
     log "WARNING: libssh2 scan exited non-zero"
   log "--- libssh2 scan done ---"
   sleep 60
@@ -138,7 +138,7 @@ fi
 # ── 10. freetype ──
 if [[ $RUN_FREETYPE -eq 1 ]]; then
   log "--- [10/10] freetype 2.13.3 GLM scan (t1, 49 segments, 150s timeout) ---"
-  python scripts/scan_freetype_t1.py --timeout 150 --delay 30 2>&1 | tee -a "$LOG" || \
+  python scripts/scan_freetype_t1.py --timeout 360 --delay 30 2>&1 | tee -a "$LOG" || \
     log "WARNING: freetype scan exited non-zero"
   log "--- freetype scan done ---"
 fi
