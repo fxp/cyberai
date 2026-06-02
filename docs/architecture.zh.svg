@@ -1,0 +1,329 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 780" font-family="'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Segoe UI', system-ui, sans-serif">
+  <defs>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000015"/>
+    </filter>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#6b7280"/>
+    </marker>
+    <marker id="arr-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#16a34a"/>
+    </marker>
+    <linearGradient id="grad-header" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#0f172a"/>
+      <stop offset="100%" style="stop-color:#1e3a5f"/>
+    </linearGradient>
+    <linearGradient id="grad-stage" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc"/>
+      <stop offset="100%" style="stop-color:#f1f5f9"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="1100" height="780" fill="#f8fafc"/>
+
+  <!-- ═══ 顶部标题栏 ═══ -->
+  <rect x="0" y="0" width="1100" height="60" fill="url(#grad-header)"/>
+  <text x="32" y="36" font-size="22" font-weight="700" fill="white">CyberAI</text>
+  <text x="130" y="36" font-size="14" fill="#93c5fd">大模型驱动的软件漏洞研究平台</text>
+  <text x="800" y="28" font-size="11" fill="#64748b">GLM-5.1 · Claude · GPT-4o</text>
+  <text x="800" y="46" font-size="11" fill="#64748b">github.com/fxp/cyberai</text>
+
+  <!-- ═══ 列标签 ═══ -->
+  <text x="80"  y="82" font-size="11" font-weight="600" fill="#475569" text-anchor="middle">输入</text>
+  <text x="265" y="82" font-size="11" font-weight="600" fill="#1d4ed8" text-anchor="middle">阶段一</text>
+  <text x="460" y="82" font-size="11" font-weight="600" fill="#1d4ed8" text-anchor="middle">阶段二</text>
+  <text x="655" y="82" font-size="11" font-weight="600" fill="#1d4ed8" text-anchor="middle">阶段三</text>
+  <text x="850" y="82" font-size="11" font-weight="600" fill="#1d4ed8" text-anchor="middle">阶段四</text>
+  <text x="1020" y="82" font-size="11" font-weight="600" fill="#16a34a" text-anchor="middle">输出</text>
+
+  <!-- 竖向分隔线 -->
+  <line x1="160" y1="68" x2="160" y2="620" stroke="#e2e8f0" stroke-width="1"/>
+  <line x1="355" y1="68" x2="355" y2="620" stroke="#e2e8f0" stroke-width="1"/>
+  <line x1="550" y1="68" x2="550" y2="620" stroke="#e2e8f0" stroke-width="1"/>
+  <line x1="745" y1="68" x2="745" y2="620" stroke="#e2e8f0" stroke-width="1"/>
+  <line x1="940" y1="68" x2="940" y2="620" stroke="#e2e8f0" stroke-width="1"/>
+
+  <!-- ═══ Pipeline A 标签 ═══ -->
+  <rect x="20" y="90" width="1060" height="22" rx="4" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+  <text x="36" y="105" font-size="11" font-weight="700" fill="#1d4ed8">Pipeline A</text>
+  <text x="116" y="105" font-size="10" fill="#3b82f6">— Carlini 式并行大模型扫描  (carlini.py)</text>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- 输入：目标库                                     -->
+  <!-- ════════════════════════════════════════════════ -->
+  <rect x="20" y="124" width="128" height="302" rx="10" fill="white" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="20" y="124" width="128" height="26" rx="10" fill="#1e293b"/>
+  <rect x="20" y="138" width="128" height="12" fill="#1e293b"/>
+  <text x="84" y="141" font-size="11" font-weight="700" fill="white" text-anchor="middle">C/C++ 目标库</text>
+  <text x="84" y="158" font-size="9" fill="#64748b" text-anchor="middle">12 个生产级开源库</text>
+
+  <!-- 库标签 -->
+  <rect x="28" y="166" width="112" height="18" rx="4" fill="#f1f5f9"/>
+  <text x="84" y="179" font-size="9" fill="#334155" text-anchor="middle">ImageMagick 7.1.2</text>
+  <rect x="28" y="188" width="112" height="18" rx="4" fill="#f1f5f9"/>
+  <text x="84" y="201" font-size="9" fill="#334155" text-anchor="middle">libpng 1.6.45</text>
+  <rect x="28" y="210" width="112" height="18" rx="4" fill="#f1f5f9"/>
+  <text x="84" y="223" font-size="9" fill="#334155" text-anchor="middle">curl 8.11.0</text>
+  <rect x="28" y="232" width="112" height="18" rx="4" fill="#f1f5f9"/>
+  <text x="84" y="245" font-size="9" fill="#334155" text-anchor="middle">expat 2.6.4</text>
+  <rect x="28" y="254" width="112" height="18" rx="4" fill="#f1f5f9"/>
+  <text x="84" y="267" font-size="9" fill="#334155" text-anchor="middle">freetype 2.13.3</text>
+  <rect x="28" y="276" width="112" height="18" rx="4" fill="#fef2f2" stroke="#fca5a5" stroke-width="1"/>
+  <text x="84" y="289" font-size="9" fill="#991b1b" text-anchor="middle">🔴 Mosquitto 2.0.21</text>
+  <rect x="28" y="298" width="112" height="18" rx="4" fill="#f1f5f9"/>
+  <text x="84" y="311" font-size="9" fill="#334155" text-anchor="middle">nginx 1.27.4</text>
+  <rect x="28" y="320" width="112" height="18" rx="4" fill="#f1f5f9"/>
+  <text x="84" y="333" font-size="9" fill="#334155" text-anchor="middle">OpenSSL 3.4.1</text>
+  <rect x="28" y="342" width="112" height="18" rx="4" fill="#f1f5f9"/>
+  <text x="84" y="355" font-size="9" fill="#334155" text-anchor="middle">libxml2 / LibTIFF</text>
+  <rect x="28" y="364" width="112" height="18" rx="4" fill="#f1f5f9"/>
+  <text x="84" y="377" font-size="9" fill="#334155" text-anchor="middle">SQLite / zlib</text>
+  <text x="84" y="408" font-size="9" fill="#94a3b8" text-anchor="middle">已分析代码行数：</text>
+  <text x="84" y="420" font-size="9" fill="#94a3b8" text-anchor="middle">约 120 万行</text>
+
+  <!-- 箭头 -->
+  <line x1="148" y1="275" x2="170" y2="275" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- 阶段一：文件优先级排序                            -->
+  <!-- ════════════════════════════════════════════════ -->
+  <rect x="172" y="124" width="172" height="142" rx="10" fill="url(#grad-stage)" stroke="#93c5fd" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="172" y="124" width="172" height="26" rx="10" fill="#1d4ed8"/>
+  <rect x="172" y="138" width="172" height="12" fill="#1d4ed8"/>
+  <text x="258" y="141" font-size="11" font-weight="700" fill="white" text-anchor="middle">文件优先级排序</text>
+  <text x="258" y="157" font-size="10" fill="#1e40af" text-anchor="middle">file_ranker.py</text>
+  <text x="185" y="174" font-size="9" fill="#374151">→ 复杂度评分（圈复杂度）</text>
+  <text x="185" y="188" font-size="9" fill="#374151">→ 历史 CVE 密度</text>
+  <text x="185" y="202" font-size="9" fill="#374151">→ 函数数量 / 文件大小</text>
+  <text x="185" y="216" font-size="9" fill="#374151">→ 内存操作模式匹配</text>
+  <text x="185" y="232" font-size="9" fill="#374151">→ 输出有序扫描队列</text>
+  <text x="185" y="248" font-size="9" fill="#6b7280" font-style="italic">低风险文件提前跳过</text>
+
+  <!-- 箭头 -->
+  <line x1="344" y1="195" x2="366" y2="195" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- 阶段二：大模型扫描                               -->
+  <!-- ════════════════════════════════════════════════ -->
+  <rect x="368" y="124" width="172" height="302" rx="10" fill="url(#grad-stage)" stroke="#818cf8" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="368" y="124" width="172" height="26" rx="10" fill="#4f46e5"/>
+  <rect x="368" y="138" width="172" height="12" fill="#4f46e5"/>
+  <text x="454" y="141" font-size="11" font-weight="700" fill="white" text-anchor="middle">大模型扫描</text>
+  <text x="454" y="157" font-size="10" fill="#4338ca" text-anchor="middle">carlini.py（异步并行）</text>
+
+  <!-- 提示词策略 -->
+  <rect x="378" y="164" width="152" height="44" rx="5" fill="#eef2ff" stroke="#a5b4fc" stroke-width="1"/>
+  <text x="454" y="178" font-size="9" font-weight="600" fill="#3730a3" text-anchor="middle">提示策略："ctf"</text>
+  <text x="382" y="192" font-size="9" fill="#4338ca">检查缓冲区溢出、整数溢出</text>
+  <text x="382" y="204" font-size="9" fill="#4338ca">释放后使用等内存漏洞…</text>
+
+  <!-- 模型选择 -->
+  <text x="454" y="222" font-size="9" font-weight="600" fill="#374151" text-anchor="middle">多模型支持</text>
+  <rect x="378" y="228" width="152" height="18" rx="4" fill="#fef3c7" stroke="#fbbf24" stroke-width="1"/>
+  <text x="454" y="241" font-size="9" font-weight="600" fill="#92400e" text-anchor="middle">★ GLM-5.1（主力模型）</text>
+  <rect x="378" y="250" width="72" height="18" rx="4" fill="#f5f3ff" stroke="#a78bfa" stroke-width="1"/>
+  <text x="414" y="263" font-size="9" fill="#5b21b6" text-anchor="middle">Claude</text>
+  <rect x="458" y="250" width="72" height="18" rx="4" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="494" y="263" font-size="9" fill="#166534" text-anchor="middle">GPT-4o</text>
+
+  <text x="454" y="283" font-size="9" fill="#374151" text-anchor="middle">最大并发：4 个 worker</text>
+  <text x="454" y="297" font-size="9" fill="#374151" text-anchor="middle">token 预算：10 万 / 文件</text>
+  <text x="454" y="311" font-size="9" fill="#374151" text-anchor="middle">输出：ScanResult 列表</text>
+  <text x="454" y="325" font-size="9" fill="#374151" text-anchor="middle">原始误报率约 97%</text>
+
+  <!-- 箭头 -->
+  <line x1="540" y1="275" x2="562" y2="275" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- 阶段三：去重与筛查                               -->
+  <!-- ════════════════════════════════════════════════ -->
+  <rect x="564" y="124" width="172" height="192" rx="10" fill="url(#grad-stage)" stroke="#f97316" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="564" y="124" width="172" height="26" rx="10" fill="#ea580c"/>
+  <rect x="564" y="138" width="172" height="12" fill="#ea580c"/>
+  <text x="650" y="141" font-size="11" font-weight="700" fill="white" text-anchor="middle">去重与筛查</text>
+  <text x="650" y="157" font-size="10" fill="#c2410c" text-anchor="middle">dedup.py</text>
+  <text x="574" y="174" font-size="9" fill="#374151">→ 按（文件, 行号）去重</text>
+  <text x="574" y="188" font-size="9" fill="#374151">→ CVE 数据库交叉验证</text>
+  <text x="574" y="202" font-size="9" fill="#374151">→ 置信度分数过滤</text>
+  <text x="574" y="216" font-size="9" fill="#374151">   阈值：≥ 0.80</text>
+  <text x="574" y="230" font-size="9" fill="#374151">→ 严重等级分类</text>
+  <text x="574" y="244" font-size="9" fill="#374151">   CRITICAL / HIGH / MEDIUM</text>
+  <text x="574" y="264" font-size="9" fill="#6b7280" font-style="italic">存活率：约 3% 成为候选</text>
+  <text x="574" y="280" font-size="9" fill="#6b7280" font-style="italic">（过滤掉 97% 误报）</text>
+  <text x="574" y="295" font-size="9" fill="#374151">→ 存储：SQLite + 阿里云 OSS</text>
+  <text x="574" y="309" font-size="9" fill="#374151">   (storage/db.py, oss.py)</text>
+
+  <!-- 箭头 -->
+  <line x1="736" y1="220" x2="758" y2="220" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- 阶段四：交叉验证                                 -->
+  <!-- ════════════════════════════════════════════════ -->
+  <rect x="760" y="124" width="172" height="252" rx="10" fill="url(#grad-stage)" stroke="#34d399" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="760" y="124" width="172" height="26" rx="10" fill="#059669"/>
+  <rect x="760" y="138" width="172" height="12" fill="#059669"/>
+  <text x="846" y="141" font-size="11" font-weight="700" fill="white" text-anchor="middle">交叉验证</text>
+  <text x="846" y="157" font-size="10" fill="#065f46" text-anchor="middle">verifier.py</text>
+  <text x="770" y="174" font-size="9" fill="#374151">→ 第二轮大模型验证</text>
+  <text x="770" y="188" font-size="9" fill="#374151">   （不同模型 / 提示词）</text>
+  <text x="770" y="204" font-size="9" fill="#374151">→ 人工代码审计</text>
+  <text x="770" y="220" font-size="9" fill="#374151">→ PoC 构造与测试</text>
+  <text x="770" y="234" font-size="9" fill="#374151">→ 可利用性评估</text>
+  <rect x="770" y="244" width="152" height="36" rx="5" fill="#dcfce7" stroke="#4ade80" stroke-width="1"/>
+  <text x="846" y="259" font-size="9" font-weight="600" fill="#166534" text-anchor="middle">Pipeline B（思维链推理）</text>
+  <text x="846" y="272" font-size="9" fill="#15803d" text-anchor="middle">检测 → 规划 → 链式推理</text>
+  <text x="770" y="298" font-size="9" fill="#374151">→ 判定：确认 / 误报</text>
+  <text x="770" y="312" font-size="9" fill="#374151">→ 成本追踪（cost.py）</text>
+  <text x="770" y="326" font-size="9" fill="#374151">→ 生成披露草稿</text>
+  <text x="770" y="340" font-size="9" fill="#6b7280" font-style="italic">tracker/ 记录所有发现</text>
+  <text x="770" y="360" font-size="9" fill="#374151">→ CVE 通告模板</text>
+
+  <!-- 箭头 -->
+  <line x1="932" y1="250" x2="954" y2="250" stroke="#16a34a" stroke-width="1.5" marker-end="url(#arr-green)"/>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- 输出：漏洞披露                                   -->
+  <!-- ════════════════════════════════════════════════ -->
+  <rect x="956" y="124" width="124" height="302" rx="10" fill="white" stroke="#4ade80" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="956" y="124" width="124" height="26" rx="10" fill="#16a34a"/>
+  <rect x="956" y="138" width="124" height="12" fill="#16a34a"/>
+  <text x="1018" y="141" font-size="11" font-weight="700" fill="white" text-anchor="middle">漏洞披露</text>
+
+  <!-- CAND-008 高亮 -->
+  <rect x="964" y="154" width="108" height="52" rx="6" fill="#fef2f2" stroke="#f87171" stroke-width="2"/>
+  <text x="1018" y="169" font-size="10" font-weight="700" fill="#991b1b" text-anchor="middle">CAND-008 🔴</text>
+  <text x="1018" y="183" font-size="9" fill="#991b1b" text-anchor="middle">Mosquitto 2.0.21</text>
+  <text x="1018" y="197" font-size="9" fill="#b91c1c" text-anchor="middle">已披露</text>
+
+  <rect x="964" y="212" width="108" height="38" rx="5" fill="#fff7ed" stroke="#fb923c" stroke-width="1"/>
+  <text x="1018" y="226" font-size="9" font-weight="600" fill="#9a3412" text-anchor="middle">CAND-005 ⚠️</text>
+  <text x="1018" y="240" font-size="9" fill="#c2410c" text-anchor="middle">ImageMagick — BMP</text>
+
+  <rect x="964" y="256" width="108" height="38" rx="5" fill="#fff7ed" stroke="#fb923c" stroke-width="1"/>
+  <text x="1018" y="270" font-size="9" font-weight="600" fill="#9a3412" text-anchor="middle">GIF/LZW ⚠️</text>
+  <text x="1018" y="284" font-size="9" fill="#c2410c" text-anchor="middle">ImageMagick — GIF</text>
+
+  <rect x="964" y="300" width="108" height="52" rx="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="1018" y="315" font-size="9" fill="#475569" text-anchor="middle">expat · freetype</text>
+  <text x="1018" y="329" font-size="9" fill="#475569" text-anchor="middle">libpng 候选</text>
+  <text x="1018" y="343" font-size="9" fill="#94a3b8" text-anchor="middle">⚠️ 审查中</text>
+
+  <rect x="964" y="358" width="108" height="24" rx="5" fill="#f0fdf4"/>
+  <text x="1018" y="374" font-size="9" fill="#166534" text-anchor="middle">curl · zlib → ✅ 无漏洞</text>
+
+  <rect x="964" y="390" width="108" height="28" rx="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="1018" y="402" font-size="9" fill="#475569" text-anchor="middle">90 天披露期限</text>
+  <text x="1018" y="416" font-size="9" fill="#475569" text-anchor="middle">公开：2026-07-17</text>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- 基础设施栏                                       -->
+  <!-- ════════════════════════════════════════════════ -->
+  <rect x="20" y="450" width="1060" height="170" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="36" y="470" font-size="12" font-weight="700" fill="#1e293b">基础设施与工具链</text>
+
+  <!-- Docker / ECI -->
+  <rect x="36" y="480" width="155" height="126" rx="8" fill="white" stroke="#93c5fd" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="113" y="498" font-size="11" font-weight="700" fill="#1d4ed8" text-anchor="middle">🐳 Docker / 阿里云 ECI</text>
+  <text x="46" y="514" font-size="9" fill="#374151">Dockerfile.scanner</text>
+  <text x="46" y="528" font-size="9" fill="#374151">docker-compose.yml</text>
+  <text x="46" y="542" font-size="9" fill="#374151">阿里云弹性容器实例</text>
+  <text x="46" y="556" font-size="9" fill="#374151">  (infra/eci.py)</text>
+  <text x="46" y="570" font-size="9" fill="#374151">deploy/setup_ecs.sh</text>
+  <text x="46" y="584" font-size="9" fill="#374151">systemd 服务守护</text>
+  <text x="46" y="598" font-size="9" fill="#6b7280">地区：美西一区</text>
+
+  <!-- FastAPI 服务端 -->
+  <rect x="207" y="480" width="155" height="126" rx="8" fill="white" stroke="#93c5fd" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="284" y="498" font-size="11" font-weight="700" fill="#1d4ed8" text-anchor="middle">⚡ FastAPI 服务端</text>
+  <text x="217" y="514" font-size="9" fill="#374151">src/cyberai/api/</text>
+  <text x="217" y="528" font-size="9" fill="#374151">POST /api/scan/start</text>
+  <text x="217" y="542" font-size="9" fill="#374151">GET  /api/scan/status</text>
+  <text x="217" y="556" font-size="9" fill="#374151">GET  /api/results</text>
+  <text x="217" y="570" font-size="9" fill="#374151">GET  /api/results/{id}</text>
+  <text x="217" y="584" font-size="9" fill="#374151">异步：aiohttp + uvicorn</text>
+
+  <!-- 存储层 -->
+  <rect x="378" y="480" width="155" height="126" rx="8" fill="white" stroke="#93c5fd" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="455" y="498" font-size="11" font-weight="700" fill="#1d4ed8" text-anchor="middle">🗄 存储层</text>
+  <text x="388" y="514" font-size="9" fill="#374151">SQLite (storage/db.py)</text>
+  <text x="388" y="528" font-size="9" fill="#374151">  扫描结果、漏洞记录</text>
+  <text x="388" y="542" font-size="9" fill="#374151">阿里云 OSS (storage/oss.py)</text>
+  <text x="388" y="556" font-size="9" fill="#374151">  cyberai-results-uswest</text>
+  <text x="388" y="570" font-size="9" fill="#374151">Redis（任务队列 / 限速）</text>
+  <text x="388" y="584" font-size="9" fill="#374151">SQLAlchemy + aiosqlite</text>
+
+  <!-- 命令行 & 脚本 -->
+  <rect x="549" y="480" width="155" height="126" rx="8" fill="white" stroke="#93c5fd" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="626" y="498" font-size="11" font-weight="700" fill="#1d4ed8" text-anchor="middle">⌨ 命令行 &amp; 脚本</text>
+  <text x="559" y="514" font-size="9" fill="#374151">src/cyberai/cli.py</text>
+  <text x="559" y="528" font-size="9" fill="#374151">cyberai scan --target</text>
+  <text x="559" y="542" font-size="9" fill="#374151">cyberai results list</text>
+  <text x="559" y="556" font-size="9" fill="#374151">scripts/scan_*.py（各目标）</text>
+  <text x="559" y="570" font-size="9" fill="#374151">scripts/run_daily_scans.sh</text>
+  <text x="559" y="584" font-size="9" fill="#374151">pydantic-settings .env</text>
+
+  <!-- 模型注册表 -->
+  <rect x="720" y="480" width="155" height="126" rx="8" fill="white" stroke="#a78bfa" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="797" y="498" font-size="11" font-weight="700" fill="#6d28d9" text-anchor="middle">🤖 模型注册表</text>
+  <text x="730" y="514" font-size="9" fill="#374151">models/registry.py</text>
+  <text x="730" y="528" font-size="9" fill="#374151">models/glm.py ← 主力</text>
+  <text x="730" y="542" font-size="9" fill="#374151">models/base.py (SecurityAgent)</text>
+  <text x="730" y="556" font-size="9" fill="#374151">按名称前缀自动注册：</text>
+  <text x="730" y="570" font-size="9" fill="#374151">  "glm-*"/"claude-*"/"gpt-*"</text>
+  <text x="730" y="584" font-size="9" fill="#374151">运行时可热换模型</text>
+
+  <!-- 追踪与评估 -->
+  <rect x="891" y="480" width="165" height="126" rx="8" fill="white" stroke="#93c5fd" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="973" y="498" font-size="11" font-weight="700" fill="#1d4ed8" text-anchor="middle">📊 追踪与评估</text>
+  <text x="901" y="514" font-size="9" fill="#374151">tracker/cost.py</text>
+  <text x="901" y="528" font-size="9" fill="#374151">  每次扫描 API 成本</text>
+  <text x="901" y="542" font-size="9" fill="#374151">scripts/verify_candidates.py</text>
+  <text x="901" y="556" font-size="9" fill="#374151">scripts/deep_verify_chain.py</text>
+  <text x="901" y="570" font-size="9" fill="#374151">tests/（验证测试套件）</text>
+  <text x="901" y="584" font-size="9" fill="#374151">scripts/challenge_test.py</text>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- 研究成果汇总栏                                   -->
+  <!-- ════════════════════════════════════════════════ -->
+  <rect x="20" y="636" width="1060" height="124" rx="12" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5"/>
+  <text x="36" y="657" font-size="12" font-weight="700" fill="#991b1b">📋 研究成果（截至 2026-05）</text>
+
+  <!-- 统计卡片 -->
+  <rect x="36" y="665" width="148" height="82" rx="8" fill="white" stroke="#fca5a5" stroke-width="1"/>
+  <text x="110" y="688" font-size="24" font-weight="800" fill="#dc2626" text-anchor="middle">1</text>
+  <text x="110" y="706" font-size="10" fill="#991b1b" text-anchor="middle">已确认 CVE</text>
+  <text x="110" y="720" font-size="9" fill="#7f1d1d" text-anchor="middle">CAND-008 · Mosquitto</text>
+  <text x="110" y="734" font-size="9" fill="#7f1d1d" text-anchor="middle">披露中</text>
+
+  <rect x="196" y="665" width="148" height="82" rx="8" fill="white" stroke="#fca5a5" stroke-width="1"/>
+  <text x="270" y="688" font-size="24" font-weight="800" fill="#ea580c" text-anchor="middle">5+</text>
+  <text x="270" y="706" font-size="10" fill="#9a3412" text-anchor="middle">待确认候选</text>
+  <text x="270" y="720" font-size="9" fill="#7f1d1d" text-anchor="middle">ImageMagick × 2, expat</text>
+  <text x="270" y="734" font-size="9" fill="#7f1d1d" text-anchor="middle">freetype, libpng</text>
+
+  <rect x="356" y="665" width="148" height="82" rx="8" fill="white" stroke="#fca5a5" stroke-width="1"/>
+  <text x="430" y="688" font-size="24" font-weight="800" fill="#d97706" text-anchor="middle">7</text>
+  <text x="430" y="706" font-size="10" fill="#92400e" text-anchor="middle">已审计开源库</text>
+  <text x="430" y="720" font-size="9" fill="#7f1d1d" text-anchor="middle">+5 进行中</text>
+  <text x="430" y="734" font-size="9" fill="#7f1d1d" text-anchor="middle">约 120 万行代码已扫描</text>
+
+  <rect x="516" y="665" width="148" height="82" rx="8" fill="white" stroke="#fca5a5" stroke-width="1"/>
+  <text x="590" y="688" font-size="24" font-weight="800" fill="#7c3aed" text-anchor="middle">~97%</text>
+  <text x="590" y="706" font-size="10" fill="#5b21b6" text-anchor="middle">误报率</text>
+  <text x="590" y="720" font-size="9" fill="#6d28d9" text-anchor="middle">大模型原始输出</text>
+  <text x="590" y="734" font-size="9" fill="#6d28d9" text-anchor="middle">→ 3% 通过筛查</text>
+
+  <rect x="676" y="665" width="148" height="82" rx="8" fill="white" stroke="#fca5a5" stroke-width="1"/>
+  <text x="750" y="688" font-size="24" font-weight="800" fill="#0369a1" text-anchor="middle">≥0.80</text>
+  <text x="750" y="706" font-size="10" fill="#075985" text-anchor="middle">置信度阈值</text>
+  <text x="750" y="720" font-size="9" fill="#0c4a6e" text-anchor="middle">筛查过滤截止值</text>
+  <text x="750" y="734" font-size="9" fill="#0c4a6e" text-anchor="middle">CVE 数据库交叉核验</text>
+
+  <rect x="836" y="665" width="234" height="82" rx="8" fill="#fef2f2" stroke="#f87171" stroke-width="1.5"/>
+  <text x="953" y="685" font-size="11" font-weight="700" fill="#991b1b" text-anchor="middle">CAND-008 披露时间线</text>
+  <text x="848" y="702" font-size="9" fill="#7f1d1d">2026-04-18：报告 → security@mosquitto.org</text>
+  <text x="848" y="716" font-size="9" fill="#7f1d1d">2026-04-25：已发送跟进邮件</text>
+  <text x="848" y="730" font-size="9" fill="#b91c1c">2026-07-17：公开披露截止日</text>
+  <text x="848" y="744" font-size="9" fill="#7f1d1d">遵循 Google Project Zero 协调披露标准</text>
+</svg>

@@ -9,6 +9,8 @@
 **Site**: https://fxp.github.io/cyberai/ · [docs/index.html](./docs/index.html)
 **Architecture**: [docs/architecture.svg](./docs/architecture.svg) · [docs/architecture.html](./docs/architecture.html)
 
+**English** | [中文](./README.zh.md)
+
 ## Architecture
 
 ![CyberAI Architecture](./docs/architecture.svg)
