@@ -13,26 +13,22 @@ We scan production C/C++ open-source libraries with GLM-5.1, cross-validate find
 
 ---
 
-## Architecture: Pipeline A
+## Architecture
 
-```
-Target Source Code (.c / .cpp)
-        │
-        ▼ Function-level slicing (Python)
-[N function chunks]
-        │
-        ▼ GLM-5.1 sequential analysis
-          Prompt: "Find buffer overflows, integer overflows, logic errors"
-[Raw findings (~97% false positive rate)]
-        │
-        ▼ Automated triage: CVE DB cross-reference + confidence filter (≥80%)
-[Candidate findings]
-        │
-        ▼ Manual + LLM cross-validation
-[Confirmed vulnerabilities]
-        │
-        ▼ PoC + Disclosure draft
-```
+![CyberAI Architecture](./docs/architecture.svg)
+
+### Pipeline A — Carlini-style parallel scanning (`carlini.py`)
+
+| Stage | Module | What it does |
+|-------|--------|-------------|
+| **1. File Ranking** | `file_ranker.py` | Scores files by cyclomatic complexity, historical CVE density, memory-op patterns — skips low-risk files early |
+| **2. LLM Scanning** | `carlini.py` | Async parallel prompting (max 4 workers, 100k token/file) across GLM-5.1 / Claude / GPT-4o |
+| **3. Dedup & Triage** | `dedup.py` | Deduplicates, cross-references CVE-DB, applies confidence ≥ 0.80 filter — drops ~97% false positives |
+| **4. Cross-Validation** | `verifier.py` | Second-pass LLM verification with different model/prompt, manual review, PoC construction |
+
+### Pipeline B — Chain-of-thought deep verification (`pipeline_b_*.py`)
+
+Multi-step reasoning for complex candidates: `detect → plan → chain`. Used when Pipeline A surfaces a high-confidence finding that requires deeper analysis.
 
 **Key insight**: The hard problem is not "getting LLM to find bugs" — it's filtering the 97% false positives to surface the 3% real ones.
 
@@ -69,18 +65,34 @@ Target Source Code (.c / .cpp)
 
 ```
 cyberai/
-├── src/                    # Scanner pipeline code
-│   ├── scanner.py          # Core GLM-5.1 scanning engine
-│   ├── slicer.py           # Function-level code slicing
-│   └── triage.py           # Automated false-positive filtering
-├── scripts/                # Utility scripts
-├── targets/                # Per-target scan configs
+├── src/cyberai/
+│   ├── scanner/
+│   │   ├── carlini.py       # Pipeline A: parallel LLM scanning engine
+│   │   ├── file_ranker.py   # Stage 1: complexity + CVE-density scoring
+│   │   ├── dedup.py         # Stage 3: dedup, triage, confidence filter
+│   │   └── verifier.py      # Stage 4: second-pass cross-validation
+│   ├── models/
+│   │   ├── registry.py      # Multi-model factory (GLM / Claude / GPT-4o)
+│   │   ├── glm.py           # GLM-5.1 adapter (primary)
+│   │   └── base.py          # SecurityAgent base class + ScanResult
+│   ├── api/                 # FastAPI server (scan management REST API)
+│   ├── infra/eci.py         # Alibaba Cloud ECI deployment
+│   ├── storage/             # SQLite (db.py) + Alibaba OSS (oss.py)
+│   ├── tracker/cost.py      # API cost tracking per run
+│   └── cli.py               # CLI: cyberai scan / results
+├── scripts/
+│   ├── scan_*.py            # Per-target scan scripts (12 libraries)
+│   ├── pipeline_b_*.py      # Pipeline B: detect / plan / chain
+│   ├── verify_candidates.py # Candidate verification runner
+│   └── run_daily_scans.sh   # Scheduled scan automation
 ├── research/
-│   ├── triage_report_2026-04-18.md    # Full triage report
-│   ├── technical_report_v1.md         # Research methodology
-│   └── disclosures/                   # Disclosure drafts (redacted)
-├── tests/                  # Validation tests
-└── docker-compose.yml      # Self-contained scan environment
+│   ├── */vulnerability_report.md   # Per-library findings
+│   └── disclosures/                # CVE disclosure drafts (redacted)
+├── docs/architecture.svg    # System architecture diagram
+├── targets/                 # C/C++ source code (12 libraries, ~1.2M LOC)
+├── Dockerfile.scanner       # Scanner container image
+├── docker-compose.yml       # Self-contained scan environment
+└── deploy/                  # ECS / systemd deployment configs
 ```
 
 ---

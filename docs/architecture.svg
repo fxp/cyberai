@@ -1,0 +1,340 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 780" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000015"/>
+    </filter>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#6b7280"/>
+    </marker>
+    <marker id="arr-blue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#3b82f6"/>
+    </marker>
+    <marker id="arr-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-orange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#ea580c"/>
+    </marker>
+    <linearGradient id="grad-header" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#0f172a"/>
+      <stop offset="100%" style="stop-color:#1e3a5f"/>
+    </linearGradient>
+    <linearGradient id="grad-stage" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc"/>
+      <stop offset="100%" style="stop-color:#f1f5f9"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1100" height="780" fill="#f8fafc"/>
+
+  <!-- ═══ HEADER ═══ -->
+  <rect x="0" y="0" width="1100" height="60" fill="url(#grad-header)"/>
+  <text x="32" y="36" font-size="22" font-weight="700" fill="white">CyberAI</text>
+  <text x="130" y="36" font-size="14" fill="#93c5fd">LLM-Driven Vulnerability Research Platform</text>
+  <text x="800" y="28" font-size="11" fill="#64748b">GLM-5.1 · Claude · GPT-4o</text>
+  <text x="800" y="46" font-size="11" fill="#64748b">github.com/fxp/cyberai</text>
+
+  <!-- ═══ COLUMN LABELS ═══ -->
+  <text x="80"  y="82" font-size="11" font-weight="600" fill="#475569" text-anchor="middle">INPUT</text>
+  <text x="265" y="82" font-size="11" font-weight="600" fill="#1d4ed8" text-anchor="middle">STAGE 1</text>
+  <text x="460" y="82" font-size="11" font-weight="600" fill="#1d4ed8" text-anchor="middle">STAGE 2</text>
+  <text x="655" y="82" font-size="11" font-weight="600" fill="#1d4ed8" text-anchor="middle">STAGE 3</text>
+  <text x="850" y="82" font-size="11" font-weight="600" fill="#1d4ed8" text-anchor="middle">STAGE 4</text>
+  <text x="1020" y="82" font-size="11" font-weight="600" fill="#16a34a" text-anchor="middle">OUTPUT</text>
+
+  <!-- Vertical dividers -->
+  <line x1="160" y1="68" x2="160" y2="620" stroke="#e2e8f0" stroke-width="1"/>
+  <line x1="355" y1="68" x2="355" y2="620" stroke="#e2e8f0" stroke-width="1"/>
+  <line x1="550" y1="68" x2="550" y2="620" stroke="#e2e8f0" stroke-width="1"/>
+  <line x1="745" y1="68" x2="745" y2="620" stroke="#e2e8f0" stroke-width="1"/>
+  <line x1="940" y1="68" x2="940" y2="620" stroke="#e2e8f0" stroke-width="1"/>
+
+  <!-- ═══ PIPELINE A LABEL ═══ -->
+  <rect x="20" y="90" width="1060" height="22" rx="4" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+  <text x="36" y="105" font-size="11" font-weight="700" fill="#1d4ed8">Pipeline A</text>
+  <text x="116" y="105" font-size="10" fill="#3b82f6">— Carlini-style parallel LLM scanning  (carlini.py)</text>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- INPUT: Target Libraries                          -->
+  <!-- ════════════════════════════════════════════════ -->
+  <rect x="20" y="124" width="128" height="302" rx="10" fill="white" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="20" y="124" width="128" height="26" rx="10" fill="#1e293b"/>
+  <rect x="20" y="138" width="128" height="12" fill="#1e293b"/>
+  <text x="84" y="141" font-size="11" font-weight="700" fill="white" text-anchor="middle">C/C++ Targets</text>
+  <text x="84" y="158" font-size="9" fill="#64748b" text-anchor="middle">12 production libraries</text>
+
+  <!-- Library pills -->
+  <rect x="28" y="166" width="112" height="18" rx="4" fill="#f1f5f9"/>
+  <text x="84" y="179" font-size="9" fill="#334155" text-anchor="middle">ImageMagick 7.1.2</text>
+  <rect x="28" y="188" width="112" height="18" rx="4" fill="#f1f5f9"/>
+  <text x="84" y="201" font-size="9" fill="#334155" text-anchor="middle">libpng 1.6.45</text>
+  <rect x="28" y="210" width="112" height="18" rx="4" fill="#f1f5f9"/>
+  <text x="84" y="223" font-size="9" fill="#334155" text-anchor="middle">curl 8.11.0</text>
+  <rect x="28" y="232" width="112" height="18" rx="4" fill="#f1f5f9"/>
+  <text x="84" y="245" font-size="9" fill="#334155" text-anchor="middle">expat 2.6.4</text>
+  <rect x="28" y="254" width="112" height="18" rx="4" fill="#f1f5f9"/>
+  <text x="84" y="267" font-size="9" fill="#334155" text-anchor="middle">freetype 2.13.3</text>
+  <rect x="28" y="276" width="112" height="18" rx="4" fill="#fef2f2" stroke="#fca5a5" stroke-width="1"/>
+  <text x="84" y="289" font-size="9" fill="#991b1b" text-anchor="middle">🔴 Mosquitto 2.0.21</text>
+  <rect x="28" y="298" width="112" height="18" rx="4" fill="#f1f5f9"/>
+  <text x="84" y="311" font-size="9" fill="#334155" text-anchor="middle">nginx 1.27.4</text>
+  <rect x="28" y="320" width="112" height="18" rx="4" fill="#f1f5f9"/>
+  <text x="84" y="333" font-size="9" fill="#334155" text-anchor="middle">OpenSSL 3.4.1</text>
+  <rect x="28" y="342" width="112" height="18" rx="4" fill="#f1f5f9"/>
+  <text x="84" y="355" font-size="9" fill="#334155" text-anchor="middle">libxml2 / LibTIFF</text>
+  <rect x="28" y="364" width="112" height="18" rx="4" fill="#f1f5f9"/>
+  <text x="84" y="377" font-size="9" fill="#334155" text-anchor="middle">SQLite / zlib</text>
+  <text x="84" y="408" font-size="9" fill="#94a3b8" text-anchor="middle">Total LOC analyzed:</text>
+  <text x="84" y="420" font-size="9" fill="#94a3b8" text-anchor="middle">~1.2M lines</text>
+
+  <!-- Arrow -->
+  <line x1="148" y1="275" x2="170" y2="275" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- STAGE 1: File Ranking                            -->
+  <!-- ════════════════════════════════════════════════ -->
+  <rect x="172" y="124" width="172" height="142" rx="10" fill="url(#grad-stage)" stroke="#93c5fd" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="172" y="124" width="172" height="26" rx="10" fill="#1d4ed8"/>
+  <rect x="172" y="138" width="172" height="12" fill="#1d4ed8"/>
+  <text x="258" y="141" font-size="11" font-weight="700" fill="white" text-anchor="middle">File Ranking</text>
+  <text x="258" y="157" font-size="10" fill="#1e40af" text-anchor="middle">file_ranker.py</text>
+  <text x="185" y="174" font-size="9" fill="#374151">→ Complexity score (cyclomatic)</text>
+  <text x="185" y="188" font-size="9" fill="#374151">→ Historical CVE density</text>
+  <text x="185" y="202" font-size="9" fill="#374151">→ Function count / size</text>
+  <text x="185" y="216" font-size="9" fill="#374151">→ Memory-op pattern match</text>
+  <text x="185" y="232" font-size="9" fill="#374151">→ Outputs ranked queue</text>
+  <text x="185" y="248" font-size="9" fill="#6b7280" font-style="italic">Skips low-risk files early</text>
+
+  <!-- Arrow -->
+  <line x1="344" y1="195" x2="366" y2="195" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- STAGE 2: LLM Scanning                           -->
+  <!-- ════════════════════════════════════════════════ -->
+  <rect x="368" y="124" width="172" height="302" rx="10" fill="url(#grad-stage)" stroke="#818cf8" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="368" y="124" width="172" height="26" rx="10" fill="#4f46e5"/>
+  <rect x="368" y="138" width="172" height="12" fill="#4f46e5"/>
+  <text x="454" y="141" font-size="11" font-weight="700" fill="white" text-anchor="middle">LLM Scanning</text>
+  <text x="454" y="157" font-size="10" fill="#4338ca" text-anchor="middle">carlini.py  (async parallel)</text>
+
+  <!-- Prompt strategy -->
+  <rect x="378" y="164" width="152" height="44" rx="5" fill="#eef2ff" stroke="#a5b4fc" stroke-width="1"/>
+  <text x="454" y="178" font-size="9" font-weight="600" fill="#3730a3" text-anchor="middle">Prompt Strategy: "ctf"</text>
+  <text x="382" y="192" font-size="9" fill="#4338ca">"Find buffer overflow, integer</text>
+  <text x="382" y="204" font-size="9" fill="#4338ca"> overflow, use-after-free..."</text>
+
+  <!-- Model boxes -->
+  <text x="454" y="222" font-size="9" font-weight="600" fill="#374151" text-anchor="middle">Multi-Model Support</text>
+  <rect x="378" y="228" width="152" height="18" rx="4" fill="#fef3c7" stroke="#fbbf24" stroke-width="1"/>
+  <text x="454" y="241" font-size="9" font-weight="600" fill="#92400e" text-anchor="middle">★ GLM-5.1  (primary)</text>
+  <rect x="378" y="250" width="72" height="18" rx="4" fill="#f5f3ff" stroke="#a78bfa" stroke-width="1"/>
+  <text x="414" y="263" font-size="9" fill="#5b21b6" text-anchor="middle">Claude</text>
+  <rect x="458" y="250" width="72" height="18" rx="4" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="494" y="263" font-size="9" fill="#166534" text-anchor="middle">GPT-4o</text>
+
+  <text x="454" y="283" font-size="9" fill="#374151" text-anchor="middle">max_parallel: 4 workers</text>
+  <text x="454" y="297" font-size="9" fill="#374151" text-anchor="middle">token_budget: 100k / file</text>
+  <text x="454" y="311" font-size="9" fill="#374151" text-anchor="middle">Output: ScanResult list</text>
+  <text x="454" y="325" font-size="9" fill="#374151" text-anchor="middle">~97% raw false positive rate</text>
+
+  <!-- Arrow -->
+  <line x1="540" y1="275" x2="562" y2="275" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- STAGE 3: Triage                                  -->
+  <!-- ════════════════════════════════════════════════ -->
+  <rect x="564" y="124" width="172" height="192" rx="10" fill="url(#grad-stage)" stroke="#f97316" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="564" y="124" width="172" height="26" rx="10" fill="#ea580c"/>
+  <rect x="564" y="138" width="172" height="12" fill="#ea580c"/>
+  <text x="650" y="141" font-size="11" font-weight="700" fill="white" text-anchor="middle">Dedup &amp; Triage</text>
+  <text x="650" y="157" font-size="10" fill="#c2410c" text-anchor="middle">dedup.py</text>
+  <text x="574" y="174" font-size="9" fill="#374151">→ Deduplicate by (file, line)</text>
+  <text x="574" y="188" font-size="9" fill="#374151">→ CVE-DB cross-reference</text>
+  <text x="574" y="202" font-size="9" fill="#374151">→ Confidence score filter</text>
+  <text x="574" y="216" font-size="9" fill="#374151">   threshold: ≥ 0.80</text>
+  <text x="574" y="230" font-size="9" fill="#374151">→ Severity classification</text>
+  <text x="574" y="244" font-size="9" fill="#374151">   CRITICAL / HIGH / MEDIUM</text>
+  <text x="574" y="264" font-size="9" fill="#6b7280" font-style="italic">Survivors: ~3% of raw findings</text>
+  <text x="574" y="280" font-size="9" fill="#6b7280" font-style="italic">become candidates</text>
+  <text x="574" y="295" font-size="9" fill="#374151">→ Stored: SQLite + OSS</text>
+  <text x="574" y="309" font-size="9" fill="#374151">   (storage/db.py, oss.py)</text>
+
+  <!-- Arrow -->
+  <line x1="736" y1="220" x2="758" y2="220" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- STAGE 4: Verification                           -->
+  <!-- ════════════════════════════════════════════════ -->
+  <rect x="760" y="124" width="172" height="252" rx="10" fill="url(#grad-stage)" stroke="#34d399" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="760" y="124" width="172" height="26" rx="10" fill="#059669"/>
+  <rect x="760" y="138" width="172" height="12" fill="#059669"/>
+  <text x="846" y="141" font-size="11" font-weight="700" fill="white" text-anchor="middle">Cross-Validation</text>
+  <text x="846" y="157" font-size="10" fill="#065f46" text-anchor="middle">verifier.py</text>
+  <text x="770" y="174" font-size="9" fill="#374151">→ 2nd-pass LLM verification</text>
+  <text x="770" y="188" font-size="9" fill="#374151">   (different model/prompt)</text>
+  <text x="770" y="204" font-size="9" fill="#374151">→ Manual code review</text>
+  <text x="770" y="220" font-size="9" fill="#374151">→ PoC construction + test</text>
+  <text x="770" y="234" font-size="9" fill="#374151">→ Exploitability assessment</text>
+  <rect x="770" y="244" width="152" height="36" rx="5" fill="#dcfce7" stroke="#4ade80" stroke-width="1"/>
+  <text x="846" y="259" font-size="9" font-weight="600" fill="#166534" text-anchor="middle">Pipeline B (chain-of-thought)</text>
+  <text x="846" y="272" font-size="9" fill="#15803d" text-anchor="middle">detect → plan → chain</text>
+  <text x="770" y="298" font-size="9" fill="#374151">→ Verdict: CONFIRMED / FP</text>
+  <text x="770" y="312" font-size="9" fill="#374151">→ Cost tracking (cost.py)</text>
+  <text x="770" y="326" font-size="9" fill="#374151">→ Disclosure draft</text>
+  <text x="770" y="340" font-size="9" fill="#6b7280" font-style="italic">tracker/ records all findings</text>
+  <text x="770" y="360" font-size="9" fill="#374151">→ CVE advisory template</text>
+
+  <!-- Arrow -->
+  <line x1="932" y1="250" x2="954" y2="250" stroke="#16a34a" stroke-width="1.5" marker-end="url(#arr-green)"/>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- OUTPUT                                           -->
+  <!-- ════════════════════════════════════════════════ -->
+  <rect x="956" y="124" width="124" height="302" rx="10" fill="white" stroke="#4ade80" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="956" y="124" width="124" height="26" rx="10" fill="#16a34a"/>
+  <rect x="956" y="138" width="124" height="12" fill="#16a34a"/>
+  <text x="1018" y="141" font-size="11" font-weight="700" fill="white" text-anchor="middle">Disclosures</text>
+
+  <!-- CAND-008 highlight -->
+  <rect x="964" y="154" width="108" height="52" rx="6" fill="#fef2f2" stroke="#f87171" stroke-width="2"/>
+  <text x="1018" y="169" font-size="10" font-weight="700" fill="#991b1b" text-anchor="middle">CAND-008 🔴</text>
+  <text x="1018" y="183" font-size="9" fill="#991b1b" text-anchor="middle">Mosquitto 2.0.21</text>
+  <text x="1018" y="197" font-size="9" fill="#b91c1c" text-anchor="middle">DISCLOSED</text>
+
+  <rect x="964" y="212" width="108" height="38" rx="5" fill="#fff7ed" stroke="#fb923c" stroke-width="1"/>
+  <text x="1018" y="226" font-size="9" font-weight="600" fill="#9a3412" text-anchor="middle">CAND-005 ⚠️</text>
+  <text x="1018" y="240" font-size="9" fill="#c2410c" text-anchor="middle">ImageMagick — BMP</text>
+
+  <rect x="964" y="256" width="108" height="38" rx="5" fill="#fff7ed" stroke="#fb923c" stroke-width="1"/>
+  <text x="1018" y="270" font-size="9" font-weight="600" fill="#9a3412" text-anchor="middle">GIF/LZW ⚠️</text>
+  <text x="1018" y="284" font-size="9" fill="#c2410c" text-anchor="middle">ImageMagick — GIF</text>
+
+  <rect x="964" y="300" width="108" height="52" rx="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="1018" y="315" font-size="9" fill="#475569" text-anchor="middle">expat · freetype</text>
+  <text x="1018" y="329" font-size="9" fill="#475569" text-anchor="middle">libpng candidates</text>
+  <text x="1018" y="343" font-size="9" fill="#94a3b8" text-anchor="middle">⚠️ In review</text>
+
+  <rect x="964" y="358" width="108" height="24" rx="5" fill="#f0fdf4"/>
+  <text x="1018" y="374" font-size="9" fill="#166534" text-anchor="middle">curl · zlib → ✅ Clean</text>
+
+  <rect x="964" y="390" width="108" height="28" rx="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="1018" y="402" font-size="9" fill="#475569" text-anchor="middle">90-day CVD deadline</text>
+  <text x="1018" y="416" font-size="9" fill="#475569" text-anchor="middle">Public: 2026-07-17</text>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- STAGE 1 (continued) file_ranker connector       -->
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- Stage 1 to Stage 2 arrow already drawn -->
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- INFRASTRUCTURE BAR                              -->
+  <!-- ════════════════════════════════════════════════ -->
+  <rect x="20" y="450" width="1060" height="170" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="36" y="470" font-size="12" font-weight="700" fill="#1e293b">Infrastructure &amp; Tooling</text>
+
+  <!-- Docker -->
+  <rect x="36" y="480" width="155" height="126" rx="8" fill="white" stroke="#93c5fd" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="113" y="498" font-size="11" font-weight="700" fill="#1d4ed8" text-anchor="middle">🐳 Docker / ECI</text>
+  <text x="46" y="514" font-size="9" fill="#374151">Dockerfile.scanner</text>
+  <text x="46" y="528" font-size="9" fill="#374151">docker-compose.yml</text>
+  <text x="46" y="542" font-size="9" fill="#374151">Alibaba Cloud ECI</text>
+  <text x="46" y="556" font-size="9" fill="#374151">  (infra/eci.py)</text>
+  <text x="46" y="570" font-size="9" fill="#374151">deploy/setup_ecs.sh</text>
+  <text x="46" y="584" font-size="9" fill="#374151">systemd service</text>
+  <text x="46" y="598" font-size="9" fill="#6b7280">Region: us-west-1</text>
+
+  <!-- FastAPI Server -->
+  <rect x="207" y="480" width="155" height="126" rx="8" fill="white" stroke="#93c5fd" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="284" y="498" font-size="11" font-weight="700" fill="#1d4ed8" text-anchor="middle">⚡ FastAPI Server</text>
+  <text x="217" y="514" font-size="9" fill="#374151">src/cyberai/api/</text>
+  <text x="217" y="528" font-size="9" fill="#374151">POST /api/scan/start</text>
+  <text x="217" y="542" font-size="9" fill="#374151">GET  /api/scan/status</text>
+  <text x="217" y="556" font-size="9" fill="#374151">GET  /api/results</text>
+  <text x="217" y="570" font-size="9" fill="#374151">GET  /api/results/{id}</text>
+  <text x="217" y="584" font-size="9" fill="#374151">Async: aiohttp + uvicorn</text>
+
+  <!-- Storage -->
+  <rect x="378" y="480" width="155" height="126" rx="8" fill="white" stroke="#93c5fd" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="455" y="498" font-size="11" font-weight="700" fill="#1d4ed8" text-anchor="middle">🗄 Storage</text>
+  <text x="388" y="514" font-size="9" fill="#374151">SQLite (storage/db.py)</text>
+  <text x="388" y="528" font-size="9" fill="#374151">  scan results, findings</text>
+  <text x="388" y="542" font-size="9" fill="#374151">Alibaba OSS (storage/oss.py)</text>
+  <text x="388" y="556" font-size="9" fill="#374151">  cyberai-results-uswest</text>
+  <text x="388" y="570" font-size="9" fill="#374151">Redis (queue / rate-limit)</text>
+  <text x="388" y="584" font-size="9" fill="#374151">SQLAlchemy + aiosqlite</text>
+
+  <!-- CLI -->
+  <rect x="549" y="480" width="155" height="126" rx="8" fill="white" stroke="#93c5fd" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="626" y="498" font-size="11" font-weight="700" fill="#1d4ed8" text-anchor="middle">⌨ CLI &amp; Scripts</text>
+  <text x="559" y="514" font-size="9" fill="#374151">src/cyberai/cli.py</text>
+  <text x="559" y="528" font-size="9" fill="#374151">cyberai scan --target</text>
+  <text x="559" y="542" font-size="9" fill="#374151">cyberai results list</text>
+  <text x="559" y="556" font-size="9" fill="#374151">scripts/scan_*.py  (per-target)</text>
+  <text x="559" y="570" font-size="9" fill="#374151">scripts/run_daily_scans.sh</text>
+  <text x="559" y="584" font-size="9" fill="#374151">pydantic-settings .env</text>
+
+  <!-- Model Registry -->
+  <rect x="720" y="480" width="155" height="126" rx="8" fill="white" stroke="#a78bfa" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="797" y="498" font-size="11" font-weight="700" fill="#6d28d9" text-anchor="middle">🤖 Model Registry</text>
+  <text x="730" y="514" font-size="9" fill="#374151">models/registry.py</text>
+  <text x="730" y="528" font-size="9" fill="#374151">models/glm.py  ← primary</text>
+  <text x="730" y="542" font-size="9" fill="#374151">models/base.py (SecurityAgent)</text>
+  <text x="730" y="556" font-size="9" fill="#374151">Auto-register by name prefix:</text>
+  <text x="730" y="570" font-size="9" fill="#374151">  "glm-*" / "claude-*" / "gpt-*"</text>
+  <text x="730" y="584" font-size="9" fill="#374151">Swappable at runtime</text>
+
+  <!-- Tracker -->
+  <rect x="891" y="480" width="165" height="126" rx="8" fill="white" stroke="#93c5fd" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="973" y="498" font-size="11" font-weight="700" fill="#1d4ed8" text-anchor="middle">📊 Tracker &amp; Eval</text>
+  <text x="901" y="514" font-size="9" fill="#374151">tracker/cost.py</text>
+  <text x="901" y="528" font-size="9" fill="#374151">  API cost per scan run</text>
+  <text x="901" y="542" font-size="9" fill="#374151">scripts/verify_candidates.py</text>
+  <text x="901" y="556" font-size="9" fill="#374151">scripts/deep_verify_chain.py</text>
+  <text x="901" y="570" font-size="9" fill="#374151">tests/  (validation suite)</text>
+  <text x="901" y="584" font-size="9" fill="#374151">scripts/challenge_test.py</text>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- RESULTS SUMMARY BAR                             -->
+  <!-- ════════════════════════════════════════════════ -->
+  <rect x="20" y="636" width="1060" height="124" rx="12" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5"/>
+  <text x="36" y="657" font-size="12" font-weight="700" fill="#991b1b">📋 Research Results (as of 2026-05)</text>
+
+  <!-- Stats boxes -->
+  <rect x="36" y="665" width="148" height="82" rx="8" fill="white" stroke="#fca5a5" stroke-width="1"/>
+  <text x="110" y="688" font-size="24" font-weight="800" fill="#dc2626" text-anchor="middle">1</text>
+  <text x="110" y="706" font-size="10" fill="#991b1b" text-anchor="middle">Confirmed CVE</text>
+  <text x="110" y="720" font-size="9" fill="#7f1d1d" text-anchor="middle">CAND-008 · Mosquitto</text>
+  <text x="110" y="734" font-size="9" fill="#7f1d1d" text-anchor="middle">In disclosure</text>
+
+  <rect x="196" y="665" width="148" height="82" rx="8" fill="white" stroke="#fca5a5" stroke-width="1"/>
+  <text x="270" y="688" font-size="24" font-weight="800" fill="#ea580c" text-anchor="middle">5+</text>
+  <text x="270" y="706" font-size="10" fill="#9a3412" text-anchor="middle">Pending Candidates</text>
+  <text x="270" y="720" font-size="9" fill="#7f1d1d" text-anchor="middle">ImageMagick × 2, expat</text>
+  <text x="270" y="734" font-size="9" fill="#7f1d1d" text-anchor="middle">freetype, libpng</text>
+
+  <rect x="356" y="665" width="148" height="82" rx="8" fill="white" stroke="#fca5a5" stroke-width="1"/>
+  <text x="430" y="688" font-size="24" font-weight="800" fill="#d97706" text-anchor="middle">7</text>
+  <text x="430" y="706" font-size="10" fill="#92400e" text-anchor="middle">Libraries Audited</text>
+  <text x="430" y="720" font-size="9" fill="#7f1d1d" text-anchor="middle">+5 in progress</text>
+  <text x="430" y="734" font-size="9" fill="#7f1d1d" text-anchor="middle">~1.2M lines scanned</text>
+
+  <rect x="516" y="665" width="148" height="82" rx="8" fill="white" stroke="#fca5a5" stroke-width="1"/>
+  <text x="590" y="688" font-size="24" font-weight="800" fill="#7c3aed" text-anchor="middle">~97%</text>
+  <text x="590" y="706" font-size="10" fill="#5b21b6" text-anchor="middle">False Positive Rate</text>
+  <text x="590" y="720" font-size="9" fill="#6d28d9" text-anchor="middle">Raw LLM output</text>
+  <text x="590" y="734" font-size="9" fill="#6d28d9" text-anchor="middle">→ 3% survive triage</text>
+
+  <rect x="676" y="665" width="148" height="82" rx="8" fill="white" stroke="#fca5a5" stroke-width="1"/>
+  <text x="750" y="688" font-size="24" font-weight="800" fill="#0369a1" text-anchor="middle">≥0.80</text>
+  <text x="750" y="706" font-size="10" fill="#075985" text-anchor="middle">Confidence Threshold</text>
+  <text x="750" y="720" font-size="9" fill="#0c4a6e" text-anchor="middle">Triage filter cutoff</text>
+  <text x="750" y="734" font-size="9" fill="#0c4a6e" text-anchor="middle">CVE-DB cross-checked</text>
+
+  <rect x="836" y="665" width="234" height="82" rx="8" fill="#fef2f2" stroke="#f87171" stroke-width="1.5"/>
+  <text x="953" y="685" font-size="11" font-weight="700" fill="#991b1b" text-anchor="middle">CAND-008 Timeline</text>
+  <text x="848" y="702" font-size="9" fill="#7f1d1d">2026-04-18: Report → security@mosquitto.org</text>
+  <text x="848" y="716" font-size="9" fill="#7f1d1d">2026-04-25: Follow-up sent</text>
+  <text x="848" y="730" font-size="9" fill="#b91c1c">2026-07-17: Public disclosure deadline</text>
+  <text x="848" y="744" font-size="9" fill="#7f1d1d">CVD per Google Project Zero standards</text>
+</svg>
