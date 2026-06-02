@@ -7,7 +7,11 @@
 **Status**: Active research · 2026
 **Model**: glm-5.1 (BigModel) for detection + verification, glm-4-plus for cross-check
 **Site**: https://fxp.github.io/cyberai/ · [docs/index.html](./docs/index.html)
-**Architecture**: [docs/architecture.html](./docs/architecture.html)
+**Architecture**: [docs/architecture.svg](./docs/architecture.svg) · [docs/architecture.html](./docs/architecture.html)
+
+## Architecture
+
+![CyberAI Architecture](./docs/architecture.svg)
 
 ## Pipeline
 
