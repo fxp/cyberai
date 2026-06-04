@@ -552,10 +552,17 @@ is `xmlSAX2StartElement` in SAX2.c). Documented in
 `research/disclosures/libxml2_xmlXPathNextAncestor_type_confusion.md`.
 
 **No active disclosure candidate.** Both 2026-05-04-cycle survivors are
-refuted. Both failed the same way: a single extracted function read out of
-context, missing the invariant/guard established in another function. The
-pipeline needs whole-subsystem grounding (improvement #5/#8) before its
-"survivors" can be trusted as real.
+refuted. A re-grounding pass against the next-highest 70-finding pool also
+refuted the top freetype candidate (`tt_cmap4_char_map_binary` OOB reads,
+2 independent flags; documented as a negative result in
+`research/disclosures/freetype_tt_cmap4_oob_reads.md`). That makes **3 for 3
+independent attempts** refuted by whole-file context, all failing the same
+way: single extracted function read in isolation, missing the
+invariant/guard established at a sibling function (load-time validator
+in freetype, IHDR check in libpng, namespace-node design contract in
+libxml2). The pipeline has a structural blind spot. Whole-subsystem
+grounding (improvement #5/#8) is mandatory before any future "survivor"
+should be trusted.
 
 ---
 
