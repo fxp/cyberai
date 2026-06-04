@@ -21,6 +21,13 @@ from cyberai.models.glm import GLMAdapter
 VF = Path(os.environ.get("CYBERAI_VERIFY_DIR", str(CYBERAI_ROOT / "research/verify_findings")))
 EXTRACTS = Path(os.environ.get("CYBERAI_EXTRACTS_DIR", str(CYBERAI_ROOT / "scripts/extracts")))
 OUT = Path(os.environ.get("CYBERAI_VALIDATE_DIR", str(CYBERAI_ROOT / "research/validate_findings")))
+# Optional: directory containing upstream source checkouts, one per target
+# (e.g. UPSTREAM_DIR/libpng/{png.c,pngrutil.c,...}). When set, find_extracts()
+# pulls the WHOLE referenced file from upstream as an additional sibling.
+# This catches false positives where the load-time validator or invariant-
+# establishing function was never extracted by Pipeline A (the libpng
+# png_check_IHDR case is the canonical example).
+UPSTREAM_DIR = Path(os.environ["CYBERAI_UPSTREAM_DIR"]) if os.environ.get("CYBERAI_UPSTREAM_DIR") else None
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
 
@@ -53,7 +60,9 @@ async def nvd_lookup(client: httpx.AsyncClient, target: str, title: str) -> list
         return [{"_error": str(e)[:100]}]
 
 
-def find_extracts(target: str, file_context: str) -> tuple[Path | None, list[Path]]:
+def find_extracts(target: str, file_context: str,
+                  return_upstream: bool = False
+) -> tuple[Path | None, list[Path]] | tuple[Path | None, list[Path], set[Path]]:
     """Locate the matching source extract + sibling extracts in the same target dir.
 
     Returns (primary_extract, siblings). The primary is the file whose body
@@ -91,7 +100,36 @@ def find_extracts(target: str, file_context: str) -> tuple[Path | None, list[Pat
             all_files.append(f)
             if primary is None and fn_name and re.search(rf"\b{re.escape(fn_name)}\s*\(", content):
                 primary = f
+
+    # Upstream fallback (see comment on UPSTREAM_DIR above).
+    upstream_added: set[Path] = set()
+    if UPSTREAM_DIR:
+        path_m = re.search(r"([\w\-+]+/[\w\-+/.]+\.c\b)", file_context)
+        if path_m:
+            rel = path_m.group(1)
+            up_root = UPSTREAM_DIR / target.lower()
+            candidates = [up_root / rel, up_root / rel.split("/", 1)[-1]] if up_root.exists() else []
+            for cand in candidates:
+                if cand.is_file():
+                    if primary is None:
+                        primary = cand
+                        upstream_added.add(cand)
+                    elif cand not in all_files:
+                        all_files.append(cand)
+                        upstream_added.add(cand)
+                    # Same-directory siblings from upstream — load-time
+                    # validators usually live right next to the vulnerable
+                    # function (e.g. png_check_IHDR in png.c sits next to
+                    # pngrutil.c).
+                    for s in sorted(cand.parent.iterdir()):
+                        if s.is_file() and s.suffix == ".c" and s != cand and s not in all_files:
+                            all_files.append(s)
+                            upstream_added.add(s)
+                    break
+
     siblings = [f for f in all_files if f != primary]
+    if return_upstream:
+        return primary, siblings, upstream_added
     return primary, siblings
 
 
@@ -101,16 +139,87 @@ def find_extract(target: str, file_context: str) -> Path | None:
     return primary
 
 
+def _name_prefix(name: str) -> str:
+    """Extract the subsystem prefix of an extract filename.
+
+    Conventions seen in `scripts/extracts/<target>/`:
+      xpath_axis_A.c       → 'xpath'
+      pngrutil_G.c         → 'pngrutil'
+      parser_name_A.c      → 'parser'
+      cffdecode_curve_A.c  → 'cffdecode'
+    Strategy: take everything up to the first '_' OR the first capital-letter
+    suffix marker (`_A`, `_B`, etc.). Files without underscores fall back to
+    the basename minus extension.
+    """
+    stem = name.rsplit(".", 1)[0]
+    if "_" in stem:
+        # 'xpath_axis_A' → 'xpath' (first token before first underscore)
+        return stem.split("_", 1)[0].lower()
+    return stem.lower()
+
+
+def _rank_siblings(primary: Path, siblings: list[Path],
+                   upstream_set: set[Path] | None = None) -> list[Path]:
+    """Rank siblings: upstream files first, then by subsystem-prefix overlap
+    with primary, then by function-name overlap, then alphabetically.
+
+    Upstream files are the highest priority because (a) they're the deepest
+    available context — actual project source rather than scanner extracts,
+    and (b) the upstream fallback is only triggered when something is
+    missing from the extract pool, so they're known to be relevant. Without
+    this boost, the budget fills with prefix-matched extracts first (e.g.
+    `pngrutil_A..F.c`) and the upstream validator file (`png.c`) gets
+    dropped — exactly the libpng failure mode the upstream fallback exists
+    to fix.
+    """
+    if not primary:
+        return siblings
+    upstream_set = upstream_set or set()
+    primary_prefix = _name_prefix(primary.name)
+    try:
+        primary_text = primary.read_text(errors="ignore")
+    except Exception:
+        primary_text = ""
+    fn_defs = set(re.findall(r"\b([a-zA-Z_][a-zA-Z0-9_]{3,})\s*\(", primary_text))
+
+    def score(s: Path) -> tuple[int, int, str]:
+        # Lower tuple = higher priority (sorted ascending).
+        # Bucket 0: upstream (the deepest context we can offer).
+        if s in upstream_set:
+            return (0, 0, s.name.lower())
+        prefix_match = _name_prefix(s.name) == primary_prefix
+        if prefix_match:
+            return (1, 0, s.name.lower())
+        try:
+            body = s.read_text(errors="ignore")
+        except Exception:
+            body = ""
+        refs_primary = any(fn in body for fn in fn_defs) if fn_defs else False
+        return (2 if refs_primary else 3, 0, s.name.lower())
+
+    return sorted(siblings, key=score)
+
+
 def assemble_context(primary: Path | None, siblings: list[Path],
-                     max_total_chars: int = 18000) -> tuple[str, list[str]]:
+                     max_total_chars: int = 60000,
+                     upstream_set: set[Path] | None = None
+                     ) -> tuple[str, list[str]]:
     """Build a concatenated source context with file separators.
 
-    Primary file is shown in full first; sibling files are appended until
-    the char budget is exhausted. Returns (context, included_filenames).
+    Primary file is shown in full first; sibling files are ranked by
+    subsystem-prefix overlap + cross-reference to primary, then appended
+    until the char budget is exhausted. Returns (context, included_filenames).
+
+    Budget is generous (60KB) because glm-4-plus has 128K context window and
+    sibling files are where load-time validators / init invariants live —
+    starving them is the same failure mode that produced 3/3 false positives
+    in the original 2026-05-04 cycle. Cost is ~$0.02/J3-call at this budget,
+    well within the $1-per-cycle envelope.
     """
     parts: list[str] = []
     included: list[str] = []
     used = 0
+    ranked = _rank_siblings(primary, siblings, upstream_set) if primary else siblings
 
     def add(p: Path, label: str) -> bool:
         nonlocal used
@@ -118,7 +227,6 @@ def assemble_context(primary: Path | None, siblings: list[Path],
             body = p.read_text(errors="ignore")
         except Exception:
             return False
-        # Allow primary to take up to half the budget; siblings split the rest.
         header = f"\n/* ===== {label}: {p.name} ===== */\n"
         budget_left = max_total_chars - used - len(header)
         if budget_left <= 200:
@@ -131,7 +239,7 @@ def assemble_context(primary: Path | None, siblings: list[Path],
 
     if primary:
         add(primary, "PRIMARY")
-    for s in siblings:
+    for s in ranked:
         if used >= max_total_chars - 500:
             break
         add(s, "SIBLING")
@@ -197,8 +305,9 @@ async def cross_check(agent: GLMAdapter, finding: dict, code: str,
         note = f"Included {len(included)} file(s) in context: {', '.join(included)}."
     else:
         note = "Only the primary extract is included."
-    # Allow up to ~18000 chars of code so multiple files fit; cross-check
-    # cost is ~$0.01/call so the extra tokens are well worth it for refutation accuracy.
+    # 60000-char budget matches assemble_context() default; glm-4-plus has
+    # 128K context, and pulling in the load-time validator / init sibling
+    # is the whole point of this stage.
     prompt = CROSS_PROMPT.format(
         target=finding["target"],
         file_context=finding["file_context"],
@@ -207,7 +316,7 @@ async def cross_check(agent: GLMAdapter, finding: dict, code: str,
         title=(finding.get("title") or "").strip()[:200],
         description=(finding.get("description") or "").strip()[:1500],
         included_note=note,
-        code=code[:18000],
+        code=code[:60000],
     )
     try:
         resp, usage = await agent.chat(
@@ -277,8 +386,9 @@ async def main():
             # path that refutes false-positive findings. See AGENTS.md
             # improvement #5 and the libpng/libxml2/freetype refutation
             # writeups under research/disclosures/.
-            primary, siblings = find_extracts(f["target"], f.get("file_context", ""))
-            code, included = assemble_context(primary, siblings)
+            primary, siblings, upstream_set = find_extracts(
+                f["target"], f.get("file_context", ""), return_upstream=True)
+            code, included = assemble_context(primary, siblings, upstream_set=upstream_set)
 
             # J3: glm-4-plus cross-check with multi-file context + refutation prompt.
             if code:
