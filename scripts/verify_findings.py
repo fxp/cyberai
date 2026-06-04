@@ -21,8 +21,13 @@ OUT = RESEARCH / "verify_findings"
 OUT.mkdir(parents=True, exist_ok=True)
 
 VERIFY_PROMPT = """You are an adversarial security reviewer. A static-extract scanner flagged the
-following potential vulnerability. Your job: decide if this is a REAL exploitable bug
-or a false positive, based on the description and your knowledge of the codebase.
+following potential vulnerability. The scanner has a known structural blind
+spot: it analyzes a single function in isolation and misses load-time
+validators, init-path guards, and invariants established in sibling
+functions. Empirically, 3 of 3 of its highest-confidence findings have been
+refuted on whole-file re-grounding. Your DEFAULT verdict is therefore
+FALSE_POSITIVE. Only return CONFIRMED if you can rule out every refutation
+below.
 
 Project: {target}
 File context: {file_context}
@@ -38,17 +43,35 @@ DESCRIPTION:
 POC SKETCH:
 {poc}
 
-Reason carefully:
-1. Does the described code path actually exist in this project at this location?
-2. Is the bug pattern real, or is it a misread of correct code?
-3. Is the precondition for triggering it realistic in deployed usage?
-4. Is this already a known CVE you can name?
+REFUTATION CHECKLIST — apply your training-data knowledge of this project:
+1. **Load-time validator?** Does this project's standard load/parse path
+   (e.g., `*_validate`, `*_check_IHDR`, `*_open_face`, header sanity checks)
+   already enforce the precondition this finding claims is unchecked? Name
+   the validator function if so.
+2. **Build-config gated?** Is the vulnerable branch behind `#ifdef`s that
+   exclude it from default/production builds (e.g., legacy fallback,
+   debug-only, platform-specific)? Name the macro if so.
+3. **Attacker control?** Can a real attacker (file/network/env input)
+   actually drive the precondition, or does the finding presuppose an
+   already-corrupted internal state (which requires a separate primitive —
+   circular)?
+4. **Already a known CVE?** If you can name a CVE for this exact pattern
+   in this project, the bug is likely already patched in current code.
+5. **By-design invariant?** Is the flagged cast/access actually documented
+   intentional behavior (e.g., a tagged-union or repurposed-pointer pattern
+   maintained by a sibling constructor)?
+
+If any single refutation succeeds → FALSE_POSITIVE. Only CONFIRMED if all
+five fail. Use PARTIAL if a narrow scenario survives. Use NEEDS_MORE_CONTEXT
+only when you genuinely cannot decide without seeing a specific sibling
+function — name that function in your reasoning.
 
 Respond with JSON ONLY (no markdown fences, no commentary):
 {{
   "verdict": "CONFIRMED" | "PARTIAL" | "FALSE_POSITIVE" | "NEEDS_MORE_CONTEXT",
   "confidence": <float 0-1>,
-  "reasoning": "<1-3 sentences why>",
+  "refutation_results": {{"validator":"<found:name | none>","build_gated":"<macro | no>","attacker_control":"<yes | no:reason>","known_cve":"<CVE | none>","by_design":"<yes:cite | no>"}},
+  "reasoning": "<1-3 sentences citing the strongest refutation or, if confirmed, the strongest survival argument>",
   "exploitability": "exploitable" | "design_caveat" | "needs_specific_setup" | "not_exploitable",
   "known_cve": "<CVE-XXXX-XXXXX or 'none' or 'possibly:reason'>"
 }}

@@ -11,14 +11,18 @@ from __future__ import annotations
 import asyncio, json, os, re, sys, glob, time
 from pathlib import Path
 
-sys.path.insert(0, "/root/cyberai/src")
+# Paths default to the ECS layout but can be overridden via env so the
+# module imports cleanly on a workstation for testing.
+CYBERAI_ROOT = Path(os.environ.get("CYBERAI_ROOT", "/root/cyberai"))
+sys.path.insert(0, str(CYBERAI_ROOT / "src"))
 import httpx
 from cyberai.models.glm import GLMAdapter
 
-VF = Path("/root/cyberai/research/verify_findings")
-EXTRACTS = Path("/root/cyberai/scripts/extracts")
-OUT = Path("/root/cyberai/research/validate_findings")
-OUT.mkdir(parents=True, exist_ok=True)
+VF = Path(os.environ.get("CYBERAI_VERIFY_DIR", str(CYBERAI_ROOT / "research/verify_findings")))
+EXTRACTS = Path(os.environ.get("CYBERAI_EXTRACTS_DIR", str(CYBERAI_ROOT / "scripts/extracts")))
+OUT = Path(os.environ.get("CYBERAI_VALIDATE_DIR", str(CYBERAI_ROOT / "research/validate_findings")))
+if __name__ == "__main__":
+    OUT.mkdir(parents=True, exist_ok=True)
 
 NVD_BASE = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 
@@ -49,34 +53,95 @@ async def nvd_lookup(client: httpx.AsyncClient, target: str, title: str) -> list
         return [{"_error": str(e)[:100]}]
 
 
-def find_extract(target: str, file_context: str) -> Path | None:
-    """Locate the source extract that was scanned for this finding."""
+def find_extracts(target: str, file_context: str) -> tuple[Path | None, list[Path]]:
+    """Locate the matching source extract + sibling extracts in the same target dir.
+
+    Returns (primary_extract, siblings). The primary is the file whose body
+    contains the function named in file_context. siblings are the other files
+    under the same target extract directory — these typically contain
+    load-time validators, init paths, and helper functions that establish
+    the invariants the primary function relies on. Passing them to the
+    cross-check model is what catches false positives where the bug is
+    "patched" by a guard in a sibling function (which is the failure mode
+    that refuted libpng, libxml2, and freetype top candidates on first
+    grounding pass).
+    """
     target_dirs = sorted(p for p in EXTRACTS.iterdir() if p.is_dir() and p.name.lower().startswith(target.lower()))
     if not target_dirs:
-        return None
+        return None, []
 
     m = re.search(r"\[([^\]]+)\]", file_context)
-    if not m:
-        return None
-    label = m.group(1)
-    fn_name = label.split(":")[0].split()[0].strip()
-    if not fn_name or len(fn_name) < 3:
-        return None
+    fn_name = None
+    if m:
+        label = m.group(1)
+        fn_name = label.split(":")[0].split()[0].strip()
+        if not fn_name or len(fn_name) < 3:
+            fn_name = None
 
+    primary: Path | None = None
+    all_files: list[Path] = []
     for tdir in target_dirs:
         for f in sorted(tdir.iterdir()):
             if not f.is_file():
                 continue
             try:
                 content = f.read_text(errors="ignore")
-                if re.search(rf"\b{re.escape(fn_name)}\s*\(", content):
-                    return f
             except Exception:
                 continue
-    return None
+            all_files.append(f)
+            if primary is None and fn_name and re.search(rf"\b{re.escape(fn_name)}\s*\(", content):
+                primary = f
+    siblings = [f for f in all_files if f != primary]
+    return primary, siblings
 
 
-CROSS_PROMPT = """Re-judge a security finding given the actual source code that was scanned.
+# Backwards-compat shim so callers / tests using the old name still work.
+def find_extract(target: str, file_context: str) -> Path | None:
+    primary, _ = find_extracts(target, file_context)
+    return primary
+
+
+def assemble_context(primary: Path | None, siblings: list[Path],
+                     max_total_chars: int = 18000) -> tuple[str, list[str]]:
+    """Build a concatenated source context with file separators.
+
+    Primary file is shown in full first; sibling files are appended until
+    the char budget is exhausted. Returns (context, included_filenames).
+    """
+    parts: list[str] = []
+    included: list[str] = []
+    used = 0
+
+    def add(p: Path, label: str) -> bool:
+        nonlocal used
+        try:
+            body = p.read_text(errors="ignore")
+        except Exception:
+            return False
+        # Allow primary to take up to half the budget; siblings split the rest.
+        header = f"\n/* ===== {label}: {p.name} ===== */\n"
+        budget_left = max_total_chars - used - len(header)
+        if budget_left <= 200:
+            return False
+        chunk = body if len(body) <= budget_left else body[:budget_left] + "\n/* [truncated] */\n"
+        parts.append(header + chunk)
+        used += len(header) + len(chunk)
+        included.append(p.name)
+        return True
+
+    if primary:
+        add(primary, "PRIMARY")
+    for s in siblings:
+        if used >= max_total_chars - 500:
+            break
+        add(s, "SIBLING")
+
+    return "".join(parts), included
+
+
+CROSS_PROMPT = """You are an adversarial reviewer re-judging a security finding. Your DEFAULT
+position is FALSE_POSITIVE. You may only return CONFIRMED if you can rule out
+every refutation below.
 
 Project: {target}
 Location: {file_context} (line ~{line_start})
@@ -86,22 +151,54 @@ Title: {title}
 Original-scanner description:
 {description}
 
-ACTUAL SOURCE EXCERPT (this is what the model was given):
+ACTUAL SOURCE CONTEXT (PRIMARY file contains the flagged function;
+SIBLING files are other extracts from the same target — they often contain
+load-time validators, init guards, and helpers that establish invariants
+the primary function relies on. Read them before judging):
+{included_note}
 ```c
 {code}
 ```
 
-Decide adversarially:
-1. Does the finding's claim accurately describe the code shown? (code_match)
-2. Is the bug pattern actually present and exploitable? (verdict)
-3. How confident are you?
+REFUTATION CHECKLIST — work through every item before deciding:
+1. **Validator/guard in a sibling?** Search SIBLING blocks for any
+   `*_validate`, `*_check`, `*_verify`, `init`, or `parse` function that runs
+   BEFORE the primary function and bounds the values it reads. If found and
+   sufficient → FALSE_POSITIVE.
+2. **Build-config gated?** Is the vulnerable path behind `#ifdef`/`#if`
+   conditionals that exclude it from production builds (e.g., debug-only,
+   legacy fallback, platform-specific)? If yes → FALSE_POSITIVE.
+3. **Attacker control?** Can attacker-controlled INPUT (file bytes, network
+   bytes, env vars, args) actually drive the precondition the finding assumes,
+   or does it require an already-corrupted internal state (which presupposes a
+   separate primitive — circular)? If circular → FALSE_POSITIVE.
+4. **Already patched in this code?** Does the visible code already contain
+   the fix (saturating arithmetic, bounded loop, NULL check) that defeats the
+   described primitive? If yes → FALSE_POSITIVE.
+5. **By-design invariant?** Is the flagged cast/access actually documented
+   intentional behavior (e.g., a tagged-union pattern, a data-structure
+   contract enforced by sibling constructors)? Comments or sibling assignment
+   sites are evidence. If yes → FALSE_POSITIVE.
+
+Only if all five refutations fail: CONFIRMED. If you can partially refute but
+some scenario remains, return PARTIAL with the surviving scenario stated.
+If you cannot decide because critical sibling code is missing from the
+context, return NEEDS_MORE_CONTEXT and name the function/file you needed.
 
 Respond with JSON ONLY (no markdown fence, no preamble):
-{{"code_match":"yes"|"no"|"partial","verdict":"CONFIRMED"|"PARTIAL"|"FALSE_POSITIVE"|"NEEDS_MORE_CONTEXT","confidence":0.0-1.0,"reasoning":"<1-2 sentences>"}}
+{{"code_match":"yes"|"no"|"partial","verdict":"CONFIRMED"|"PARTIAL"|"FALSE_POSITIVE"|"NEEDS_MORE_CONTEXT","confidence":0.0-1.0,"refutation_attempted":["1","2","3","4","5"],"surviving_scenario":"<empty if FALSE_POSITIVE>","missing_context":"<empty unless NEEDS_MORE_CONTEXT>","reasoning":"<2-4 sentences citing the specific sibling/line that refutes or confirms>"}}
 """
 
 
-async def cross_check(agent: GLMAdapter, finding: dict, code: str) -> dict:
+async def cross_check(agent: GLMAdapter, finding: dict, code: str,
+                      included_files: list[str] | None = None) -> dict:
+    included = included_files or []
+    if included:
+        note = f"Included {len(included)} file(s) in context: {', '.join(included)}."
+    else:
+        note = "Only the primary extract is included."
+    # Allow up to ~18000 chars of code so multiple files fit; cross-check
+    # cost is ~$0.01/call so the extra tokens are well worth it for refutation accuracy.
     prompt = CROSS_PROMPT.format(
         target=finding["target"],
         file_context=finding["file_context"],
@@ -109,7 +206,8 @@ async def cross_check(agent: GLMAdapter, finding: dict, code: str) -> dict:
         severity=finding["severity"],
         title=(finding.get("title") or "").strip()[:200],
         description=(finding.get("description") or "").strip()[:1500],
-        code=code[:3500],
+        included_note=note,
+        code=code[:18000],
     )
     try:
         resp, usage = await agent.chat(
@@ -173,18 +271,18 @@ async def main():
             cve_ids = [x.get("id") for x in nvd if x.get("id")]
             await asyncio.sleep(6.5)  # NVD: 5 req/30s without API key
 
-            # J2: locate source extract
-            ext_path = find_extract(f["target"], f.get("file_context", ""))
-            code = ""
-            if ext_path:
-                try:
-                    code = ext_path.read_text(errors="ignore")
-                except Exception:
-                    pass
+            # J2: locate primary source extract + sibling extracts.
+            # The siblings are the key methodology improvement: they often
+            # contain the load-time validator or invariant-establishing init
+            # path that refutes false-positive findings. See AGENTS.md
+            # improvement #5 and the libpng/libxml2/freetype refutation
+            # writeups under research/disclosures/.
+            primary, siblings = find_extracts(f["target"], f.get("file_context", ""))
+            code, included = assemble_context(primary, siblings)
 
-            # J3: glm-4-plus cross-check
+            # J3: glm-4-plus cross-check with multi-file context + refutation prompt.
             if code:
-                cross = await cross_check(glm_plus, f, code)
+                cross = await cross_check(glm_plus, f, code, included_files=included)
             else:
                 cross = {"verdict": "NO_EXTRACT", "_reason": "extract file not located"}
 
@@ -192,7 +290,8 @@ async def main():
                 **f,
                 "_nvd_match": nvd,
                 "_nvd_ids": cve_ids,
-                "_extract_used": str(ext_path) if ext_path else None,
+                "_extract_used": str(primary) if primary else None,
+                "_siblings_used": [str(p) for p in siblings] if primary else [],
                 "_cross_glm4plus": cross,
             }
             with open(out_path, "a") as fh:

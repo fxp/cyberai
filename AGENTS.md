@@ -219,6 +219,18 @@ When chains are found, Pipeline B auto-dispatches `verify_chain.yml`
 inheriting the parent model (with fallback to glm-5.1 for fast/cheap
 detector models).
 
+**Empirical observation (2026-05-20):** the two completed Pipeline B runs
+(25355846497, 25355847613) targeted ImageMagick and produced 4 candidates
+total — all correctly refuted by deep_verify with sharp reasoning ("#else
+fallback is dead code on production builds", "attacker cannot control
+OpenMP thread IDs", "only compiles when X and Y both undefined"). Pipeline
+B's deep_verify methodology is *more conservative and correct* than
+Pipeline A's H verifier — its refutation discipline (reachability,
+build-config gating, attacker control) is what the new
+`verify_findings.py` and `validate_findings.py` prompts borrow from.
+Pipeline B has zero false positives so far, at the cost of high
+dismissal rate.
+
 ### H. Adversarial verify — `scripts/verify_findings.py`
 
 Re-judges all CRITICAL+HIGH findings produced by Pipeline A. For each
@@ -590,10 +602,24 @@ These are documented for the next agent:
 4. **Batch upload to OSS.** Currently each script writes to ECS local
    then a separate OSS upload step. Should write directly to OSS with
    a temp local copy.
-5. **Fix J2 source-extract grounding.** 24/70 findings dropped because
-   `find_extract()` couldn't locate the file. libssh2 and freetype lost
-   most of their candidates here. Improve by loading each scan_*.py's
-   SCANS list explicitly rather than greppin for function names.
+5. **~~Fix J2 source-extract grounding~~ — IMPLEMENTED 2026-05-20.**
+   `find_extract` is now `find_extracts` and returns the matching primary
+   file PLUS all sibling extracts under the same target directory.
+   `assemble_context()` concatenates them with PRIMARY/SIBLING headers
+   (budget 18000 chars). This closes the structural blind spot that
+   refuted libpng / libxml2 / freetype top candidates: sibling extracts
+   often contain the load-time validator or invariant-establishing init
+   path that defeats the finding. The cross-check prompt
+   (`CROSS_PROMPT`) was also rewritten with a 5-step refutation
+   checklist (validator/guard, build-config gating, attacker control,
+   already-patched, by-design invariant) — DEFAULT verdict is now
+   FALSE_POSITIVE; CONFIRMED requires all 5 refutations to fail. The H
+   verifier prompt (`VERIFY_PROMPT`) got the same refutation discipline,
+   though without source-code context. Paths in `validate_findings.py`
+   are now env-overridable (`CYBERAI_ROOT`, `CYBERAI_EXTRACTS_DIR`, etc.)
+   for local testing. Next: re-run validate on the existing
+   `verify_*.jsonl` to see how the survivor set shifts under the new
+   methodology.
 6. **Add Anthropic-backed verifier** as optional J4 (when
    `ANTHROPIC_API_KEY` is configured) for a true cross-vendor check.
    Currently we only have BigModel diversity (glm-5.1 vs glm-4-plus).
