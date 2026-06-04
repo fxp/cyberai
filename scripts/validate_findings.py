@@ -104,28 +104,84 @@ def find_extracts(target: str, file_context: str,
     # Upstream fallback (see comment on UPSTREAM_DIR above).
     upstream_added: set[Path] = set()
     if UPSTREAM_DIR:
+        # Try to extract a .c filename from file_context. Accept either a
+        # nested path (foo/bar/baz.c) or a bare basename.
         path_m = re.search(r"([\w\-+]+/[\w\-+/.]+\.c\b)", file_context)
+        basename = None
         if path_m:
-            rel = path_m.group(1)
-            up_root = UPSTREAM_DIR / target.lower()
-            candidates = [up_root / rel, up_root / rel.split("/", 1)[-1]] if up_root.exists() else []
-            for cand in candidates:
-                if cand.is_file():
-                    if primary is None:
-                        primary = cand
-                        upstream_added.add(cand)
-                    elif cand not in all_files:
-                        all_files.append(cand)
-                        upstream_added.add(cand)
-                    # Same-directory siblings from upstream — load-time
-                    # validators usually live right next to the vulnerable
-                    # function (e.g. png_check_IHDR in png.c sits next to
-                    # pngrutil.c).
-                    for s in sorted(cand.parent.iterdir()):
-                        if s.is_file() and s.suffix == ".c" and s != cand and s not in all_files:
-                            all_files.append(s)
-                            upstream_added.add(s)
-                    break
+            basename = path_m.group(1).rsplit("/", 1)[-1]
+        else:
+            bare_m = re.search(r"\b([\w\-+]+\.c)\b", file_context)
+            if bare_m:
+                basename = bare_m.group(1)
+        up_root = UPSTREAM_DIR / target.lower()
+        candidates: list[Path] = []
+        if basename and up_root.exists():
+            # Prefer exact relative-path matches first, then recursive glob.
+            if path_m:
+                rel = path_m.group(1)
+                for direct in (up_root / rel, up_root / rel.split("/", 1)[-1]):
+                    if direct.is_file():
+                        candidates.append(direct)
+            # Recursive: pick the shortest path (most likely the "main" copy
+            # — avoids fuzz/test mirrors of the same filename).
+            globbed = sorted(up_root.rglob(basename), key=lambda p: (len(p.parts), str(p)))
+            for g in globbed:
+                # Skip obvious test/fuzz directories.
+                if any(seg in {"test", "tests", "fuzz", "fuzzers", "demos", "examples"}
+                       for seg in g.parts):
+                    continue
+                if g not in candidates:
+                    candidates.append(g)
+                    break  # one canonical hit is enough
+        for cand in candidates:
+            if not cand.is_file():
+                continue
+            # Promote the upstream file to PRIMARY: it holds the full
+            # vulnerable function AND its load-time validator / init helpers
+            # in the same translation unit. The original "primary" extract
+            # (e.g. xpath_axis_A.c) is just a ~10KB slice — letting it stay
+            # primary starves the budget for alphabetical neighbors.
+            if primary is not None and primary not in all_files:
+                all_files.append(primary)
+            primary = cand
+            upstream_added.add(cand)
+            # Same-directory upstream siblings. Rank: filenames literally
+            # named in file_context first, then prefix-match with primary,
+            # then alphabetical. This is what makes png.c (the validator
+            # next to pngrutil.c) reliably reach the prompt.
+            fc_basenames = set(re.findall(r"\b[\w\-+]+\.c\b", file_context))
+            cand_prefix = _name_prefix(cand.name)
+            same_dir = [s for s in sorted(cand.parent.iterdir())
+                        if s.is_file() and s.suffix == ".c" and s != cand]
+            def _common_prefix_len(a: str, b: str) -> int:
+                n = 0
+                for ca, cb in zip(a, b):
+                    if ca != cb:
+                        break
+                    n += 1
+                return n
+            cand_stem = cand.stem.lower()
+
+            def _udir_rank(s: Path) -> tuple[int, int, str]:
+                # bucket 0: filename literally cited in file_context
+                if s.name in fc_basenames:
+                    return (0, 0, s.name)
+                # bucket 1: exact name-prefix match (xpath_axis ~ xpath_nodeset)
+                if _name_prefix(s.name) == cand_prefix:
+                    return (1, 0, s.name)
+                # bucket 2: share a 3+ char common stem prefix with primary
+                # (libpng case: png.c shares "png" with pngrutil.c, beats
+                # alphabetically-earlier-but-unrelated example.c)
+                cpl = _common_prefix_len(s.stem.lower(), cand_stem)
+                if cpl >= 3:
+                    return (2, -cpl, s.name)  # negate so longer overlap wins
+                return (3, 0, s.name)
+            for s in sorted(same_dir, key=_udir_rank):
+                if s not in all_files:
+                    all_files.append(s)
+                    upstream_added.add(s)
+            break
 
     siblings = [f for f in all_files if f != primary]
     if return_upstream:
@@ -182,27 +238,111 @@ def _rank_siblings(primary: Path, siblings: list[Path],
         primary_text = ""
     fn_defs = set(re.findall(r"\b([a-zA-Z_][a-zA-Z0-9_]{3,})\s*\(", primary_text))
 
-    def score(s: Path) -> tuple[int, int, str]:
+    primary_stem = primary.stem.lower()
+    # Pattern for validator/checker/init/parser/open function definitions —
+    # the things sibling files use to enforce invariants the primary relies
+    # on. Counting matches in a sibling's head gives a content-based proxy
+    # for "is this likely to refute the finding?". Empirically: libpng's
+    # png.c has 8 such functions including png_check_IHDR, while siblings
+    # pngrutil.c / pngread.c / pngrio.c have 0-1. Naive prefix-ranking
+    # would put pngrtran ahead of png.c because it shares "pngr" with the
+    # primary pngrutil.c — content-counting flips that the right way.
+    _VALIDATOR_RE = re.compile(
+        r"^[a-z][a-z_0-9]*(?:_check_|_validate|_init_|_open_|_verify_|_sanity_)[a-z_0-9]*\s*\(",
+        re.MULTILINE | re.IGNORECASE,
+    )
+
+    def _common_prefix_len(a: str, b: str) -> int:
+        n = 0
+        for ca, cb in zip(a, b):
+            if ca != cb:
+                break
+            n += 1
+        return n
+
+    def _validator_count(p: Path) -> int:
+        try:
+            head = p.read_text(errors="ignore")[:80000]
+        except Exception:
+            return 0
+        return len(_VALIDATOR_RE.findall(head))
+
+    def score(s: Path) -> tuple[int, int, int, str]:
         # Lower tuple = higher priority (sorted ascending).
         # Bucket 0: upstream (the deepest context we can offer).
         if s in upstream_set:
-            return (0, 0, s.name.lower())
+            cpl = _common_prefix_len(s.stem.lower(), primary_stem)
+            vc = _validator_count(s)
+            # Sub-rank within upstream: more validator-style functions first,
+            # then longer shared stem prefix, then alphabetical.
+            return (0, -vc, -cpl, s.name.lower())
         prefix_match = _name_prefix(s.name) == primary_prefix
         if prefix_match:
-            return (1, 0, s.name.lower())
+            return (1, 0, 0, s.name.lower())
         try:
             body = s.read_text(errors="ignore")
         except Exception:
             body = ""
         refs_primary = any(fn in body for fn in fn_defs) if fn_defs else False
-        return (2 if refs_primary else 3, 0, s.name.lower())
+        return (2 if refs_primary else 3, 0, 0, s.name.lower())
 
     return sorted(siblings, key=score)
 
 
+def _slice_file(path: Path, max_chars: int, line_start=None) -> str:
+    """Read a file and return up to max_chars of content.
+
+    If the file fits in budget, return the whole body. Otherwise return a
+    head + line-window: the first ~35% of the budget from the start of the
+    file (where declarations, type definitions, and early helpers — often
+    validators — live), then a window of ~60% centred on `line_start`
+    (where the vulnerable function lives), with a truncation marker between.
+
+    This handles the canonical case from refuted findings: in libxml2's
+    xpath.c the validator (xmlXPathNodeSetDupNs at line 2604) and the vulnerable
+    function (xmlXPathNextAncestor at line 6425) are 14000+ lines apart in a
+    single 338KB file. A flat head-only slice misses one of them; this slicer
+    gets both.
+    """
+    try:
+        body = path.read_text(errors="ignore")
+    except Exception:
+        return ""
+    if len(body) <= max_chars:
+        return body
+    try:
+        ls = int(line_start) if line_start not in (None, "", "?") else None
+    except (TypeError, ValueError):
+        ls = None
+    if not ls:
+        return body[:max_chars] + "\n/* [tail truncated] */\n"
+    # Byte offset of the start of line ls.
+    lines = body.splitlines(keepends=True)
+    offset = sum(len(l) for l in lines[: max(0, ls - 1)])
+    # 50% head, ~50% window: enough head to catch in-file helpers like
+    # xmlXPathNodeSetDupNs (line 2604 in 12K-line xpath.c needs ~50% of a
+    # 200KB cap), enough window to capture the vulnerable function body.
+    head_size = int(max_chars * 0.5)
+    win_size = max_chars - head_size - 80  # 80 chars for markers
+    head = body[:head_size]
+    win_start = max(0, offset - win_size // 2)
+    win_end = min(len(body), win_start + win_size)
+    if win_start < head_size:
+        # Window overlaps head — just give head a bit more and skip slicing.
+        return body[: head_size + win_size] + "\n/* [tail truncated] */\n"
+    skipped_lines = body[head_size:win_start].count("\n")
+    return (
+        head
+        + f"\n/* [skipped ~{skipped_lines} lines] */\n"
+        + body[win_start:win_end]
+        + ("\n/* [tail truncated] */\n" if win_end < len(body) else "")
+    )
+
+
 def assemble_context(primary: Path | None, siblings: list[Path],
-                     max_total_chars: int = 60000,
-                     upstream_set: set[Path] | None = None
+                     max_total_chars: int = 300000,
+                     upstream_set: set[Path] | None = None,
+                     line_start=None
                      ) -> tuple[str, list[str]]:
     """Build a concatenated source context with file separators.
 
@@ -221,28 +361,37 @@ def assemble_context(primary: Path | None, siblings: list[Path],
     used = 0
     ranked = _rank_siblings(primary, siblings, upstream_set) if primary else siblings
 
-    def add(p: Path, label: str) -> bool:
+    # Per-file caps. Primary gets up to 200KB so both an early validator
+    # (e.g. xmlXPathNodeSetDupNs at xpath.c:2604) and the vulnerable function
+    # (e.g. xmlXPathNextAncestor at xpath.c:6988) both fit. First sibling gets
+    # 80KB so its head reaches a load-time validator typically at line
+    # 1500-2500 (e.g. png_check_IHDR in png.c at line 1933).
+    primary_cap = min(max_total_chars * 7 // 10, 200000)
+    sibling_caps = [80000, 40000, 20000, 10000, 5000]
+
+    def add(p: Path, label: str, cap: int, use_line_start) -> bool:
         nonlocal used
-        try:
-            body = p.read_text(errors="ignore")
-        except Exception:
-            return False
         header = f"\n/* ===== {label}: {p.name} ===== */\n"
         budget_left = max_total_chars - used - len(header)
-        if budget_left <= 200:
+        if budget_left <= 500:
             return False
-        chunk = body if len(body) <= budget_left else body[:budget_left] + "\n/* [truncated] */\n"
+        chunk = _slice_file(p, min(cap, budget_left), use_line_start)
+        if not chunk:
+            return False
         parts.append(header + chunk)
         used += len(header) + len(chunk)
         included.append(p.name)
         return True
 
     if primary:
-        add(primary, "PRIMARY")
-    for s in ranked:
+        add(primary, "PRIMARY", primary_cap, line_start)
+    for i, s in enumerate(ranked):
         if used >= max_total_chars - 500:
             break
-        add(s, "SIBLING")
+        cap = sibling_caps[i] if i < len(sibling_caps) else 5000
+        # No line_start for siblings — we don't know where the validator is
+        # inside them. Slicer falls back to head-only.
+        add(s, "SIBLING", cap, None)
 
     return "".join(parts), included
 
@@ -305,9 +454,10 @@ async def cross_check(agent: GLMAdapter, finding: dict, code: str,
         note = f"Included {len(included)} file(s) in context: {', '.join(included)}."
     else:
         note = "Only the primary extract is included."
-    # 60000-char budget matches assemble_context() default; glm-4-plus has
-    # 128K context, and pulling in the load-time validator / init sibling
-    # is the whole point of this stage.
+    # 300KB code budget matches assemble_context() default; glm-4-plus has
+    # 128K-token context (~500KB raw text at C-code density). Code arrives
+    # pre-sliced (head + line-window) so the validator and the vulnerable
+    # function both make it in.
     prompt = CROSS_PROMPT.format(
         target=finding["target"],
         file_context=finding["file_context"],
@@ -316,7 +466,7 @@ async def cross_check(agent: GLMAdapter, finding: dict, code: str,
         title=(finding.get("title") or "").strip()[:200],
         description=(finding.get("description") or "").strip()[:1500],
         included_note=note,
-        code=code[:60000],
+        code=code[:300000],
     )
     try:
         resp, usage = await agent.chat(
@@ -388,7 +538,9 @@ async def main():
             # writeups under research/disclosures/.
             primary, siblings, upstream_set = find_extracts(
                 f["target"], f.get("file_context", ""), return_upstream=True)
-            code, included = assemble_context(primary, siblings, upstream_set=upstream_set)
+            code, included = assemble_context(
+                primary, siblings, upstream_set=upstream_set,
+                line_start=f.get("line_start"))
 
             # J3: glm-4-plus cross-check with multi-file context + refutation prompt.
             if code:
