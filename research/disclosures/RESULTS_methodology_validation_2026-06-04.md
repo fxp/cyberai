@@ -94,31 +94,86 @@ in test harnesses, CLI demos (`xmlwf`), or platform-specific helpers
 `target_paths` to the workflow — e.g., libpng=`lib*.c`, expat=`lib/`,
 sqlite=`src/`, zlib=`*.c` excluding `contrib/`.
 
-**(b) deep_verify uploaded a stale placeholder.** All 10 new
-`deep_verified.jsonl` files share the same MD5 as a leftover from the
-2026-05-05 ImageMagick run. None of the 26 newly detected chains were
-actually re-verified. Fix: trace `deep_verify_chain.py`'s output path in
-`pipeline_b.yml`; the OSS upload step is reading from a fixed
-`/tmp/results/deep_verified.jsonl` even when no new file was written.
+**(b) ~~deep_verify uploaded a stale placeholder~~** — CORRECTED 2026-06-04
+evening: the workflow trigger DID fire and verify_chain.yml DID run for
+all 5 chain-producing targets, producing real `deep_verified.jsonl`
+artifacts. The "stale ImageMagick" I observed on OSS came from
+pipeline_b.yml's `aggregate` job, which has a broken "best-effort merge"
+step (`gh run list --workflow=verify_chain.yml --limit=5` picks the
+most-recently-completed run regardless of source_run_id, dragging in an
+unrelated old run's artifact). That step has been removed; verify_chain.yml
+now uploads its `deep_verified.jsonl` to OSS under
+`pipeline-b/<source_run_id>/deep_verified.jsonl` so it's discoverable
+without crawling GitHub API.
 
-### Best surviving production-code candidates
+### Real deep_verify outcomes — 25 chains across 5 targets
 
-After filtering out test/CLI/Windows-only chains:
+After downloading the GitHub-Actions artifacts directly (since the OSS
+mirror was stale):
 
-| Target | Location | Type | Confidence | Triage note |
-|---|---|---|---|---|
-| expat | `lib/xmlparse.c:XML_SetHashSalt:2247` | hash flooding DoS via weak salt | 72 | requires kernel entropy exhaustion — precondition shaky |
-| expat | `lib/random_dev_urandom.c` | race in entropy gather | 78 | similar precondition issues |
-| sqlite | `ext/fts3/fts3_tokenize_vtab.c:fts3tokFilterMethod:348` | taint→info_leak→heap overflow | 82 | needs attacker SQL access; worth deep-verify |
-| sqlite | `src/mem3.c:memsys3FreeUnsafe:447` | unlink write primitive | 75 | mem3 is non-default allocator — niche |
-| zlib | `gzlib.c:gz_open:87` | partial corruption → double free | 72 | needs attacker-controlled file open params |
-| libpng | `pngmem.c:png_get_mem_ptr:279` | mem_ptr exposure → UAF | 60 | requires application to call `png_set_mem_fn` — app-API, not attacker input |
+| Target | FP | PARTIAL | NEEDS_CTX | PARSE_ERROR | CONFIRMED |
+|---|---|---|---|---|---|
+| libpng (4 chains) | 2 | 1 | 0 | 1 | **0** |
+| nginx  (4 chains) | 0 | 0 | 1 | 3 | **0** |
+| expat  (6 chains) | 2 | 2 | 0 | 2 | **0** |
+| zlib   (5 chains) | 1 | 4 | 0 | 0 | **0** |
+| sqlite (6 chains) | 2 | 2 | 0 | 2 | **0** |
+| **Total** | **7** | **9** | **1** | **8** | **0** |
 
-None look slam-dunk. The expat hash-flooding pattern has been discussed in
-the literature for years and is generally considered an application-level
-mitigation problem, not a library bug. The sqlite candidates are
-interesting and would be the highest-value targets for a manual
-re-grounding pass once the deep_verify workflow is fixed.
+Zero CONFIRMED across all 25 chains. Every PARTIAL has a hard precondition
+documented in its `break_reason`:
+
+- libpng `chain_001`: double-free at `contrib/libtests/readpng.c` is
+  impossible — setjmp error path and normal cleanup are mutually exclusive
+- expat `chain_002` (hash flooding): needs unverified SipHash key init
+- expat `chain_004`: requires `EXPAT_ENTROPY_DEBUG=1` env var set
+  externally — unreachable from XML input
+- zlib `chain_002` (path traversal): in `contrib/minizip` CLI, not the lib
+- zlib `chain_003` (gz_open double-free): requires application-level bug
+  (caller invokes gzclose twice)
+- zlib `chain_005` (TOCTOU): microsecond race window, unwinnable in practice
+- sqlite `chain_003`: gated behind `#ifdef SQLITE_DEBUG` (empty in
+  production builds)
+- sqlite `chain_005`: gated behind `SQLITE_ENABLE_FTS3_TOKENIZER` —
+  disabled by default for security, documented as a feature-risk
+
+I also locally re-ran the 1 PARSE_ERROR that was in production code
+(sqlite `mem3.c` `chain_006`) — it resolved to **PARTIAL conf 75**, broken
+at step 3, with a real race window in `memsys3OutOfMemory:239`
+(mutex released during `sqlite3_release_memory()` callback creating a TOCTOU
+window for the Mem3Block union's next/prev pointers vs user data). But
+mem3 is the non-default `SQLITE_ENABLE_MEMSYS3` allocator — same
+compile-flag pattern.
+
+The other 7 PARSE_ERRORs are all in non-production code (libpng contrib,
+nginx win32, expat xmlwf, sqlite ext/session benchmark) — not worth
+salvaging.
+
+OSS artifacts (saved this run so they don't expire with GH retention):
+- `oss://cyberai-scan-results-us1/pipeline-b/deep_verified_20260604/<target>_deep_verified.jsonl`
+
+### Best surviving production-code candidates — POST-DEEP-VERIFY
+
+After running every chain through Pipeline B's own deep verifier, the
+candidate list shrinks dramatically. Nothing survives without a
+non-default compile flag or application-bug precondition:
+
+| Target | Chain | Deep-verify verdict | Surviving precondition |
+|---|---|---|---|
+| sqlite | `chain_005` fts3 type confusion | PARTIAL conf 72 | needs `SQLITE_ENABLE_FTS3_TOKENIZER` (disabled by default since CVE-2009-3236 era) |
+| sqlite | `chain_003` mem3 unlink primitive | PARTIAL conf 58 | needs `SQLITE_DEBUG` (step 3 empty in production) |
+| sqlite | `chain_006` mem3 race (retried locally) | PARTIAL conf 75 | needs `SQLITE_ENABLE_MEMSYS3` (non-default allocator) |
+| expat | `chain_002` hash flooding | PARTIAL conf 62 | needs unverified SipHash init flaw |
+| expat | `chain_004` entropy debug leak | PARTIAL conf 65 | needs `EXPAT_ENTROPY_DEBUG=1` env var set in target process |
+| zlib | `chain_003` gz_open double-free | PARTIAL conf 52 | needs application caller to double-close gzFile (documented misuse) |
+
+**No genuinely novel disclosure candidate survives.** The 10 libraries
+scanned (libpng, libxml2, freetype, expat, curl, nginx, sqlite, openssl,
+zlib, libssh2) are all mature, well-audited codebases where every
+plausible chain bottoms out at a compile-flag gate, a documented feature-
+risk, or an application-level misuse pattern. This is the expected
+outcome for these targets — historically these libraries have had 100+
+CVEs each, and the easy wins have been fixed.
 
 ---
 
@@ -142,12 +197,28 @@ re-grounding pass once the deep_verify workflow is fixed.
 
 ## Recommended next moves
 
-1. **Fix Pipeline B's deep_verify upload path** so the 26 new chains
-   actually get re-verified — half a day of workflow debugging.
+1. **~~Fix Pipeline B's deep_verify upload path~~ — DONE 2026-06-04 evening.**
+   pipeline_b.yml's broken `aggregate` merge step removed; verify_chain.yml
+   now uploads its `deep_verified.jsonl` directly to OSS under both
+   `pipeline-b/<source_run_id>/` and `pipeline-b/verify-chain-<verify_run>/`
+   so future deep_verify results are discoverable next to the chains they
+   judge.
 2. **Rerun Pipeline B with strict `target_paths`** to exclude
-   contrib/tests/CLI/platform-specific code. Cuts noise ~40%.
-3. **Implement the sanitizer harness (AGENTS.md improvement #8)** so any
-   surviving "production-code" Pipeline B chain can be empirically tested
-   in <30 min instead of consuming a day of manual review.
-4. **Hold off on more raw scanning** until 1-3 are in place. The signal
-   isn't bad — the filters are weak.
+   contrib/tests/CLI/platform-specific code. Cuts noise ~50%. (Easy win,
+   but unlikely to surface anything new on these 10 well-audited libraries
+   given the deep_verify outcome above.)
+3. **Aim Pipeline B at fresher targets.** The 10 canonical targets are too
+   mature for the methodology to find anything novel. Candidate next-tier
+   targets: lesser-known crypto/parsing libs, newer image/font formats
+   (e.g. avif/jxl decoders), recent network protocol parsers (QUIC libs,
+   newer TLS variants), or specific hardened libraries that recently
+   shipped a major refactor.
+4. **Implement the sanitizer harness (AGENTS.md improvement #8)** if and
+   when a future Pipeline B run produces a genuinely uncertain PARTIAL on
+   production code — saves a day of manual ASAN PoC work per candidate.
+5. **Accept the negative result on these 10 targets.** End-to-end run
+   says: methodology works, infrastructure works, but the well-audited
+   libraries don't yield novel findings to this approach. Useful
+   contribution to the field is a clean write-up of "what we tried,
+   what stopped working, what comes next" — already partly done in this
+   doc and the prior disclosure refutation notes.

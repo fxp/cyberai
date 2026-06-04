@@ -94,6 +94,43 @@ jobs:
           path: results/deep_verified.jsonl
           retention-days: 90
 
+      # Mirror to OSS so the deep_verify output survives the 90-day GitHub
+      # artifact retention and is discoverable next to chains.jsonl from the
+      # source pipeline_b run. Path is keyed by SOURCE pipeline_b run id so
+      # downstream tooling (and humans) can pair chains with their deep
+      # verdicts without crawling GitHub's API.
+      - name: Push deep_verified.jsonl to OSS
+        if: always()
+        env:
+          ALIYUN_ACCESS_KEY_ID: ${{ secrets.ALIYUN_ACCESS_KEY_ID }}
+          ALIYUN_ACCESS_KEY_SECRET: ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }}
+          ALIYUN_OSS_BUCKET: ${{ secrets.ALIYUN_OSS_BUCKET }}
+          SOURCE_RUN_ID: ${{ github.event.inputs.source_run_id }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          if [ ! -f results/deep_verified.jsonl ]; then
+            echo "ℹ️  no deep_verified.jsonl produced — nothing to upload"
+            exit 0
+          fi
+          pip install -q oss2
+          python - <<'EOF'
+          import oss2, os
+          auth = oss2.Auth(os.environ["ALIYUN_ACCESS_KEY_ID"],
+                           os.environ["ALIYUN_ACCESS_KEY_SECRET"])
+          bucket = oss2.Bucket(auth, "https://oss-us-west-1.aliyuncs.com",
+                               os.environ["ALIYUN_OSS_BUCKET"])
+          src_run = os.environ.get("SOURCE_RUN_ID","unknown")
+          this_run = os.environ.get("GITHUB_RUN_ID","unknown")
+          # Primary path: keyed by SOURCE pipeline_b run id (the chains owner)
+          key1 = f"pipeline-b/{src_run}/deep_verified.jsonl"
+          bucket.put_object_from_file(key1, "results/deep_verified.jsonl")
+          # Secondary path: keyed by this verify_chain run id (for traceability)
+          key2 = f"pipeline-b/verify-chain-{this_run}/deep_verified.jsonl"
+          bucket.put_object_from_file(key2, "results/deep_verified.jsonl")
+          print(f"✅ uploaded oss://{os.environ['ALIYUN_OSS_BUCKET']}/{key1}")
+          print(f"✅ uploaded oss://{os.environ['ALIYUN_OSS_BUCKET']}/{key2}")
+          EOF
+
       - name: Post results to Slack
         if: always()
         env:
