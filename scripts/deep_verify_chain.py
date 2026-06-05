@@ -89,26 +89,51 @@ def get_glm_client(model: str) -> tuple:
     return ZhipuAI(api_key=key), model
 
 
-def read_source_context(repo_root: Path, location: str, context_lines: int = 40) -> str:
+def read_source_context(repo_root: Path, location: str, context_lines: int = 400,
+                        function_hint: str | None = None) -> str:
     """Read source code around the stated location.
 
-    location format: "path/to/file.c:function:lineno"  or  "path/to/file.c:lineno"
+    location format: "path/to/file.c:function:lineno"  or
+                     "path/to/file.c:lineno"  or
+                     "path/to/file.c:func:start-end"  (line range)  or
+                     "path/to/file.c:func"            (no line — fall back to function-name search)
+
+    Default ``context_lines=400`` (i.e. ±200 around line of interest) so a
+    sibling validator within the same function or a few above/below makes
+    it into the prompt. Previously this was 40 — empirically too narrow:
+    every PARTIAL/NEEDS_MORE_CONTEXT verdict on the 2026-06-04 strict-path
+    Pipeline B sweep cited "code not provided / only first 80 lines shown"
+    in its break_reason. Same root cause as Pipeline A's pre-fix narrow
+    extracts: the validator/precondition lives in the *rest* of the file,
+    not the 80-line window.
+
+    Also fixes location parsing: line ranges like "510-517" used to fail
+    ``str.isdigit()`` (the dash) and silently fall back to "first 80 lines
+    of file" — now the leading integer is extracted.
     """
     if not location or location == "?":
         return "(location unknown)"
 
-    # parse location
+    # parse location — accept bare ints, ranges (510-517), or hyphen-comma lists
     parts = location.split(":")
     file_part = parts[0]
     lineno = None
+    import re as _re
     for p in parts[1:]:
-        if p.isdigit():
-            lineno = int(p)
+        m = _re.match(r"^(\d+)", p.strip())
+        if m:
+            lineno = int(m.group(1))
             break
+    # Last-ditch: scan ANY token in the location for a leading int
+    if lineno is None:
+        for tok in _re.split(r"[\s:,;]", location):
+            m = _re.match(r"^(\d+)$", tok)
+            if m:
+                lineno = int(m.group(1))
+                break
 
     candidate = repo_root / file_part
     if not candidate.exists():
-        # try stripping leading path components (e.g. "src/net.c" → "net.c")
         found = False
         for depth in range(1, 4):
             parts_stripped = Path(file_part).parts[depth:]
@@ -124,9 +149,25 @@ def read_source_context(repo_root: Path, location: str, context_lines: int = 40)
             return f"(file not found: {file_part})"
 
     try:
-        lines = candidate.read_text(errors="replace").splitlines()
+        body = candidate.read_text(errors="replace")
+        lines = body.splitlines()
     except Exception as e:
         return f"(read error: {e})"
+
+    # If no lineno, but we have a function name hint, find it by regex.
+    if lineno is None and function_hint:
+        for i, line in enumerate(lines):
+            if _re.search(rf"\b{_re.escape(function_hint)}\s*\(", line):
+                lineno = i + 1
+                break
+    if lineno is None and len(parts) >= 2:
+        # parts[1] often IS the function name when no line number is given
+        fn = parts[1].strip()
+        if fn and _re.match(r"^[A-Za-z_][\w]*$", fn):
+            for i, line in enumerate(lines):
+                if _re.search(rf"\b{_re.escape(fn)}\s*\(", line):
+                    lineno = i + 1
+                    break
 
     if lineno and 1 <= lineno <= len(lines):
         start = max(0, lineno - context_lines // 2)
@@ -134,11 +175,11 @@ def read_source_context(repo_root: Path, location: str, context_lines: int = 40)
         snippet = lines[start:end]
         numbered = [f"{start + i + 1:5d}  {l}" for i, l in enumerate(snippet)]
         return f"// {candidate.relative_to(repo_root)} (lines {start+1}-{end})\n" + "\n".join(numbered)
-    else:
-        # return first N lines of the file
-        snippet = lines[:context_lines * 2]
-        numbered = [f"{i+1:5d}  {l}" for i, l in enumerate(snippet)]
-        return f"// {candidate.relative_to(repo_root)} (first {len(snippet)} lines)\n" + "\n".join(numbered)
+
+    # No lineno even after function lookup — return a generous head slice.
+    snippet = lines[:context_lines]
+    numbered = [f"{i+1:5d}  {l}" for i, l in enumerate(snippet)]
+    return f"// {candidate.relative_to(repo_root)} (first {len(snippet)} lines)\n" + "\n".join(numbered)
 
 
 def build_chain_prompt(chain: dict, repo_root: Path) -> str:
