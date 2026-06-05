@@ -177,6 +177,77 @@ CVEs each, and the easy wins have been fixed.
 
 ---
 
+## 3. Pipeline B re-run — strict `target_paths`, 2026-06-05
+
+Re-ran all 10 targets with per-target `target_paths` restricted to
+production library code only (e.g. libpng = root `*.c` + SIMD dirs,
+excludes `contrib/`; nginx = `src/{core,event,http,stream,mail,misc,os/unix}`
+excludes `src/os/win32/`; expat = `expat/lib/` excludes `xmlwf/`). Chain
+counts shifted as expected:
+
+| Target | Loose chains | Strict chains | Note |
+|---|---|---|---|
+| libpng | 4 | 0 | all 4 were in `contrib/` |
+| nginx | 4 | 2 | 3 in `src/os/win32/`, gone |
+| expat | 7 | 4 | 3 in `xmlwf/`, gone |
+| zlib | 5 | 4 | 1 in `contrib/`, gone |
+| libxml2 | 0 | 4 | loose-path was prioritising the wrong files |
+| curl | 0 | 3 | loose-path scanned `src/` (CLI), strict scopes to `lib/` |
+| sqlite | 6 | 7 | loose included `ext/session_speed_test.c`; strict surfaces `src/test_*.c` instead (still test code) |
+| **Total** | 26 | 24 | shape changes more than size |
+
+### Deep_verify finally produced CONFIRMED — but they're all documented-unsafe
+
+The first deep_verify pass on the strict runs hit a `read_source_context`
+bug: `location` strings with line ranges like `xmlDestructor:510-517`
+failed `.isdigit()` and silently fell back to "first 80 lines of file".
+Every PARTIAL/NEEDS_MORE_CONTEXT cited "code not provided / only lines
+1-80 shown" in `break_reason`. Same root cause as Pipeline A's pre-fix
+state. Fixed in `scripts/deep_verify_chain.py` (commit `87868cf5`):
+default window 40 → 400 lines, range parsing handles `510-517`, function-
+name fallback when no line number is given. Smoke-tested.
+
+Re-ran the 11 bottlenecked chains (`PARTIAL` / `NEEDS_MORE_CONTEXT` /
+`PARSE_ERROR`) with the fixed deep_verify locally. **3 chains flipped to
+CONFIRMED — all 3 in libxml2 `threads.c` / `xmlmemory.c`:**
+
+| Chain | Pattern | CVSS |
+|---|---|---|
+| `chain_002` | `xmlDestructor` (DLL unload) → `xmlCleanupParser` → race in `xmlMemFree` tag-check-then-free | AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H |
+| `chain_003` | Concurrent `xmlCleanupParser` + `onceControl` reset → double_free + reinit_UAF | AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H |
+| `chain_004` | Concurrent `xmlMemRealloc` + `xmlMemFree` race | AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H |
+
+**On manual inspection, all 3 are documented non-bugs:**
+
+1. **`xmlMemFree` is the DEBUG allocator, not the production default.**
+   `xmlFree` (the actual production free) is plain `free()` unless the
+   caller explicitly calls `xmlMemSetup(xmlMemFree, ...)`. Searching the
+   tree, that's only done by `runxmlconf.c` / `runsuite.c` (test
+   harnesses) or by `xmllint -memdebug` (debug flag). chain_004's tag-
+   check-then-free race only exists when the application opts into the
+   debug allocator.
+2. **`xmlCleanupParser` is explicitly documented as unsafe**
+   (`threads.c` source comment):
+   > "WARNING: `xmlCleanupParser` is not thread-safe. If this function is
+   > called and any threads that could make calls into libxml2 are still
+   > running, memory corruption is likely to occur."
+   chain_002 (DLL unload calls cleanup) and chain_003 (concurrent
+   cleanup) are exactly the documented hazard, not a novel finding.
+
+So even with a now-correct deep_verify pipeline, **still 0 genuinely
+novel CONFIRMED disclosures across all 10 targets**. The two improvements
+(strict paths + widened deep_verify context) made the pipeline measurably
+more accurate — fewer noise chains, fewer "code not provided" partial
+verdicts — but produced no new disclosure candidate. This is the third
+independent confirmation of the negative result on these 10 targets.
+
+### Cost summary for this round
+- 10 strict-path Pipeline B runs: GH Actions free tier + ~$3 GLM API
+- 11-chain deep_verify retry locally: ~$3.50 GLM API
+- Total: **~$6.50** added on top of the prior $15.77 methodology run
+
+---
+
 ## What this proves and what it doesn't
 
 **Proves:**
